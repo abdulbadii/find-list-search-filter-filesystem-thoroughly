@@ -1,6 +1,6 @@
 #! /usr/bin/bash
 l(){
-p=~+;i=;o=
+i=;o=
 for a
 {
 let i++
@@ -11,19 +11,19 @@ case ${a:0:3} in
 	*)
 	if test "${a:0:1}" = / ;then
 		if test -d $a ;then
-			find $a -noleaf -regextype posix-extended -iregex '.*' -printf "${o:-%p} \n"
+			find $a -regextype posix-extended -iregex '.*' -printf "${o:-%p} \n"
 		elif test -f $a ;then
 			p=${a%/*}
 			a=${@:$i};	a=${a//$p/}
-			find $p -noleaf -regextype posix-extended -iregex "^.*(${a// /|})" -printf "${o:-%p} \n"
+			find $p -regextype posix-extended -iregex "^.*(${a// /|})" -printf "${o:-%p} \n"
 		else echo No file or directory exists
 		fi
 	elif test -f $a ;then 
 		a=${@:$i}
-		find ~+ -noleaf -regextype posix-extended -iregex "^.*/(${a// /|})" -printf "${o:-%p} \n"
+		find ~+ -regextype posix-extended -iregex "^.*/(${a// /|})" -printf "${o:-%p} \n"
 	else
 		a=${a//./\\.};a=${a//\*/.*}
-		find ~+ -noleaf -regextype posix-extended -iregex "^.*/${a//\?/.}" -printf "${o:-%p} \n"
+		find ~+ -regextype posix-extended -iregex "^.*/${a//\?/.}" -printf "${o:-%p} \n"
 	fi
 	return;;
 esac
