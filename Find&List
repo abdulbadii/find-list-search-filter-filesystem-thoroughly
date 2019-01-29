@@ -1,29 +1,31 @@
 #! /usr/bin/bash
 l(){
-i=;o=%p
+o=%p;i=
 for a
 {
 let i++
 case ${a:0:3} in
-	-s) o="%s %p";;
-	-t) o="%p %t";;
+	-s) o='%s %p';;
+	-t) o='%p %t';;
 	-st|-ts) o="%s %p %t";;
 	*)
-	if test "${a:0:1}" = / ;then
-		if test -d $a ;then
-			find $a -regextype posix-extended -iregex '.*' -printf "$o \n"
-		elif test -f $a ;then
-			p=${a%/*}
-			a=${@:$i};	a=${a//$p/}
-			find $p -regextype posix-extended -iregex "^.*(${a// /|})" -printf "$o \n"
-		else echo No \'$a\' file/directory exists
-		fi
-	elif test -f $a ;then 
-		a=${@:$i}
-		find ~+ -regextype posix-extended -iregex "^.*/(${a// /|})" -printf "$o \n"
-	else
+	if [ ! -e $a ] ;then
 		a=${a//./\\.};a=${a//\*/.*}
-		find ~+ -regextype posix-extended -iregex "^.*/${a//\?/.}" -printf "$o \n"
+		find ~+ -regextype posix-extended -iregex "^.*/${a//\?/.}.*" -printf "$o \n"
+	else
+		a=${@:$i}
+		if test "${a:0:1}" = / ;then
+			b=${@:$i:1};	c=${@:${#@}};
+			IFS=$'/';	c=($c)	;j=;p=
+			for h in ${b:1}
+			{	let j++;[ $h != ${c[$j]} ]&&break
+				p=$p/$h
+			}
+			a="(${a// /|})"
+			unset IFS
+		else p=~+; a="^.*/(${a// /|})"
+		fi
+		find $p -regextype posix-extended -iregex "$a" -printf "$o \n"
 	fi
 	return;;
 esac
