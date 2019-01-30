@@ -1,29 +1,26 @@
 #! /usr/bin/bash
-l(){
+ll(){
 o=%p;i=
 for a
 {
 let i++
 case ${a:0:3} in
 	-s) o='%s %p';;
-	-t) o='%p %t';;
-	-st|-ts) o="%s %p %t";;
+	-t) o='%p %Tr %Tx';;
+	-st|-ts) o="%s %p %Tr %Tx";;
 	*)
-	if [ ! -e $a ] ;then
+	if test ! -e $a ;then
 		a=${a//./\\.};a=${a//\*/.*}
 		find ~+ -regextype posix-extended -iregex "^.*/${a//\?/.}.*" -printf "$o \n"
 	else
 		a=${@:$i}
 		if test "${a:0:1}" = / ;then
-			b=${@:$i:1};	c=${@:${#@}};
-			IFS=$'/';	c=($c)	;j=;p=
-			for h in ${b:1}
-			{	let j++;[ $h != ${c[$j]} ]&&break
-				p=$p/$h
-			}
-			a="(${a// /|})"
-			unset IFS
-		else p=~+; a="^.*/(${a// /|})"
+			b=${@:i:1};	c=${@:${#@}};
+			p=
+			for((j=1;;j++))
+			{	[ ${b:j:1} != ${c:j:1} ]&&break;}
+			p=${b:0:j};	a="(${a// /|})"
+		else p=~+;	a="^.*/(${a// /|})"
 		fi
 		find $p -regextype posix-extended -iregex "$a" -printf "$o \n"
 	fi
