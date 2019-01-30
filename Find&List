@@ -13,13 +13,18 @@ case ${a:0:3} in
 		a=${@:$i}
 		if [ "${a:0:1}" = / ];then
 			b=${@:i:1};	c=${@:${#@}};
-			p=
 			for((j=1;;j++))
 			{	[ ${b:j:1} != ${c:j:1} ]&&break;}
 			p=${b:0:j};	a="(${a// /|})"
 		else p=~+;	a="^.*/(${a// /|})"
 		fi
-		find $p -regextype posix-extended -iregex "$a" -printf "$o \n"
+		find "$p" -regextype posix-extended -iregex "$a" -printf "$o \n"
+	elif [ "${a:0:1}" = / ];then
+		p=${a%%[*?]*};	p=${p%/*}
+		a=${a#$p}
+		a=${a//./\\.};a=${a//\*/[^\/]*}
+		find "$p" -regextype posix-extended -iregex "$p/.*${a//\?/.}.*" -printf "$o \n"
+	return
 	else
 		a=${a//./\\.};a=${a//\*/.*}
 		find ~+ -regextype posix-extended -iregex "^.*/${a//\?/.}.*" -printf "$o \n"
