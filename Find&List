@@ -9,12 +9,12 @@ case ${a:0:3} in
 	-t) o='%p %Tr %Tx';;
 	-st|-ts) o="%s %p %Tr %Tx";;
 	*)
-	if test ! -e $a ;then
+	if [ ! -e $a ];then
 		a=${a//./\\.};a=${a//\*/.*}
 		find ~+ -regextype posix-extended -iregex "^.*/${a//\?/.}.*" -printf "$o \n"
 	else
 		a=${@:$i}
-		if test "${a:0:1}" = / ;then
+		if [ "${a:0:1}" = / ];then
 			b=${@:i:1};	c=${@:${#@}};
 			p=
 			for((j=1;;j++))
