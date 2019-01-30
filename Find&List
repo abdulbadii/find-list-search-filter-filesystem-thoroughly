@@ -23,11 +23,10 @@ case ${a:0:3} in
 		p=${a%%[*?]*};	p=${p%/*}
 		a=${a#$p}
 		a=${a//./\\.};a=${a//\*/[^\/]*}
-		find "$p" -regextype posix-extended -iregex "$p/.*${a//\?/.}.*" -printf "$o \n"
-	return
+		find "$p" -regextype posix-extended -iregex "$p/.*${a//\?/.}" -printf "$o \n"
 	else
 		a=${a//./\\.};a=${a//\*/.*}
-		find ~+ -regextype posix-extended -iregex "^.*/${a//\?/.}.*" -printf "$o \n"
+		find ~+ -regextype posix-extended -iregex "^.*/${a//\?/.}" -printf "$o \n"
 	fi
 	return;;
 esac
