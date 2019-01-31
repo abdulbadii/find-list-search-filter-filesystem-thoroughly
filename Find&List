@@ -25,7 +25,7 @@ case ${a:0:3} in
 		a=${a#$p}
 		a=${a//./\\.}
 		if [[ $a =~ \*\* ]] ;then
-			a=${a//\*\*/|};	a=${a//\*/[^\/]*};	a=${a/|/.*};
+			a=${a//\*\*/|};	a=${a//\*/[^\/]*};	a=${a//|/.*};
 		else	a=${a//\*/[^\/]*}
 		fi
 		find "$p" -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf "$r \n"
