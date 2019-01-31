@@ -191,32 +191,18 @@ Note if a number n specified:
         ples.  If no permission bits in mode are set,  this  test  matches  any
         file  (the  idea  here  is to be consistent with the behaviour of -perm
         -000).
-
- -perm +mode
-        This is no longer supported (and has been deprecated since 2005).   Use
-        -perm /mode instead.
-
- -readable
+ -readable  
         Matches  files which are readable.  This takes into account access con‐
         trol lists  and  other  permissions  artefacts  which  the  -perm  test
         ignores.   This test makes use of the access(2) system call, and so can
         be fooled by NFS servers which  do  UID  mapping  (or  root-squashing),
         since  many  systems  implement access(2) in the client's kernel and so
         cannot make use of the UID mapping information held on the server.
-
- -regex pattern
-        File name matches regular expression pattern.  This is a match  on  the
-        whole  path,  not  a  search.   For  example,  to  match  a  file named
-        `./fubar3', you can use the regular expression  `.*bar.'  or  `.*b.*3',
-        but  not  `f.*r3'.   The  regular expressions understood by find are by
-        default Emacs Regular Expressions, but this can  be  changed  with  the
-        -regextype option.
-
- -samefile name
+ -samefile name  
         File refers to the same inode as name.   When -L is in effect, this can
         include symbolic links.
 
- -size n[cwbkMG]
+ -size n[cwbkMG]  
         File uses n units of space, rounding up.  The following suffixes can be
         used:
 
