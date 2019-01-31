@@ -55,17 +55,17 @@ $ l /a/\\**m\*.c
 /a/b/min.c  
 /a/b/c/d/e/f/g/max.c
 
-note the last extra two as for an instance
+note the last extra two as for an instance  
 
 to narrow down more the search it could utilize the Linux "find" option to filter or test the search
 
-$ l -atime -5 /a/\**m*.c
+$ l -atime -5 /a/\**m*.c  
 will give the above of which only modified less than 5 days ago
 
 
-copied from its manual they are:   
+the copy from its manual are:   
 
-Note if a number n specified:
+Note if a number n specified:  
      +n     for greater than n    
      -n     for less than n   
       n      for exactly n
@@ -76,7 +76,7 @@ Note if a number n specified:
             File was last accessed more recently than file was modified.   If  file
             is a symbolic link and the -H option or the -L option is in effect, the
             access time of the file it points to is always used.
- -atime n
+ -atime n  
               File was last accessed n*24 hours ago.  When find figures out how  many
               24-hour  periods ago the file was last accessed, any fractional part is
               ignored, so to match -atime +1, a file has to  have  been  accessed  at
