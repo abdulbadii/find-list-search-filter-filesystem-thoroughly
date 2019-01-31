@@ -33,7 +33,7 @@ If we want to know their sizes precede it with -s
 and to know their last modification time precede it with -t, while -st for both   
 So forth as many directories nested under it as OS could do  
 
-It'd be navigated by absolute path too  
+may be navigated as absolute path too  
 $ cd /z
 $ Tes@Linux /z
 $ l /a/b/c/m*.c
@@ -41,3 +41,15 @@ $ l /a/b/c/m*.c
 /a/b/c/main.c   
 /a/b/c/meta.c   
 /a/b/c/d/e/menu.c
+
+as absolute path it can even search to anyone more than one depth at "**" string if being input so
+
+$ l /a/**m*.c
+
+/a/main.c
+/a/b/c/main.c   
+/a/b/c/meta.c   
+/a/b/c/d/e/menu.c
+/a/b/c/d/e/f/man.c
+
+if such 1st and last do exist
