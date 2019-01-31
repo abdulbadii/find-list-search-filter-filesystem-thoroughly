@@ -55,12 +55,12 @@ $ l /a/\\**m\*.c
 /a/b/min.c  
 /a/b/c/d/e/f/g/max.c
 
-note the extra last two if such exist
+note the last extra two as for an instance
 
-to more narrow the search it could utilize the Linux "find" option to filter or test the search
+to narrow down more the search it could utilize the Linux "find" option to filter or test the search
 
 $ l -atime -5 /a/\**m*.c
-will give only the above of which modified less than 5 days ago
+will give the above of which only modified less than 5 days ago
 
 
 copied from its manual they are:   
