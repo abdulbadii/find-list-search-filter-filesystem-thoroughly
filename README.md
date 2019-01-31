@@ -27,7 +27,7 @@ Let's add more under it
 If we want to know their sizes precede it with -s option   
   Tes@Linux /   
  $ l -s *.c   
- 999 /a/main.c
+ 999 /a/main.c  
  711 /a/b/c/main.c   
  33 /a/b/c/meta.c   
  77 /a/b/c/d/e/menu.c   
@@ -37,9 +37,9 @@ while for last modification time with -t, and -st for both
 And so forth, as many directories nested under it as OS is capable   
 
 it may be navigated as absolute path too  
-$ cd /z
-$ Tes@Linux /z
-$ l /a/b/c/m*.c
+$ cd /z  
+$ Tes@Linux /z  
+$ l /a/b/c/m*.c  
 
 /a/b/c/main.c   
 /a/b/c/meta.c   
