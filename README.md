@@ -8,7 +8,7 @@ Let a directory with path /a and /a/b/c contain main.c and added the latter with
   $ cd /   
   Tes@Linux /   
   $ l *.c *.h  
-  /a/main.c
+  /a/main.c   
   /a/b/c/main.c   
   /a/b/c/meta.c   
   /a/b/c/ab.c    
@@ -121,39 +121,12 @@ Note if a number n specified:
  -gid n File's numeric group ID is n.
 
  -group gname
-        File belongs to group gname (numeric group ID allowed).
-
- -ilname pattern
-        Like -lname, but the match is case insensitive.  If the  -L  option  or
-        the  -follow  option  is  in effect, this test returns false unless the
-        symbolic link is broken.
-
- -iname pattern
-        Like -name, but the match is case insensitive.  For example,  the  pat‐
-        terns  `fo*' and `F??' match the file names `Foo', `FOO', `foo', `fOo',
-        etc.   The pattern `*foo*` will also match a file called '.foobar'.
-
+        File belongs to group gname (numeric group ID allowed)
  -inum n
         File has inode number n.  It is normally easier to  use  the  -samefile
         test instead.
-
- -ipath pattern
-        Like -path.  but the match is case insensitive.
-
- -iregex pattern
-        Like -regex, but the match is case insensitive.
-
- -iwholename pattern
-        See -ipath.  This alternative is less portable than -ipath.
-
  -links n
         File has n links.
-
- -lname pattern
-        File  is  a  symbolic  link whose contents match shell pattern pattern.
-        The metacharacters do not treat `/' or `.' specially.  If the -L option
-        or  the -follow option is in effect, this test returns false unless the
-        symbolic link is broken.
 
  -mmin n
         File's data was last modified n minutes ago.
@@ -162,24 +135,6 @@ Note if a number n specified:
         File's data was last modified n*24 hours ago.   See  the  comments  for
         -atime  to  understand  how rounding affects the interpretation of file
         modification times.
-
- -name pattern
-        Base of file name (the  path  with  the  leading  directories  removed)
-        matches  shell  pattern  pattern.   Because the leading directories are
-        removed, the file names considered for a match with  -name  will  never
-        include a slash, so `-name a/b' will never match anything (you probably
-        need to use -path instead).  A warning is issued if you try to do this,
-        unless  the environment variable POSIXLY_CORRECT is set.  The metachar‐
-        acters (`*', `?', and `[]') match a `.' at the start of the  base  name
-        (this is a change in findutils-4.2.2; see section STANDARDS CONFORMANCE
-        below).  To ignore a directory and the files under it, use -prune;  see
-        an  example  in the description of -path.  Braces are not recognised as
-        being special, despite the fact that some shells including  Bash  imbue
-        braces with a special meaning in shell patterns.  The filename matching
-        is performed with the use of the fnmatch(3) library  function.    Don't
-        forget  to  enclose  the  pattern in quotes in order to protect it from
-        expansion by the shell.
-
  -newer file
         File was modified more recently than file.  If file is a symbolic  link
         and  the -H option or the -L option is in effect, the modification time
@@ -211,29 +166,6 @@ Note if a number n specified:
 
  -nouser
         No user corresponds to file's numeric user ID.
-
- -path pattern
-        File name matches shell pattern pattern.   The  metacharacters  do  not
-        treat `/' or `.' specially; so, for example,
-                  find . -path "./sr*sc"
-        will  print  an  entry  for  a  directory  called  `./src/misc' (if one
-        exists).  To ignore a whole directory  tree,  use  -prune  rather  than
-        checking  every  file  in the tree.  For example, to skip the directory
-        `src/emacs' and all files and directories under it, and print the names
-        of the other files found, do something like this:
-                  find . -path ./src/emacs -prune -o -print
-        Note that the pattern match test applies to the whole file name, start‐
-        ing from one of the start points named on the command line.   It  would
-        only make sense to use an absolute path name here if the relevant start
-        point is also an absolute path.  This  means  that  this  command  will
-        never match anything:
-                  find bar -path /foo/bar/myfile -print
-        Find  compares the -path argument with the concatenation of a directory
-        name and the base name of the file it's examining.  Since the  concate‐
-        nation  will  never end with a slash, -path arguments ending in a slash
-        will match nothing (except perhaps a start point specified on the  com‐
-        mand  line).   The  predicate -path is also supported by HP-UX find and
-        will be in a forthcoming version of the POSIX standard.
 
  -perm mode
         File's permission bits are exactly mode (octal or symbolic).  Since  an
@@ -327,7 +259,6 @@ Note if a number n specified:
                low option is in effect, unless the symbolic link is broken.  If
                you want to search for symbolic links when -L is in effect,  use
                -xtype.
-
         s      socket
         D      door (Solaris)
 
