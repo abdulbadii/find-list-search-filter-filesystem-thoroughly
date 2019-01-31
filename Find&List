@@ -1,13 +1,14 @@
 #! /usr/bin/bash
 l(){
-o=%p;i=
+r=%p;i=;o=
 for a
 {
 let i++
 case ${a:0:3} in
-	-s) o='%s %p';;
-	-t) o='%p %Tr %Tx';;
-	-st|-ts) o="%s %p %Tr %Tx";;
+	-s) r='%s %p';;
+	-t) r='%p %Tr %Tx';;
+	-st|-ts) r="%s %p %Tr %Tx";;
+	-[0-9][0-9]|-*) o="$o $a";;
 	*)
 	if [ -e "$a" ];then
 		a=${@:$i}
@@ -18,7 +19,7 @@ case ${a:0:3} in
 			p=${b:0:j};	b=
 		else p=~+;	b=".*/"
 		fi
-		find "$p" -regextype posix-extended -iregex "$b(${a// /|})" -printf "$o \n"
+		find "$p" -regextype posix-extended -iregex "$b(${a// /|})" $o -printf "$r \n"
 	elif [ "${a:0:1}" = / ];then
 		p=${a%%[*?]*};	p=${p%/*}/
 		a=${a#$p}
@@ -27,10 +28,10 @@ case ${a:0:3} in
 			a=${a//\*\*/==};	a=${a//\*/[^\/]*};	a=${a//==/.*};
 		else	a=${a//\*/[^\/]*}
 		fi
-		find "$p" -regextype posix-extended -iregex "$p${a//\?/.}" -printf "$o \n"
+		find "$p" -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf "$r \n"
 	else
 		a=${a//./\\.};a=${a//\*/.*}
-		find ~+ -regextype posix-extended -iregex ".*/${a//\?/.}" -printf "$o \n"
+		find ~+ -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf "$r \n"
 	fi
 	return;;
 esac
