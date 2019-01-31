@@ -57,7 +57,7 @@ $ l /a/\\**m\*.c
 
 note the last extra two as for an instance  
 
-to narrow down more the search it could utilize the Linux "find" option to filter or test the search
+to narrow down more the search we could utilize the Linux "find" option to test or filter the search
 
 $ l -atime -5 /a/\**m*.c  
 will give the above of which only modified less than 5 days ago
@@ -82,7 +82,7 @@ Note if a number n specified:
               ignored, so to match -atime +1, a file has to  have  been  accessed  at
               least two days ago.
 
- -cmin n
+ -cmin n  
               File's status was last changed n minutes ago.
 
  -cnewer file
