@@ -22,7 +22,7 @@ Let's add more under it
   /a/b/c/d/e/menu.c   
   /a/b/c/d/e/memo.h   
   
-If we want to know their sizes precede it with -s   
+If we want to know their sizes precede it with -s option   
   Tes@Linux /   
   $ l -s *.c   
   999 /a/main.c
@@ -31,8 +31,8 @@ If we want to know their sizes precede it with -s
   70 /a/b/c/d/e/menu.c   
   27 /a/b/c/ab.c
   
-while for last modification time precede it with -t, and -st for both   
-And so forth, as many directories nested under it as OS could   
+while for last modification time with -t, and -st for both   
+And so forth, as many directories nested under it as OS is capable   
 
 may be navigated as absolute path too  
 $ cd /z
@@ -43,9 +43,9 @@ $ l /a/b/c/m*.c
 /a/b/c/meta.c   
 /a/b/c/d/e/menu.c
 
-as absolute path it can even search for any depth more under a directory precede the "**" keyword if being given so
+as absolute path it can even search for any more depth under a directory precede the keyword '**' but must be typed with preceding '\' to escape from bash expansion
 
-$ l /a/**m*.c
+$ l /a/\**m*.c
 
 /a/main.c
 /a/b/c/main.c   
@@ -54,4 +54,4 @@ $ l /a/**m*.c
 /a/b/min.c
 /a/b/c/d/e/f/g/max.c
 
-if such the last two do exist
+if such the last two exist
