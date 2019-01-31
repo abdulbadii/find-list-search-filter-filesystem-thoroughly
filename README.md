@@ -46,13 +46,13 @@ $ l /a/b/c/m*.c
 
 as absolute path it can even search for any more depth under a directory precede the keyword '**' but must be typed with preceding '\\' to escape the Bash expansion
 
-$ l /a/\**m*.c
+$ l /a/\\**m*.c
 
-/a/main.c
-/a/b/c/main.c   
-/a/b/c/meta.c   
-/a/b/c/d/e/menu.c
-/a/b/min.c
+/a/main.c  
+/a/b/c/main.c  
+/a/b/c/meta.c  
+/a/b/c/d/e/menu.c  
+/a/b/min.c  
 /a/b/c/d/e/f/g/max.c
 
 note the extra last two if such exist
