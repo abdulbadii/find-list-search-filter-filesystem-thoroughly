@@ -9,24 +9,28 @@ case ${a:0:3} in
 	-t) o='%p %Tr %Tx';;
 	-st|-ts) o="%s %p %Tr %Tx";;
 	*)
-	if [ -e $a ];then
+	if [ -e "$a" ];then
 		a=${@:$i}
 		if [ "${a:0:1}" = / ];then
 			b=${@:i:1};	c=${@:${#@}};
 			for((j=1;;j++))
 			{	[ ${b:j:1} != ${c:j:1} ]&&break;}
-			p=${b:0:j};	a="(${a// /|})"
-		else p=~+;	a="^.*/(${a// /|})"
+			p=${b:0:j};	b=
+		else p=~+;	b=".*/"
 		fi
-		find "$p" -regextype posix-extended -iregex "$a" -printf "$o \n"
+		find "$p" -regextype posix-extended -iregex "$b(${a// /|})" -printf "$o \n"
 	elif [ "${a:0:1}" = / ];then
-		p=${a%%[*?]*};	p=${p%/*}
+		p=${a%%[*?]*};	p=${p%/*}/
 		a=${a#$p}
-		a=${a//./\\.};a=${a//\*/[^\/]*}
-		find "$p" -regextype posix-extended -iregex "$p/.*${a//\?/.}" -printf "$o \n"
+		a=${a//./\\.}
+		if [[ $a =~ \*\* ]] ;then
+			a=${a//\*\*/==};	a=${a//\*/[^\/]*};	a=${a//==/.*};
+		else	a=${a//\*/[^\/]*}
+		fi
+		find "$p" -regextype posix-extended -iregex "$p${a//\?/.}" -printf "$o \n"
 	else
 		a=${a//./\\.};a=${a//\*/.*}
-		find ~+ -regextype posix-extended -iregex "^.*/${a//\?/.}" -printf "$o \n"
+		find ~+ -regextype posix-extended -iregex ".*/${a//\?/.}" -printf "$o \n"
 	fi
 	return;;
 esac
