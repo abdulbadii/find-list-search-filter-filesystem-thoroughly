@@ -71,21 +71,21 @@ Note if a number n specified:
       n      for exactly n
 
 -amin n   
-         File was last accessed n minutes ago   
+       File was last accessed n minutes ago   
 -anewer file   
-            File was last accessed more recently than file was modified.   If  file
-            is a symbolic link and the -H option or the -L option is in effect, the
-            access time of the file it points to is always used.
+        File was last accessed more recently than file was modified.   If  file
+        is a symbolic link and the -H option or the -L option is in effect, the
+        access time of the file it points to is always used.  
  -atime n  
-              File was last accessed n*24 hours ago.  When find figures out how  many
-              24-hour  periods ago the file was last accessed, any fractional part is
-              ignored, so to match -atime +1, a file has to  have  been  accessed  at
-              least two days ago.
+        File was last accessed n*24 hours ago.  When find figures out how  many
+        24-hour  periods ago the file was last accessed, any fractional part is
+        ignored, so to match -atime +1, a file has to  have  been  accessed  at
+        least two days ago.
 
  -cmin n  
-              File's status was last changed n minutes ago.
+        File's status was last changed n minutes ago.   
 
- -cnewer file
+ -cnewer file   
         File's  status  was  last changed more recently than file was modified.
         If file is a symbolic link and the -H option or the  -L  option  is  in
         effect, the status-change time of the file it points to is always used.
