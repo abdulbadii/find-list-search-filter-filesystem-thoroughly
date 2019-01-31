@@ -50,6 +50,6 @@ $ l /a/**m*.c
 /a/b/c/main.c   
 /a/b/c/meta.c   
 /a/b/c/d/e/menu.c
-/a/b/c/d/e/f/man.c
+/a/b/c/d/e/f/g/man.c
 
-if such 1st and last do exist
+if such the 1st and last do exist
