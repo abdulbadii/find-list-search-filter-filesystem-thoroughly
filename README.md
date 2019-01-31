@@ -1,15 +1,15 @@
 Find and list specific files and/or directory recursively   
-Let a directory with path /a/b/c/ contain main.c, meta.c, ab.c, a.h and ab.h
+Let a directory with path /a and /a/b/c contain main.c and added the latter with meta.c, ab.c, a.h and ab.h
 
   $ ls /a/b/c  
   main.c meta.c ab.c a.h ab.h   
   $ cd /   
   Tes@Linux /   
-  $ l *.c   
+  $ l *.c *.h  
+  /a/main.c
   /a/b/c/main.c   
   /a/b/c/meta.c   
-  /a/b/c/ab.c   
-  $ l *.h  
+  /a/b/c/ab.c    
   /a/b/c/a.h   
   /a/b/c/ab.h   
 
@@ -25,13 +25,14 @@ Let's add more under it
 If we want to know their sizes precede it with -s   
   Tes@Linux /   
   $ l -s *.c   
+  999 /a/main.c
   711 /a/b/c/main.c   
   33 /a/b/c/meta.c   
   70 /a/b/c/d/e/menu.c   
   27 /a/b/c/ab.c
   
-and to know their last modification time precede it with -t, while -st for both   
-So forth as many directories nested under it as OS could do  
+while for last modification time precede it with -t, and -st for both   
+And so forth, as many directories nested under it as OS could   
 
 may be navigated as absolute path too  
 $ cd /z
@@ -42,7 +43,7 @@ $ l /a/b/c/m*.c
 /a/b/c/meta.c   
 /a/b/c/d/e/menu.c
 
-as absolute path it can even search to anyone more than one depth at "**" string if being input so
+as absolute path it can even search for any depth more under a directory precede the "**" keyword if being given so
 
 $ l /a/**m*.c
 
@@ -50,6 +51,7 @@ $ l /a/**m*.c
 /a/b/c/main.c   
 /a/b/c/meta.c   
 /a/b/c/d/e/menu.c
-/a/b/c/d/e/f/g/man.c
+/a/b/min.c
+/a/b/c/d/e/f/g/max.c
 
-if such the 1st and last do exist
+if such the last two do exist
