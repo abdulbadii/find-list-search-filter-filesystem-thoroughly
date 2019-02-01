@@ -58,7 +58,7 @@ note the last extra two if we let them exist
 
 can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option, no need in preceeding '\\' as the '' enclosement has take over the job
 
-$ l -E '/a/**m.\*n\.[c-h]'  
+$ l -E '/a/**m.\*n\\.[c-h]'  
 
 /a/main.c  
 /a/b/c/main.c  
