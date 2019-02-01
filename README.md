@@ -34,9 +34,9 @@ If we want to know their sizes precede it with -s option
  27 /a/b/c/ab.c
   
 while for last modification time with -t, and -st for both   
-And so forth, as many directories nested under it as OS is capable   
+and for directory depth with -d1, -d2 or -d3... so forth, as many directories nested under it as the OS limit   
 
-it may be navigated as absolute path too  
+it may be navigated in absolute path  
 $ cd /z  
 $ Tes@Linux /z  
 $ l /a/b/c/m*.c  
@@ -44,7 +44,7 @@ $ l /a/b/c/m*.c
 /a/b/c/main.c   
 /a/b/c/meta.c   
 
-as absolute path it can even search for any more depth under a directory precede the keyword '**' but must be typed with preceding '\\' to escape the Bash expansion
+can further search for any more depth under a directory precede the keyword '**' but must be typed with preceding '\\' to escape the Bash expansion
 
 $ l /a/\\**m\*.c  
 
@@ -55,17 +55,23 @@ $ l /a/\\**m\*.c
 /a/b/min.c  
 /a/b/c/d/e/f/g/max.c
 
-note the last extra two as for an instance  
+note the last extra two if we let them exist  
 
-to narrow down more the search we could utilize the Linux "find" option to test or filter the search
+can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option  
+$ l -E '/a/\\**m.\*n.c'  
+
+/a/main.c  
+/a/b/c/main.c  
+/a/b/min.c  
+
+to narrow down more the search we could utilize the Linux "find" option to test/filter the search
 
 $ l -atime -5 /a/\**m*.c  
 will give the above of which only modified less than 5 days ago
 
 
-the copy from its manual are:   
-
-Note if a number n specified:  
+The options copied from its manual:   
+  Note if a number n specified:  
      +n     for greater than n    
      -n     for less than n   
       n      for exactly n
