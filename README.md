@@ -56,7 +56,7 @@ $ l /a/\\**m\*.c
 
 note the last extra two if we let them exist  
 
-can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option, no need in preceeding '\\' as the '' enclosement has take over the job
+can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option, no need in preceeding '**' with '\\' as enclosing of '' took over the job
 
 $ l -E '/a/**m\w{2,3}\\.[c-h]'  
 
