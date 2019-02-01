@@ -8,7 +8,7 @@ case ${a:0:3} in
 	-s) r='%s %p';;
 	-t) r='%p %Tr %Tx';;
 	-st|-ts) r="%s %p %Tr %Tx";;
-	-[0-9][0-9]|-*) o="$o $a";;
+	-[A-Za-z]*|-[0-9]*) o="$o $a";;
 	*)
 	if [ -e "$a" ];then
 		a=${@:$i}
@@ -30,7 +30,11 @@ case ${a:0:3} in
 		fi
 		find "$p" -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf "$r \n"
 	else
-		a=${a//./\\.};a=${a//\*/.*}
+		a=${a//./\\.}
+		if [[ $a =~ \*\* ]] ;then
+			a=${a//\*\*/|/};	a=${a//\*/[^\/]*};	a=${a//|\//.*};
+		else	a=${a//\*/[^\/]*}
+		fi
 		find ~+ -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf "$r \n"
 	fi
 	return;;
