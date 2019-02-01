@@ -4,26 +4,25 @@ Copy this Bash function and paste insert it in ~/.bashrc file
 
 Let a directory with path /a and /a/b/c contain main.c and added the latter with meta.c, ab.c, a.h and ab.h
   $ ls /a/b/c  
-  main.c meta.c ab.c a.h ab.h   
+  main.c meta.c a.h ab.h   
   $ cd /   
   Tes@Linux /   
   $ l *.c *.h  
   /a/main.c   
   /a/b/c/main.c   
-  /a/b/c/meta.c   
-  /a/b/c/ab.c    
+  /a/b/c/meta.c     
   /a/b/c/a.h   
   /a/b/c/ab.h   
 
 Let's add more under it    
   $ ls /a/b/c/d/e   
-  menu.c memo.h cd.h   
+  menu.c min.h mic.h   
   Tes@Linux /   
-  $ l me*.?   
+  $ l m*.?   
   /a/b/c/meta.c   
-  /a/b/c/d/e/menu.c   
-  /a/b/c/d/e/memo.h   
-  
+  /a/b/c/d/e/menu.c      
+   /a/b/c/d/e/min.h
+   
 If we want to know their sizes precede it with -s option   
   Tes@Linux /   
  $ l -s *.c   
@@ -57,18 +56,20 @@ $ l /a/\\**m\*.c
 
 note the last extra two if we let them exist  
 
-can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option  
-$ l -E '/a/\\**m.\*n.c'  
+can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option, no need in preceeding '\\' as the '' enclosement has take over the job
+
+$ l -E '/a/**m.\*n\.[c-h]'  
 
 /a/main.c  
 /a/b/c/main.c  
 /a/b/min.c  
+/a/b/c/d/e/min.h
+/a/b/c/d/e/f/g/max.c
 
 to narrow down more the search we could utilize the Linux "find" option to test/filter the search
 
 $ l -atime -5 /a/\**m*.c  
-will give the above of which only modified less than 5 days ago
-
+will give as above only of which modified less than 5 days ago
 
 The options copied from its manual:   
   Note if a number n specified:  
