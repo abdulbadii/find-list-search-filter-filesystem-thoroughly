@@ -58,12 +58,12 @@ note the last extra two if we let them exist
 
 can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option, no need in preceeding '\\' as the '' enclosement has take over the job
 
-$ l -E '/a/**m.\*n\\.[c-h]'  
+$ l -E '/a/**m\w{2,3}\\.[c-h]'  
 
 /a/main.c  
 /a/b/c/main.c  
 /a/b/min.c  
-/a/b/c/d/e/min.h
+/a/b/c/d/e/min.h  
 /a/b/c/d/e/f/g/max.c
 
 to narrow down more the search we could utilize the Linux "find" option to test/filter the search
