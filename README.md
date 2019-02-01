@@ -66,7 +66,7 @@ $ l -E '/a/**m\w{2,3}\\.[c-h]'
 /a/b/c/d/e/min.h  
 /a/b/c/d/e/f/g/max.c
 
-to narrow down more the search we could utilize the Linux "find" option to test/filter the search
+to narrow down better the search we could utilize the Linux "find" option to test/filter the search
 
 $ l -atime -5 /a/\**m*.c  
 will give as above only of which modified less than 5 days ago
