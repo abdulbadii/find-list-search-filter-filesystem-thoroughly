@@ -52,7 +52,9 @@ $ l /a/\\**m\*.c
 /a/b/c/meta.c  
 /a/b/c/d/e/menu.c  
 /a/b/min.c  
-/a/b/c/d/e/f/g/max.c    #note the last extra two if we assume them exist  
+/a/b/c/d/e/f/g/max.c   
+
+note the last extra two if they exist  
 
 can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option
 
