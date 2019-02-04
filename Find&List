@@ -12,21 +12,12 @@ case ${a:0:3} in
 	-E) E=1;;
 	-[A-Za-z]*|-[0-9]*) o="$o $a";;
 	*)
-	if [ -e "$a" ];then
-		a=${@:$i}
-		if [ "${a:0:1}" = / ];then
-			b=${@:i:1};	c=${@: -1};
-			for((j=1;;j++))
-			{	[ ${b:j:1} != ${c:j:1} ]&&break;}
-			p=${b:0:j};	b=
-		else p=~+;	b=".*/"
-		fi
-		find "$p" $t -regextype posix-extended -iregex "$b(${a// /|})" $o -printf "$r \n"
-	elif [ "${a:0:1}" = / ];then
+	a=`history 1`;a=${a##* }
+	if [ "${a:0:1}" = / ];then
 		p=${a%%[*?]*};	p=${p%/*}/
 		a=${a#$p}
 		if [ $E ] ;then
-			[[ $a =~ \*\* ]] &&a=${a//\*\*/.*}
+			a=${a//\*\*/.*}
 			find "$p" $t -regextype posix-extended -iregex "$p$a" $o -printf "$r \n"
 		else
 			a=${a//./\\.}
@@ -36,18 +27,16 @@ case ${a:0:3} in
 			fi
 			find "$p" $t -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf "$r \n"
 		fi
-	else
-		if [ $E ] ;then
-			[[ $a =~ \*\* ]] &&a=${a//\*\*/.*}
+	elif [ $E ] ;then
+			a=${a//\*\*/.*}
 			find ~+ $t -regextype posix-extended -iregex ".*/$a" $o -printf "$r \n"
-		else
-			a=${a//./\\.}
-			if [[ $a =~ \*\* ]] ;then
-				a=${a//\*\*/|/};	a=${a//\*/[^\/]*};	a=${a//|\//.*};
-			else	a=${a//\*/[^\/]*}
-			fi
-			find ~+ $t -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf "$r \n"
+	else
+		a=${a//./\\.}
+		if [[ $a =~ \*\* ]] ;then
+			a=${a//\*\*/|/};	a=${a//\*/[^\/]*};	a=${a//|\//.*};
+		else	a=${a//\*/[^\/]*}
 		fi
+		find ~+ $t -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf "$r \n"
 	fi
 	return;;
 esac
