@@ -43,7 +43,7 @@ $ l /a/b/c/m*.c
 /a/b/c/main.c   
 /a/b/c/meta.c   
 
-can further search for any more depth under a directory precede the keyword '**' but must be typed with preceding '\\' to escape the Bash expansion
+can further search for more depths under a directory that precedes the keyword '**'
 
 $ l /a/\\**m\*.c  
 
@@ -52,11 +52,9 @@ $ l /a/\\**m\*.c
 /a/b/c/meta.c  
 /a/b/c/d/e/menu.c  
 /a/b/min.c  
-/a/b/c/d/e/f/g/max.c
+/a/b/c/d/e/f/g/max.c    #note the last extra two if we assume them exist  
 
-note the last extra two if we let them exist  
-
-can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option, no need in preceeding '**' with '\\' as enclosing of '' took over the job
+can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option
 
 $ l -E '/a/**m\w{2,3}\\.[c-h]'  
 
@@ -66,12 +64,12 @@ $ l -E '/a/**m\w{2,3}\\.[c-h]'
 /a/b/c/d/e/min.h  
 /a/b/c/d/e/f/g/max.c
 
-to narrow down better the search we could utilize the Linux "find" option to test/filter the search
+to narrow down the search better we could utilize the Linux "find" option to test/filter the search
 
 $ l -atime -5 /a/\**m*.c  
 will give as above only of which modified less than 5 days ago
 
-The options copied from its manual:   
+The filter options copied from its manual:   
   Note if a number n specified:  
      +n     for greater than n    
      -n     for less than n   
