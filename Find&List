@@ -1,6 +1,6 @@
 #! /usr/bin/bash
 l(){
-r=%p;i=;o=;t=;E=
+a=;i=;o=;t=;E=;r=%p;
 for a
 {
 let i++
@@ -41,4 +41,5 @@ case ${a:0:3} in
 	return;;
 esac
 }
+[ ! $a ]&&find ~+ -regextype posix-extended -regex '.*'
 }
