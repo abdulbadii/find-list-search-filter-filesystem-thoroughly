@@ -32,8 +32,9 @@ If we want to know their sizes precede it with -s option
  77 /a/b/c/d/e/menu.c   
  27 /a/b/c/ab.c
   
-while for last modification time with -t, and -st for both   
-and for directory depth with -d1, -d2 or -d3... so forth, as many directories nested under it as the OS limit   
+while for last modification time with -t, and with -st for both   
+it always searchs for in as many directories depths as the OS limits  
+to limit directory depth put option with -d1, -d2 or -d3... so forth,    
 
 it may be navigated in absolute path  
 $ cd /z  
