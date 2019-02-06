@@ -1,14 +1,14 @@
 #! /usr/bin/bash
 l(){
-a=;i=;o=;t=;E=;r=%p;
+a=;i=;o=;d=;E=;r=%p;
 for a
 {
 let i++
 case ${a:0:3} in
 	-s) r='%s %p';;
-	-t) r='%p %Tr %Tx';;
+	-d) r='%p %Tr %Tx';;
 	-st) r="%s %p %Tr %Tx";;
-	-d[0-9]) t="-maxdepth ${a:2}";;
+	-d[0-9]) d="-maxdepth ${a:2}";;
 	-E) E=1;;
 	-[A-Za-z]*|-[0-9]*) o="$o $a";;
 	*)
@@ -18,28 +18,28 @@ case ${a:0:3} in
 		a=${a#$p}
 		if [ $E ] ;then
 			a=${a//\*\*/.*}
-			find "$p" $t -regextype posix-extended -iregex "$p$a" $o -printf "$r \n"
+			find "$p" $d -regextype posix-extended -iregex "$p$a" $o -printf "$r \n"
 		else
 			a=${a//./\\.}
 			if [[ $a =~ \*\* ]] ;then
 				a=${a//\*\*/|/};a=${a//\*/[^\/]*};a=${a//|\//.*}
 			else	a=${a//\*/[^\/]*}
 			fi
-			find "$p" $t -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf "$r \n"
+			find "$p" $d -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf "$r \n"
 		fi
 	elif [ $E ] ;then
 			a=${a//\*\*/.*}
-			find ~+ $t -regextype posix-extended -iregex ".*/$a" $o -printf "$r \n"
+			find ~+ $d -regextype posix-extended -iregex ".*/$a" $o -printf "$r \n"
 	else
 		a=${a//./\\.}
 		if [[ $a =~ \*\* ]] ;then
 			a=${a//\*\*/|/};	a=${a//\*/[^\/]*};	a=${a//|\//.*};
 		else	a=${a//\*/[^\/]*}
 		fi
-		find ~+ $t -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf "$r \n"
+		find ~+ $d -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf "$r \n"
 	fi
 	return;;
 esac
 }
-[ ! $a ]&&find ~+ -regextype posix-extended -regex '.*'
+find ~+ $d -regextype posix-extended -regex '.*' $o -printf "$r \n"
 }
