@@ -4,16 +4,17 @@ a=;i=;o=;d=;E=;r=%p;
 for a
 {
 case ${a:0:3} in
-	-s) r='%s $r';;
-	-t) r='%r %Tr %Tx';;
-	-st) r="%s %p %Tr %Tx";;
+	-s) r="%s $r";;
+	-t) r="$r %Tr %Tx";;
+	-st) r='%s %p %Tr %Tx';;
 	-d[0-9]) d="-maxdepth ${a:2}";;
 	-E) E=1;;
 	-[A-Za-z]*|-[0-9]*) o="$o $a";;
 	*)
 	c=${@:1:i}
 	A=`history 1`;c=${A#*"$c"*[! ]}
-	eval set -- "${A: -((1+${#c}))}"
+	set -f;eval set -- "${A: -((1+${#c}))}"
+	set +f
 	for a
 	{
  	if [ "${a:0:1}" = / ];then
