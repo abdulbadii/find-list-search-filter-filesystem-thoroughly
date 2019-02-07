@@ -1,8 +1,8 @@
-Find and list specific files and/or directory recursively   
+Find and list specific file and/or directory recursively   
 
-Copy this Bash function and paste insert it in ~/.bashrc file
+Copy this Bash function and paste, preappend it in ~/.bashrc file
 
-Let a directory with path /a and /a/b/c contain main.c and added the latter with meta.c, ab.c, a.h and ab.h
+Let directory with path /a and /a/b/c contain main.c and added the latter with meta.c, ab.c, a.h and ab.h
   $ ls /a/b/c  
   main.c meta.c a.h ab.h   
   $ cd /   
@@ -16,12 +16,12 @@ Let a directory with path /a and /a/b/c contain main.c and added the latter with
 
 Let's add more under it    
   $ ls /a/b/c/d/e   
-  menu.c min.h mic.h   
-  Tes@Linux /   
-  $ l m*.?   
-  /a/b/c/meta.c   
+  menu.c min.h  
+  Tes@Linux  /  
+  $ l *n*.?   
+  /a/b/c/main.c   
   /a/b/c/d/e/menu.c      
-   /a/b/c/d/e/min.h
+  /a/b/c/d/e/min.h
    
 If we want to know their sizes precede it with -s option   
   Tes@Linux /   
@@ -33,10 +33,10 @@ If we want to know their sizes precede it with -s option
  27 /a/b/c/ab.c
   
 while for last modification time with -t, and with -st for both   
-it always searchs for in as many directories depths as the OS limits  
-to limit directory depth put option with -d1, -d2 or -d3... so forth,    
+it always searchs for as many directories depths available as the OS can manage,    
+to limit the directory depth put -d option, e.g. current and 1 directory below, with -d2; current and 2 directories below with -d3... so on,    
 
-it may be navigated in absolute path  
+it may be navigated in absolute path way  
 $ cd /z  
 $ Tes@Linux /z  
 $ l /a/b/c/m*.c  
@@ -44,7 +44,7 @@ $ l /a/b/c/m*.c
 /a/b/c/main.c   
 /a/b/c/meta.c   
 
-can further search for more depths under a directory that precedes the keyword '**'
+in this way can still further search for more depths under a directory that precedes the keyword '**'
 
 $ l /a/\\**m\*.c  
 
@@ -55,19 +55,21 @@ $ l /a/\\**m\*.c
 /a/b/min.c  
 /a/b/c/d/e/f/g/max.c   
 
-note the last extra two if they exist  
+note the last extra two if do they exist  
+
+can even be navigated in way of absolute path and then relative path in a single line 
+
+$ l /a/\\**m\*.c *.h   
 
 can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option
 
-$ l -E '/a/**m\w{2,3}\\.[c-h]'  
-
-/a/main.c  
-/a/b/c/main.c  
+$ l -E '/a/**m\w{1,2}\\.[c-h]'  
+  
 /a/b/min.c  
 /a/b/c/d/e/min.h  
 /a/b/c/d/e/f/g/max.c
 
-to narrow down the search better we could utilize the Linux "find" option to test/filter the search
+to better narrow down the search we could utilize Linux "find" options to test/filter the search
 
 $ l -atime -5 /a/\**m*.c  
 will give as above only of which modified less than 5 days ago
