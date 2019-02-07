@@ -3,22 +3,23 @@ l(){
 a=;i=;o=;d=;E=;r=%p;
 for a
 {
-let i++
 case ${a:0:3} in
-	-s) r='%s %p';;
-	-d) r='%p %Tr %Tx';;
+	-s) r='%s $r';;
+	-t) r='%r %Tr %Tx';;
 	-st) r="%s %p %Tr %Tx";;
 	-d[0-9]) d="-maxdepth ${a:2}";;
 	-E) E=1;;
 	-[A-Za-z]*|-[0-9]*) o="$o $a";;
 	*)
-	a=`history 1`;a=${a##* }
-	if [ "${a:0:1}" = / ];then
+	c=${@:1:i}
+	A=`history 1`;c=${A#*"$c"*[! ]}
+	eval set -- "${A: -((1+${#c}))}"
+	for a
+	{
+ 	if [ "${a:0:1}" = / ];then
 		p=${a%%[*?]*};	p=${p%/*}/
 		a=${a#$p}
-		if [ $E ] ;then
-			a=${a//\*\*/.*}
-			find "$p" $d -regextype posix-extended -iregex "$p$a" $o -printf "$r \n"
+		if [ $E ];then	find "$p" $d -regextype posix-extended -iregex "$p${a//\*\*/.*}" $o -printf "$r \n"
 		else
 			a=${a//./\\.}
 			if [[ $a =~ \*\* ]] ;then
@@ -27,9 +28,7 @@ case ${a:0:3} in
 			fi
 			find "$p" $d -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf "$r \n"
 		fi
-	elif [ $E ] ;then
-			a=${a//\*\*/.*}
-			find ~+ $d -regextype posix-extended -iregex ".*/$a" $o -printf "$r \n"
+	elif [ $E ];then	find ~+ $d -regextype posix-extended -iregex ".*/${a//\*\*/.*}" $o -printf "$r \n"
 	else
 		a=${a//./\\.}
 		if [[ $a =~ \*\* ]] ;then
@@ -38,8 +37,10 @@ case ${a:0:3} in
 		fi
 		find ~+ $d -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf "$r \n"
 	fi
+	}
 	return;;
 esac
+let i++
 }
 find ~+ $d -regextype posix-extended -regex '.*' $o -printf "$r \n"
 }
