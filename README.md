@@ -1,8 +1,8 @@
 Find and list specific file and/or directory recursively   
 
-Copy this Bash function and paste, preappend it in ~/.bashrc file
+Copy this Bash function and paste, preappend it in ~/.bashrc file  
 
-Let directory with path /a and /a/b/c contain main.c and added the latter with meta.c, ab.c, a.h and ab.h
+Let directories with path /a and /a/b/c contain main.c and also meta.c, a.h and ab.h are on the latter  
   $ ls /a/b/c  
   main.c meta.c a.h ab.h   
   $ cd /   
