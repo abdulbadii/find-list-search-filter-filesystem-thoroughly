@@ -266,19 +266,16 @@ The filter options copied from its manual:
  -wholename pattern
         See -path.  This alternative is less portable than -path.
  -writable
-        Matches  files which are writable.  This takes into account access con‐
-        trol lists  and  other  permissions  artefacts  which  the  -perm  test
+        Matches  files which are writable.  This takes into account access control lists  and  other  permissions  artefacts  which  the  -perm  test  
         ignores.   This test makes use of the access(2) system call, and so can
-        be fooled by NFS servers which  do  UID  mapping  (or  root-squashing),
-        since  many  systems  implement access(2) in the client's kernel and so
-        cannot make use of the UID mapping information held on the server.
- -xtype c
+        be fooled by NFS servers which  do  UID  mapping.  
+ -xtype c  
         The same as -type unless the file is a  symbolic  link.   For  symbolic
         links: if the -H or -P option was specified, true if the file is a link
         to a file of type c; if the -L option has been given, true if c is `l'.
         In  other words, for symbolic links, -xtype checks the type of the file
         that -type does not check.
- -context pattern
+ -context pattern  
         (SELinux only) Security context of the file matches glob pattern.
 
 
