@@ -69,12 +69,13 @@ $ l -E '/a/**m\w{1,2}\\.[c-h]'
 /a/b/c/d/e/min.h  
 /a/b/c/d/e/f/g/max.c
 
-to better narrow down the search we could utilize Linux "find" options to test/filter the search
+to better narrow down the search we could utilize Linux 'find' options to test/filter the search
 
-$ l -atime -5 /a/\**m*.c  
-will give as above only of which modified less than 5 days ago
+$ l -atime -5 '/a/**m\w{1,2}\\.[c-h]'  
 
-The filter options copied from its manual:   
+will give as above which were modified less than 5 days ago
+
+The 'find' filter options copied from its manual:   
   Note if a number n specified:  
      +n     for greater than n    
      -n     for less than n   
