@@ -1,6 +1,6 @@
 #! /usr/bin/bash
 l(){
-a=;i=;o=;d=;E=;r=%p;
+i=;o=;d=;E=;r=%p;
 for a
 {
 case ${a:0:3} in
@@ -12,7 +12,8 @@ case ${a:0:3} in
 	-[A-Za-z]*|-[0-9]*) o="$o $a";;
 	*)
 	c=${@:1:i}
-	A=`history 1`;c=${A#*"$c"*[! ]}
+	A=`history 1`;
+	c=${A#*"${FUNCNAME[0]}"*$c*[! ]}
 	set -f;eval set -- "${A: -((1+${#c}))}"
 	set +f
 	for a
@@ -33,7 +34,7 @@ case ${a:0:3} in
 	else
 		a=${a//./\\.}
 		if [[ $a =~ \*\* ]] ;then
-			a=${a//\*\*/|/};	a=${a//\*/[^\/]*};	a=${a//|\//.*};
+			a=${a//\*\*/|/};a=${a//\*/[^\/]*};a=${a//|\//.*};
 		else	a=${a//\*/[^\/]*}
 		fi
 		find ~+ $d -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf "$r \n"
