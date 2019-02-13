@@ -4,45 +4,44 @@ i=;o=;d=;E=;r=%p;
 for a
 {
 case ${a:0:3} in
-	-s) r="%s $r";;
+	-s) r=%s\ $r;;
 	-t) r="$r %Tr %Tx";;
 	-st) r='%s %p %Tr %Tx';;
-	-d[0-9]) d="-maxdepth ${a:2}";;
+	-d[0-9]) d=-maxdepth\ ${a:2};;
 	-E) E=1;;
 	-[A-Za-z]*|-[0-9]*) o="$o $a";;
 	*)
-	c=${@:1:i}
+	a=${@:1:i}
 	A=`history 1`;
-	c=${A#*"${FUNCNAME[0]}"*$c*[! ]}
-	set -f;eval set -- "${A: -((1+${#c}))}"
-	set +f
+	a=${A#*"${FUNCNAME[0]}"*$a*[! ]}
+	set -f;eval set -- "${A: -((1+${#a}))}" ;set +f
 	for a
 	{
  	if [ "${a:0:1}" = / ];then
 		p=${a%%[*?]*};	p=${p%/*}/
 		a=${a#$p}
-		if [ $E ];then	find "$p" $d -regextype posix-extended -iregex "$p${a//\*\*/.*}" $o -printf "$r \n"
+		if [ $E ];then	find "$p" $d -regextype posix-extended -iregex "$p$a" $o -printf "$r \n"
 		else
 			a=${a//./\\.}
 			if [[ $a =~ \*\* ]] ;then
 				a=${a//\*\*/|/};a=${a//\*/[^\/]*};a=${a//|\//.*}
-			else	a=${a//\*/[^\/]*}
+			else	a=${a//\*/[^\/]*} ;d=-maxdepth\ 1
 			fi
-			find "$p" $d -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf "$r \n"
+			eval find "$p" $d -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf \"$r \\n\"
 		fi
-	elif [ $E ];then	find ~+ $d -regextype posix-extended -iregex ".*/${a//\*\*/.*}" $o -printf "$r \n"
+	elif [ $E ];then eval find ~+ $d -regextype posix-extended -iregex ".*/$a" $o -printf \"$r \\n\"
 	else
 		a=${a//./\\.}
 		if [[ $a =~ \*\* ]] ;then
-			a=${a//\*\*/|/};a=${a//\*/[^\/]*};a=${a//|\//.*};
+			a=${a//\*\*/|/};	a=${a//\*/[^\/]*};	a=${a//|\//.*};
 		else	a=${a//\*/[^\/]*}
 		fi
-		find ~+ $d -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf "$r \n"
+		eval find ~+ $d -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf \"$r \\n\"
 	fi
 	}
 	return;;
 esac
 let i++
 }
-find ~+ $d -regextype posix-extended -regex '.*' $o -printf "$r \n"
+find ~+ -name '*' -printf "%p \n"
 }
