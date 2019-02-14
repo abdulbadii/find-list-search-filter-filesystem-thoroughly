@@ -1,6 +1,6 @@
 Find and list specific file and/or directory recursively   
 
-Copy this Bash function and paste, preappend it in ~/.bashrc file  
+Copy this Bash function and paste, prepend it in ~/.bashrc file  
 
 Let directories with path /a and /a/b/c contain main.c and also meta.c, a.h and ab.h are on the latter  
   $ ls /a/b/c  
@@ -32,9 +32,9 @@ If we want to know their sizes precede it with -s option
  77 /a/b/c/d/e/menu.c   
  27 /a/b/c/ab.c
   
-while for last modification time with -t, and with -st for both   
-it always searchs for as many directories depths available as the OS can manage,    
-to limit the directory depth put -d option, e.g. current and 1 directory below, with -d2; current and 2 directories below with -d3... so on,    
+and for last modification time with -t also for both with -st  
+it always searchs for as many directories depths available as OS would care,    
+to limit the directory depth put -d option, e.g. for current and 1 directory below, with -d2; current and 2 directories below with -d3... so on,    
 
 it may be navigated in absolute path way  
 $ cd /z  
@@ -44,7 +44,8 @@ $ l /a/b/c/m*.c
 /a/b/c/main.c   
 /a/b/c/meta.c   
 
-in this way can still further search for more depths under a directory that precedes the keyword '**'
+such this way, it can further search for more depths under a directory preceding the keyword '**'
+e.g. /a/\\**m\*.c  will search for /a and all directories under it until it find any file/folder with the m\*.c name  
 
 $ l /a/\\**m\*.c  
 
@@ -57,7 +58,7 @@ $ l /a/\\**m\*.c
 
 note the last extra two if do they exist  
 
-can even be navigated in way of absolute path and then relative path in a single line 
+can even be navigated in way of absolute path followed relative path in a single line 
 
 $ l /a/\\**m\*.c *.h   
 
@@ -71,7 +72,7 @@ $ l -E '/a/**m\w{1,2}\\.[c-h]'
 
 to better narrow down the search we could utilize Linux 'find' options to test/filter the search
 
-$ l -atime -5 '/a/**m\w{1,2}\\.[c-h]'  
+$ l -atime -5 -E '/a/**m\w{1,2}\\.[c-h]'  
 
 will give as above which were modified less than 5 days ago
 
