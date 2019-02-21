@@ -14,29 +14,30 @@ case ${a:0:3} in
 	a=${@:1:i}
 	A=`history 1`;
 	a=${A#*"${FUNCNAME[0]}"*$a*[! ]}
-	set -f;eval set -- "${A: -((1+${#a}))}" ;set +f
+	set -f;eval set -- "${A: -((1+${#a}))}"
+	set +f
 	for a
 	{
  	if [ "${a:0:1}" = / ];then
 		p=${a%%[*?]*};	p=${p%/*}/
 		a=${a#$p}
-		if [ $E ];then	find "$p" $d -regextype posix-extended -iregex "$p$a" $o -printf "$r \n"
+		if [ $E ];then	eval "find $p $d -regextype posix-extended -iregex $p$a $o -printf $r\\\n"
 		else
-			a=${a//./\\.}
+			a=${a//./\\\\.}
 			if [[ $a =~ \*\* ]] ;then
 				a=${a//\*\*/|/};a=${a//\*/[^\/]*};a=${a//|\//.*}
 			else	a=${a//\*/[^\/]*} ;d=-maxdepth\ 1
 			fi
-			eval find "$p" $d -regextype posix-extended -iregex "$p${a//\?/.}" $o -printf \"$r \\n\"
+			eval "find $p $d -regextype posix-extended -iregex $p${a//\?/.} $o -printf $r\\\n"
 		fi
-	elif [ $E ];then eval find ~+ $d -regextype posix-extended -iregex ".*/$a" $o -printf \"$r \\n\"
+	elif [ $E ];then	eval "find ~+ $d -regextype posix-extended -iregex \".*/$a\" $o -printf $r\\\n"
 	else
-		a=${a//./\\.}
+		a=${a//./\\\\.}
 		if [[ $a =~ \*\* ]] ;then
 			a=${a//\*\*/|/};	a=${a//\*/[^\/]*};	a=${a//|\//.*};
 		else	a=${a//\*/[^\/]*}
 		fi
-		eval find ~+ $d -regextype posix-extended -iregex ".*/${a//\?/.}" $o -printf \"$r \\n\"
+		eval "find ~+ $d -regextype posix-extended -iregex .*/${a//\?/.} $o -printf $r\\\n"
 	fi
 	}
 	return;;
