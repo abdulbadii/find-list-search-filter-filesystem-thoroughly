@@ -72,9 +72,9 @@ $ l -E '/a/**m\w{1,2}\\.[c-h]'
 
 to better narrow down the search we could utilize Linux 'find' options to test/filter the search
 
-$ l -atime -5 -E '/a/**m\w{1,2}\\.[c-h]'  
+$ l -cmin -7 -E '/a/**m\w{1,2}\\.[c-h]'  
 
-will give as above which were modified less than 5 days ago
+will give as above which were modified less than 7 minutes ago
 
 The 'find' filter options copied from its manual:   
   Note if a number n specified:  
