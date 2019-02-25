@@ -2,7 +2,9 @@ Find and list specific file and/or directory recursively
 
 Copy this Bash function and paste, prepend it in ~/.bashrc file  
 
-Let directories with path /a and /a/b/c contain main.c and also meta.c, a.h and ab.h are on the latter  
+Let directories of path /a and /a/b/c contain main.c, and the latter contain meta.c, a.h and ab.h   
+  $ ls /a  
+  main.c  
   $ ls /a/b/c  
   main.c meta.c a.h ab.h   
   $ cd /   
@@ -24,7 +26,7 @@ Let's add more under it
   /a/b/c/d/e/min.h
    
 If we want to know their sizes precede it with -s option   
-  Tes@Linux /   
+ Tes@Linux /   
  $ l -s *.c   
  999 /a/main.c  
  711 /a/b/c/main.c   
@@ -32,9 +34,13 @@ If we want to know their sizes precede it with -s option
  77 /a/b/c/d/e/menu.c   
  27 /a/b/c/ab.c
   
-and for last modification time with -t also for both with -st  
-it always searchs for as many directories depths available as OS would care,    
-to limit the directory depth put -d option, e.g. for current and 1 directory below, with -d2; current and 2 directories below with -d3... so on,    
+and for last modification time with -t, while for both with -st  
+
+it always searchs for as many directories depths as it's available by OS,  
+to limit the directory depth put -d option, e.g. on search for current and 1 directory below, put -d2 for current and 2 directories below with -d3 and so on..  
+$ l -d2 *.c 
+Tes@Linux /   
+/a/main.c  
 
 it may be navigated in absolute path way  
 $ cd /z  
