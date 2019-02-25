@@ -9,7 +9,7 @@ case ${a:0:3} in
 	-st) r='%s %p %Tr %Tx';;
 	-d[0-9]) d=-maxdepth\ ${a:2};;
 	-E) E=1;;
-	-[A-Za-z]*|-[0-9]*) o="$o $a";;
+	-[A-Za-z]*|[0-9]*) o="$o $a";;
 	*)
 	a=${@:1:i}
 	A=`history 1`;
