@@ -9,7 +9,7 @@ Would print its:
 Would narrow down the search:  
 - limit to certain depth only                 -d
 - get more control by regular expression      -E 
-- All the 'Test' option of 'find' linux utility
+- All the 'Test' option as of 'find' linux utility  -   (below its execerpted doc)
 
 Copy this Bash function and paste, prepend it in ~/.bashrc file  
 
