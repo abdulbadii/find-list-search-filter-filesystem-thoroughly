@@ -1,6 +1,27 @@
-Find and list specific file and/or directory recursively   
+Find and list specific file and/or directory recursively with useful options;
+
+Would print its:  
+- size                                        -s
+- last modification time                            -t 
+- File type information (64 or 32 bit binary) -ft
+- Dependencies directly (one level dep. info) -p
+
+Would narrow down the search:  
+- limit to certain depth only                 -d
+- get more control by regular expression      -E 
+- All the 'Test' option of 'find' linux utility
 
 Copy this Bash function and paste, prepend it in ~/.bashrc file  
+
+Simply
+$ l  
+list entire object i.e. files/directories under current directory  
+$l -s  
+same as above with their size are shown  
+
+$l -t *.bin  
+list entire binary files under current directory with their modification time
+
 
 Let directories of path /a and /a/b/c contain main.c, and the latter contain meta.c, a.h and ab.h   
   $ ls /a  
@@ -36,8 +57,8 @@ If we want to know their sizes precede it with -s option
   
 and for last modification time with -t, while for both with -st  
 
-it always searchs for as many directories depths as it's available by OS,  
-to limit the directory depth put -d option, e.g. on search for current and 1 directory below, put -d2 for current and 2 directories below with -d3 and so on..  
+it always searchs as many directories depths as limited max by OS,  
+to lower the limit put -d option, e.g. on search for current and 1 directory below, put -d2 for current and 2 directories below with -d3 and so on..  
 $ l -d2 *.c 
 Tes@Linux /   
 /a/main.c  
