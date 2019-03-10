@@ -1,21 +1,21 @@
 #! /usr/bin/bash
 l(){
-i=;o=;d=;E=;r=%p;ft=;dp=;
+i=;o=;d=;E=;r=%p;t=;d=;c=
 A=`history 1`;
 [[ "${@: -1}" =~ ^- || ${#} = 0 ]]&&{ A=$A\ *;l="$@ *";set -f;eval set -- "$l";set +f
 }
 for a
 {
 case ${a:0:3} in
--f) ft=1;;
--p) dp=1;;
--d[0-9]) d=-maxdepth\ ${a:2};;
+-f) t=1;;
+-d) d=1;;
+-[0-9]) dd=-maxdepth\ ${a:1};;
 -E) E=1;;
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
 -[A-Za-z]???|[0-9]) o="$o $a";;
--*) echo -e Unrecognized option \'$a\';return;;
+-*) echo -e ignoring unrecognized option \'$a\';;
 *)
 a=${@:1:i}
 a=${A#*"${FUNCNAME[0]}"*$a*[! ]}
@@ -24,49 +24,50 @@ a=${a//\\/\\\\}
 set -f;eval set -- "$a";set +f
 for a
 {
-a=${a%/};p=~+
-if [ "${a:0:1}" = / ];then
+a=${a%/}
+if [ ${a:0:1} = / ];then
 	p="${a%%[*?]*}"
 	if [ $p = "$a" -a -d $p ];then a='**'
 	else p=${p%/*};a=${a#$p/};fi
 	if [ $E ];then
-		eval "find $p $d -regextype posix-extended -iregex \"$p/$a\" $o -printf \"$r\n\""
+		eval "find $p $dd -regextype posix-extended -iregex \"$p/$a\" $o -printf \"$r\n\""
 	else
 		a=${a//./\\.}
 		if [[ $a =~ \*\* ]] ;then	a=${a//\*\*/|/};a=${a//\*/[^\/]*};a=${a//|\//.*}
 		else	a=${a//\*/[^\/]*};fi
 		a=${a//\?/.}
-		if [ "$ft$dp" ];then lft
+		if [ "$t$d" ];then lft $p
 		else
-			eval "find $p $d -regextype posix-extended -iregex \"$p/$a\" $o -printf \"$r\n\""
+			eval "find $p $dd -regextype posix-extended -iregex \"$p/$a\" $o -printf \"$r\n\""
 		fi
 	fi
-elif [ $E ];then	eval "find ~+ $d -regextype posix-extended -iregex \".*$a\" $o -printf \"$r\n\""
+else p=~+
+if [ ${a:0:2} = ./ ];then	c=~+;a=${a#.}
+else c='.*/';fi
+if [ $E ];then	eval "find ~+ $dd -regextype posix-extended -iregex \"$c$a\" $o -printf \"$r\n\""
 else	a=${a//./\\.}
 	if [[ $a =~ \*\* ]] ;then	a=${a//\*\*/|/};	a=${a//\*/[^\/]*};	a=${a//|\//.*};
 	else	a=${a//\*/[^\/]*};fi
 	a=${a//\?/.}
 	IFS=$'\n'
-	if [ "$ft$dp" ];then lft '.*/'
-	else	eval "find ~+ $d -regextype posix-extended -iregex \".*/$a\" $o -printf \"$r\n\""
+	if [ "$t$d" ];then lft $c
+	else	eval "find ~+ $dd -regextype posix-extended -iregex \"$c$a\" $o -printf \"$r\n\""
 	fi
-fi
+fi;fi
 }
-return;;
-esac
+return;;esac
 let i++
 }
 }
 lft(){
-	for l in `eval "find $p $d -regextype posix-extended -iregex \"$p/$1$a\" $o -printf \"%p\n\"" |head -n499`
+	for l in `eval "find $p $dd -regextype posix-extended -iregex \"$1$a\" $o -printf \"%p\n\"" |head -n499`
 	{	find $p -iregex "$l" -printf "$r\n"
 		[ -f $l ]&&{
-		[ "$ft" ]&&{
+		[ "$t" ]&&{
 			f=`file $l`
 			e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/'`
 			if [[ $e =~ ^execu ]];then echo $e;else echo $f|sed -E 's/[^:]+: *(.+)/\1/';fi
 		}
-		[ "$dp" ]&&ldd $l 2>/dev/nul |sed -e '1iDEPs:' -Ee 's/.+>(.{1,63})\(0.+/ \1/ ;$a\\'
-		}
-	}
+		[ "$d" ]&&ldd $l 2>/dev/nul |sed -Ee 's/.+>(.{1,63})\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
+	};}
 }
