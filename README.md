@@ -15,13 +15,15 @@ Copy and paste this Bash function, prepend it in ~/.bashrc file
 
 Simply type l
 $ l  
-list entire object i.e. files/directories under current directory  
-$ l -s -f
-same with their size and file information are shown  
+list entire object; files/directories under current directory  
 
-$l -t *.bin  
-list entire binary files under current directory with their modification time
+$ l -s -f *.bin
+query all files with bin extension with their size and file information are shown  
 
+to limit to current directory only the easier way than -1 option is prefix it with ./
+$ l -t ./*.bin  
+ 
+list all binary files under this directory only with their modification time
 
 Let directories of path /a and /a/b/c contain main.c, and the latter contain meta.c, a.h and ab.h   
   $ ls /a  
@@ -51,14 +53,13 @@ If we want to know their sizes precede it with -s option
  $ l -s *.c   
  999 /a/main.c  
  711 /a/b/c/main.c   
- 33 /a/b/c/meta.c   
- 77 /a/b/c/d/e/menu.c   
- 27 /a/b/c/ab.c
-  
-and for last modification time with -t, while for both with -st  
+ 33 /a/b/c/meta.c  
+ 27 /a/b/c/ab.c  
 
-it always searchs as many directories depths as limited max by OS,  
-to lower the limit put -d option, e.g. on search for current and 1 directory below, put -d2 for current and 2 directories below with -d3 and so on..  
+for last modification time with -t, and for both with -st  
+
+it always searchs as many directories depths as it's max existing in file system ,  
+to lower the limit put -1...9 option, e.g. on search for current and 1 directory below put -2, for current and 2 directories below add -3, and so on..  
 $ l -d2 *.c 
 Tes@Linux /   
 /a/main.c  
