@@ -2,22 +2,22 @@ Find and list specific file and/or directory recursively with useful options;
 
 Would print its:  
 - size                                        -s
-- last modification time                            -t 
-- File type information (64 or 32 bit binary) -ft
-- Dependencies directly (one level dep. info) -p
+- last modification time                       -t 
+- File type information (64 or 32 bit binary) -f
+- Dependencies directly (one level dep. info) -d
 
 Would narrow down the search:  
-- limit to certain depth only                 -d
+- limit to certain depth only                 -0...9
 - get more control by regular expression      -E 
-- All the 'Test' option as of 'find' linux utility  -   (below its execerpted doc)
+- All the 'Test' option as of 'find' linux utility  -   (below some excerpted doc)
 
-Copy this Bash function and paste, prepend it in ~/.bashrc file  
+Copy and paste this Bash function, prepend it in ~/.bashrc file  
 
-Simply
+Simply type l
 $ l  
 list entire object i.e. files/directories under current directory  
-$l -s  
-same as above with their size are shown  
+$ l -s -f
+same with their size and file information are shown  
 
 $l -t *.bin  
 list entire binary files under current directory with their modification time
