@@ -68,6 +68,6 @@ lft(){
 			e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/'`
 			if [[ $e =~ ^execu ]];then echo $e;else echo $f|sed -E 's/[^:]+: *(.+)/\1/';fi
 		}
-		[ "$d" ]&&ldd $l 2>/dev/nul |sed -Ee 's/.+>(.{1,63})\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
+		[ "$d" ]&&ldd $l 2>/dev/nul |sed -Ee 's/[^>]+>(.+)\s+\(.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
 	};}
 }
