@@ -1,15 +1,15 @@
 Find and list specific file and/or directory recursively with useful options;
 
 Would print its:  
-- size                                        -s
+- size                                         -s
 - last modification time                       -t 
-- File type information (64 or 32 bit binary) -f
-- Dependencies directly (one level dep. info) -d
+- File information (64/32 bit binary, etc)    -f
+- Dependencies of one level depth             -d
 
 Would narrow down the search:  
 - limit to certain depth only                 -0...9
 - get more control by regular expression      -E 
-- All the 'Test' option as of 'find' linux utility  -   (below some excerpted doc)
+- All the 'Test' option of 'find' test option  -   (below the excerpted options)
 
 Copy and paste this Bash function, prepend it in ~/.bashrc file  
 
@@ -18,12 +18,12 @@ $ l
 list entire object; files/directories under current directory  
 
 $ l -s -f *.bin
-query all files with bin extension with their size and file information are shown  
+query all files with bin extension with their size and file information
 
-to limit to current directory only the easier way than -1 option is prefix it with ./
-$ l -t ./*.bin  
+to limit to current directory only use -1 option  
+$ l -t -1 *.bin  
  
-list all binary files under this directory only with their modification time
+list all binary files on this directory only with their modification time
 
 Let directories of path /a and /a/b/c contain main.c, and the latter contain meta.c, a.h and ab.h   
   $ ls /a  
@@ -47,18 +47,8 @@ Let's add more under it
   /a/b/c/main.c   
   /a/b/c/d/e/menu.c      
   /a/b/c/d/e/min.h
-   
-If we want to know their sizes precede it with -s option   
- Tes@Linux /   
- $ l -s *.c   
- 999 /a/main.c  
- 711 /a/b/c/main.c   
- 33 /a/b/c/meta.c  
- 27 /a/b/c/ab.c  
 
-for last modification time with -t, and for both with -st  
-
-it always searchs as many directories depths as it's max existing in file system ,  
+it always searchs as many directories depths as the maximum is existing in file system ,  
 to lower the limit put -1...9 option, e.g. on search for current and 1 directory below put -2, for current and 2 directories below add -3, and so on..  
 $ l -d2 *.c 
 Tes@Linux /   
