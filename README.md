@@ -13,15 +13,15 @@ Would narrow down the search:
 
 Copy and paste this Bash function, prepend it in ~/.bashrc file  
 
-Simply type l
+Simply type l  
 $ l  
 list entire object; files/directories under current directory  
 
 $ l -s -f *.bin
 query all files with bin extension with their size and file information
 
-to limit to current directory only use -1 option  
-$ l -t -1 *.bin  
+to limit search to current directory only easier is prefix with ./ than -1 option  
+$ l -t -1 ./*.bin  
  
 list all binary files on this directory only with their modification time
 
