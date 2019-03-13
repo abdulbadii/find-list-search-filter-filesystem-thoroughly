@@ -1,16 +1,16 @@
 l(){
-i=;o=;d=;E=;r=%p;t=;d=;c=;f=
+i=;o=;d=;E=;r=%p;t=;d=;c=;y=
 for a
 {
 case ${a:0:3} in
 -f) t=1;;
 -d) d=1;;
--[0-9]) dd=-maxdepth\ ${a:1};;
+-[0-9]) y=-maxdepth\ ${a:1};;
 -E) E=1;;
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
--[A-Za-z]?) o="$o $a";;
+-[HDlPOa-z]?) o="$o $a";;
 -?*) [ -e $a ] ||echo "ignoring unrecognized option \'$a\'";;
 *)
 a=${@:1:i}
@@ -30,12 +30,12 @@ if [ ${a:0:1} = / ];then
 else
 	p=~+
 	if [ ${a:0:2} = ./ ] ;then
-		dd=-maxdepth\ 1;a=${a#./}
+		y=-maxdepth\ 1;a=${a#./}
 	else	c=*	;fi
 fi
 if [ "$t$d" ];then dft
-elif [ $E ] ;then	eval "find $p $dd -regextype posix-extended -iregex $p/$a $o -type d -printf \"$r/\n\" -o -regextype posix-extended -iregex $p/$a $o -type f -printf \"$r\n\""
-else	eval "find $p $dd -ipath $p$c$a $o -iname $a -type d -printf \"$r/\n\" -o -ipath $p$c$a $o -iname $a -type f -printf \"$r\n\""
+elif [ $E ] ;then	eval "find $p $y -regextype posix-extended -iregex $p/$a $o -type d -printf \"$r/\n\" -o -regextype posix-extended -iregex $p/$a $o -type f -printf \"$r\n\""
+else	eval "find $p $y -ipath $p$c$a $o -iname $a -type d -printf \"$r/\n\" -o -ipath $p$c$a $o -iname $a -type f -printf \"$r\n\""
 fi
 }
 return;;esac
@@ -46,8 +46,8 @@ set +f
 }
 
 dft(){
-if [ $E ] ;then	F="find $p $dd -regextype posix-extended -iregex $p/$a $o -type d -printf \"$r/\n\" -o -regextype posix-extended -iregex $PWD/$a $o -type f -printf \"$r\n\""
-else	F="find $p $dd -ipath $p*$a $o -iname $a -type d -printf \"%p/\n\" -o -ipath $p*$a $o -iname $a -type f -printf \"%p\n\""
+if [ $E ] ;then	F="find $p $y -regextype posix-extended -iregex $p/$a $o -type d -printf \"$r/\n\" -o -regextype posix-extended -iregex $PWD/$a $o -type f -printf \"$r\n\""
+else	F="find $p $y -ipath $p$c$a $o -iname $a -type d -printf \"%p/\n\" -o -ipath $p$c$a $o -iname $a -type f -printf \"%p\n\""
 fi
 for l in `eval $F|head -n499`
 	{	find $p -ipath "$l" -printf "$r\n"
