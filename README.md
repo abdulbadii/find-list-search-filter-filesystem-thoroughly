@@ -1,21 +1,28 @@
 Find and list specific file and/or directory recursively with useful options;
 
 Would print its:  
-- size                                         -s
-- last modification time                       -t 
+- Size                                         -s
+- Last modification time                       -t 
 - File information (64/32 bit binary, etc)    -f
 - Dependencies of one level depth             -d
 
-Would narrow down the search:  
-- limit to certain depth only                 -0...9
-- get more control by regular expression      -E 
-- All the 'Test' option of 'find' test option  -   (below the excerpted options)
+Would narrow down search:  
+- Limit to find only directory or file type   suffix argument with / or .
+- Limit to certain depth only                 -1...9 or prefix with ./ for -1
+- In greater control by regular expression      -E 
+- All the 'Test' option of 'find' test option  -   (below its excerpted options)
 
 Copy and paste this Bash function, prepend it in ~/.bashrc file  
 
 Simply type l  
 $ l  
-list entire object; files/directories under current directory  
+list entire object; files and directories under current directory  
+
+$ l */  
+list every directories under current directory  
+
+$ l *.  
+list every files under current directory  
 
 $ l -s -f *.bin
 query all files with bin extension with their size and file information
@@ -29,24 +36,25 @@ Let directories of path /a and /a/b/c contain main.c, and the latter contain met
   $ ls /a  
   main.c  
   $ ls /a/b/c  
-  main.c meta.c a.h ab.h   
-  $ cd /   
-  Tes@Linux /   
+  main.c meta.c a.h  
+  $ cd /    
   $ l *.c *.h  
   /a/main.c   
   /a/b/c/main.c   
   /a/b/c/meta.c     
-  /a/b/c/a.h   
-  /a/b/c/ab.h   
+  /a/b/c/a.h  
+  
+  $ l *.c/
+  /a/b/c/
 
 Let's add more under it    
-  $ ls /a/b/c/d/e   
+$ ls /a/b/c/d/e   
   menu.c min.h  
-  Tes@Linux  /  
-  $ l *n*.?   
-  /a/b/c/main.c   
-  /a/b/c/d/e/menu.c      
-  /a/b/c/d/e/min.h
+$ cd /  
+$ l *n*.?   
+ /a/b/c/main.c   
+ /a/b/c/d/e/menu.c      
+ /a/b/c/d/e/min.h
 
 it always searchs as many directories depths as the maximum is existing in file system ,  
 to lower the limit put -1...9 option, e.g. on search for current and 1 directory below put -2, for current and 2 directories below add -3, and so on..  
@@ -54,9 +62,8 @@ $ l -d2 *.c
 Tes@Linux /   
 /a/main.c  
 
-it may be navigated in absolute path way  
+Can be navigated in absolute path way  
 $ cd /z  
-$ Tes@Linux /z  
 $ l /a/b/c/m*.c  
 
 /a/b/c/main.c   
