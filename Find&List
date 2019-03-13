@@ -17,25 +17,34 @@ a=${@:1:i}
 A=`history 1`	;A=${A%%|*}
 a=${A#*"${FUNCNAME[0]}"*$a*[! ]}
 a="${A: -((1+${#a}))}"
-a=${a//\\/\\\\}
+a=${a//\\/\\\\};IFS=$'\n'
 set -f;eval set -- "$a"
-IFS=$'\n'
 for a
 {
-a=${a%/}
+f=${a: -1};a=${a%[/.]}
+O=;F="-ipath $p$c$a -iname $a -type f $o -printf \"$r\n\""
+D="-ipath $p$c$a -iname $a -type d $o -printf \"$r/\n\""
+H="-regextype posix-extended -iregex $p/$a $o -type d -printf \"$r/\n\""
+I="-regextype posix-extended -iregex $p/$a $o -type f -printf \"$r\n\""
+if [ $f = . ] ;then	D=;H=
+elif [ $f = / ] ;then	F=;I=
+else	O=-o
+fi
 if [ ${a:0:1} = / ];then
 	p="${a%%[*?]*}"
 	if [ -d $p -a $p = "$a" ];then a=*
 	else p=${p%/*};a=${a#$p/};fi
-else
-	p=~+
+else	p=~+
 	if [ ${a:0:2} = ./ ] ;then
 		y=-maxdepth\ 1;a=${a#./}
 	else	c=*	;fi
 fi
+P="find $p $y"
+if [ $E ] ;then	P="$P $H $O $I"
+else	P="$P $F $O $D"
+fi
 if [ "$t$d" ];then dft
-elif [ $E ] ;then	eval "find $p $y -regextype posix-extended -iregex $p/$a $o -type d -printf \"$r/\n\" -o -regextype posix-extended -iregex $p/$a $o -type f -printf \"$r\n\""
-else	eval "find $p $y -ipath $p$c$a $o -iname $a -type d -printf \"$r/\n\" -o -ipath $p$c$a $o -iname $a -type f -printf \"$r\n\""
+else	eval "$P"
 fi
 }
 return;;esac
@@ -46,10 +55,7 @@ set +f
 }
 
 dft(){
-if [ $E ] ;then	F="find $p $y -regextype posix-extended -iregex $p/$a $o -type d -printf \"$r/\n\" -o -regextype posix-extended -iregex $PWD/$a $o -type f -printf \"$r\n\""
-else	F="find $p $y -ipath $p$c$a $o -iname $a -type d -printf \"%p/\n\" -o -ipath $p$c$a $o -iname $a -type f -printf \"%p\n\""
-fi
-for l in `eval $F|head -n499`
+for l in `eval $P|head -n499`
 	{	find $p -ipath "$l" -printf "$r\n"
 		[ -f $l ]&&{
 		[ "$t" ]&&{
