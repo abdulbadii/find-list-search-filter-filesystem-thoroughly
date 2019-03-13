@@ -16,23 +16,23 @@ Copy and paste this Bash function, prepend it in ~/.bashrc file
 
 Simply type l  
 $ l  
-list entire object; files and directories under current directory  
+list objects; files and directories under current directory entirely  
 
 $ l */  
-list every directories under current directory  
+list every directories under current directory entirely  
 
 $ l *.  
-list every files under current directory  
+list every files under current directory entirely  
 
-$ l -s -f *.bin
+$ l -s -f *.bin  
 query all files with bin extension with their size and file information
 
-to limit search to current directory only easier is prefix with ./ than -1 option  
-$ l -t -1 ./*.bin  
- 
-list all binary files on this directory only with their modification time
+to limit search on this directory only, easier way is prefix with ./ than -1 option  
 
-Let directories of path /a and /a/b/c contain main.c, and the latter contain meta.c, a.h and ab.h   
+$ l -t ./*.bin   
+list all bin extension files on this directory only with their modification time
+
+Let directories of path /a and /a/b/c contain main.c, and the latter contain meta.c and a.h  
   $ ls /a  
   main.c  
   $ ls /a/b/c  
@@ -56,10 +56,10 @@ $ l *n*.?
  /a/b/c/d/e/menu.c      
  /a/b/c/d/e/min.h
 
-it always searchs as many directories depths as the maximum is existing in file system ,  
+it always searchs as many directories depths as the maximum existing one in file system ,  
 to lower the limit put -1...9 option, e.g. on search for current and 1 directory below put -2, for current and 2 directories below add -3, and so on..  
 $ l -d2 *.c 
-Tes@Linux /   
+$ cd /  
 /a/main.c  
 
 Can be navigated in absolute path way  
@@ -68,20 +68,6 @@ $ l /a/b/c/m*.c
 
 /a/b/c/main.c   
 /a/b/c/meta.c   
-
-such this way, it can further search for more depths under a directory preceding the keyword '**'
-e.g. /a/\\**m\*.c  will search for /a and all directories under it until it find any file/folder with the m\*.c name  
-
-$ l /a/\\**m\*.c  
-
-/a/main.c  
-/a/b/c/main.c  
-/a/b/c/meta.c  
-/a/b/c/d/e/menu.c  
-/a/b/min.c  
-/a/b/c/d/e/f/g/max.c   
-
-note the last extra two if do they exist  
 
 can even be navigated in way of absolute path followed relative path in a single line 
 
