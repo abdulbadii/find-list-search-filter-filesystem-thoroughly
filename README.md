@@ -16,21 +16,21 @@ Copy and paste this Bash function, prepend it in ~/.bashrc file
 
 Simply type l  
 $ l  
-list objects; files and directories under current directory entirely  
+list every files and directories under current directory entirely  
 
 $ l */  
-list every directories under current directory entirely  
+list every directory only under current directory entirely  
 
 $ l *.  
-list every files under current directory entirely  
+list every file only under current directory entirely  
 
 $ l -s -f *.bin  
-query all files with bin extension with their size and file information
+query any object with 'bin' end name and list with their size and file information
 
-to limit search on this directory only, easier way is prefix with ./ than -1 option  
+to limit search on this directory only, prefix it with ./
 
 $ l -t ./*.bin   
-list all bin extension files on this directory only with their modification time
+list any object whose name has 'bin' extension on this directory only, with their last modification  
 
 Let directories of path /a and /a/b/c contain main.c, and the latter contain meta.c and a.h  
   $ ls /a  
