@@ -1,9 +1,17 @@
+fd(){
+(($1))&&{
+	f=`file $3`
+	e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/'`
+	if [[ $e =~ ^execu ]];then echo $e;else echo $f|sed -E 's/[^:]+: *(.+)/\1/';fi
+}
+(($2))&&ldd $3 2>/dev/nul |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
+}
 l(){
-i=;o=;d=;E=;r=%p;t=;d=;c=;y=
+unset i o E c y O N n P;r=%p;f=0;d=0
 for a
 {
 case ${a:0:3} in
--f) t=1;;
+-f) f=1;;
 -d) d=1;;
 -[0-9]) y=-maxdepth\ ${a:1};;
 -E) E=1;;
@@ -11,40 +19,52 @@ case ${a:0:3} in
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
 -[HDlPOa-z]?) o="$o $a";;
--?*) [ -e $a ] ||echo "ignoring unrecognized option \'$a\'";;
+-?*) if [ -e $a ];then	n=$n\ $a
+	else	echo "ignoring unrecognized option \'$a\'"
+	fi;;
 *)
 a=${@:1:i}
 A=`history 1`	;A=${A%%|*}
 a=${A#*"${FUNCNAME[0]}"*$a*[! ]}
 a="${A: -((1+${#a}))}"
 a=${a//\\/\\\\};IFS=$'\n'
-set -f;eval set -- "$a"
+set -f;eval set -- "$a" "$n"
 for a
 {
-f=${a: -1};a=${a%[/.]}
-O=;F="-ipath $p$c$a -iname $a -type f $o -printf \"$r\n\""
-D="-ipath $p$c$a -iname $a -type d $o -printf \"$r/\n\""
-H="-regextype posix-extended -iregex $p/$a $o -type d -printf \"$r/\n\""
-I="-regextype posix-extended -iregex $p/$a $o -type f -printf \"$r\n\""
-if [ $f = . ] ;then	D=;H=
-elif [ $f = / ] ;then	F=;I=
-else	O=-o
+z=${a: -1}
+a=${a%[/.]}
+if [[ ${a: -1} = [*?] ]];then
+	N=-iname\ $a
 fi
 if [ ${a:0:1} = / ];then
-	p="${a%%[*?]*}"
-	if [ -d $p -a $p = "$a" ];then a=*
-	else p=${p%/*};a=${a#$p/};fi
-else	p=~+
+	p=${a%%[*?]*}
+	s=${p%/*}
+	P=-ipath *${a#$s}
+else	s=~+
 	if [ ${a:0:2} = ./ ] ;then
-		y=-maxdepth\ 1;a=${a#./}
-	else	c=*	;fi
+		a=${a#./}
+		N=-iname\ $a
+		P=-ipath $s/$a
+		n=${a//[!\/]}
+		y=-maxdepth\ $((${#n}+1))
+	else
+		N=-iname\ $a
+	fi
 fi
-P="find $p $y"
-if [ $E ] ;then	P="$P $H $O $I"
-else	P="$P $F $O $D"
+D="-type d $o -printf \"$r/\n\""
+F="-type f $o -printf \"$r\n\""
+H="-type d -printf \"$r/\n\""
+I="-type f -printf \"$r\n\""
+if [ $z = . ] ;then	D=;H=
+elif [ $z = / ] ;then	F=;I=
+else	O=-o
 fi
-if [ "$t$d" ];then dft
-else	eval "$P"
+if [ $E ] ;then	A="find $s $y -regextype posix-extended -iregex */$a $o \( $H $O $I"
+else	A="find $s $y $P $N \( $D $O $F"
+fi
+if((f+d));then
+	export -f fd;eval $A -exec bash -c \'fd $f $d \$0\' {} '\; \)'
+else	eval "$A \)"
 fi
 }
 return;;esac
@@ -52,17 +72,4 @@ let i++
 }
 ((i))||find ~+ -type d -printf '%p/\n' -o -type f -printf '%p\n'
 set +f
-}
-
-dft(){
-for l in `eval $P|head -n499`
-	{	find $p -ipath "$l" -printf "$r\n"
-		[ -f $l ]&&{
-		[ "$t" ]&&{
-			f=`file $l`
-			e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/'`
-			if [[ $e =~ ^execu ]];then echo $e;else echo $f|sed -E 's/[^:]+: *(.+)/\1/';fi
-		}
-		[ "$d" ]&&ldd $l 2>/dev/nul |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
-	};}
 }
