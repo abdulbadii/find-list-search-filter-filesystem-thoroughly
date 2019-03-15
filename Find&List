@@ -48,7 +48,10 @@ else	s=~+
 		n=${a//[!\/]}
 		y=-maxdepth\ $((${#n}+1))
 	else
-		N=-iname\ $a
+		a=/$a
+		p=${a%/*};p=${p%/}
+		N=-iname\ ${a##*/}
+		P=-ipath\ *$p		
 	fi
 fi
 D="-type d $o -printf \"$r/\n\""
