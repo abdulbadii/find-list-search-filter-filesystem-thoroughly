@@ -21,7 +21,7 @@ case ${e:0:3} in
 -[HDLPO]|[a-z]??) o="$o $e";;
 -??*) if [ -e $e ];then	n=$n\ $e
 	else	u=$u$e\ ;fi;;
-*) break 2;;
+*) break;;
 esac
 a=$a$e\ 
 }
@@ -56,7 +56,7 @@ else	s=~+
 		n=${a//[!\/]};y=-maxdepth\ $((${#n}+1))
 	else
 		N=-iname\ ${a##*/}
-		[[ $a =~ / ]] &&P=-ipath\ *${a%/*}*
+		[[ $a =~ / ]] &&P=-ipath\ *$a
 	fi
 fi
 if [ $z = . ] ;then	D=;H=
