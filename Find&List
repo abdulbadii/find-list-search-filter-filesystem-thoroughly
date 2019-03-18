@@ -18,14 +18,12 @@ case ${e:0:3} in
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
--[HDLPO]|[a-z]??) o="$o $e";;
--??*) if [ -e $e ];then	n=$n\ $e
-	else	u=$u$e\ ;fi;;
-*) break;;
+-[HDLPO]|[ac-il-y]??) o=$o$e\ ;;
+-[!-]*) echo ignoring unrecognized option \' $e\';;
+*)	break;;
 esac
 a=$a$e\ 
 }
-[ $u ]&&echo ignoring unrecognized option \'$u\'
 D="$o -type d -printf \"$r/\n\""
 F="$o -type f -printf \"$r\n\""
 H="$o -type d -printf \"$r/\n\""
@@ -34,9 +32,8 @@ set -f
 A=`history 1`;A=${A%%[&|>]*}
 a=${A#*"${FUNCNAME[0]}"*$a*[! ]}
 a="${A: -((1+${#a}))}"
-[ -z "$a" ] &&a=*
-
-eval set -- "${a//\\/\\\\}" "$n"
+a=${a:-*}
+eval set -- "${a//\\/\\\\}$n"
 IFS=$'\n'
 for a
 {
