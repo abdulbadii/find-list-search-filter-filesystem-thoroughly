@@ -2,7 +2,7 @@ fd(){
 (($1))&&{
 	f=`file $3`
 	e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/'`
-	if [[ $e =~ ^execu ]];then echo $e;else echo $f|sed -E 's/[^:]+: *(.+)/\1/';fi
+	if [[ $e =~ ^exec ]];then echo $e;else echo $f|sed -E 's/[^:]+: *(.+)/\1/';fi
 }
 (($2))&&ldd $3 2>/dev/nul |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
 }
@@ -18,16 +18,18 @@ case ${e:0:3} in
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
--[HDLPO]|[ac-il-y]??) o=$o$e\ ;;
--[!-]*) echo ignoring unrecognized option \' $e\';;
+-[HDLPO]|-[ac-il-y]?) o=$o${e/=/ }\ ;;
+-|--) a=$a$e\ ;break;;
+-*) echo if \'$e\' is meant as filename, the last options must be followed by - or --. So this is unrecognized option ;;
 *)	break;;
 esac
 a=$a$e\ 
 }
-D="$o -type d -printf \"$r/\n\""
-F="$o -type f -printf \"$r\n\""
-H="$o -type d -printf \"$r/\n\""
-I="$o -type f -printf \"$r\n\""
+
+D="-type d -printf \"$r/\n\""
+F="-type f -printf \"$r\n\""
+H="-type d -printf \"$r/\n\""
+I="-type f -printf \"$r\n\""
 set -f
 A=`history 1`;A=${A%%[&|>]*}
 a=${A#*"${FUNCNAME[0]}"*$a*[! ]}
@@ -61,7 +63,7 @@ elif [ $z = / ] ;then	F=;I=
 else	O=-o
 fi
 if [ $E ] ;then	A="find $s $y -regextype posix-extended -iregex */$a $o \( $H $O $I"
-else	A="find $s $y $P $N \( $D $O $F"
+else	A="find $s $y $P $N $o \( $D $O $F"
 fi
 if((f+d));then
 	export -f fd
