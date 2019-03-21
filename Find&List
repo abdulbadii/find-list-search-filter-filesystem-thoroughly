@@ -1,7 +1,7 @@
 fd(){
 (($1))&&{
 	f=`file $3`
-	e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/'`
+	e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/;s/Intel$/32bit/'`
 	if [[ $e =~ ^exec ]];then echo $e;else echo $f|sed -E 's/[^:]+: *(.+)/\1/';fi
 }
 (($2))&&ldd $3 2>/dev/nul |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
@@ -23,7 +23,7 @@ case ${e:0:3} in
 -*) echo if \'$e\' is meant as filename, the last options must be followed by - or --. So this is unrecognized option ;;
 *)	break;;
 esac
-a=$a$e\ 
+a=$a\ $e
 }
 
 D="-type d -printf \"$r/\n\""
@@ -32,8 +32,7 @@ H="-type d -printf \"$r/\n\""
 I="-type f -printf \"$r\n\""
 set -f
 A=`history 1`;A=${A%%[&|>]*}
-a=${A#*"${FUNCNAME[0]}"*$a*[! ]}
-a="${A: -((1+${#a}))}"
+a=${A#*"${FUNCNAME[0]}"*$a}
 a=${a:-*}
 eval set -- "${a//\\/\\\\}$n"
 IFS=$'\n'
