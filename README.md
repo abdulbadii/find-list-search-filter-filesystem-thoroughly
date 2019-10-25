@@ -1,3 +1,6 @@
+Copy and paste "List" above, a Bash function, prepend it in ~/.bashrc file  
+
+
 Find and list specific file and/or directory recursively with useful options;
 
 Would print its:  
@@ -12,7 +15,6 @@ Would narrow down search:
 - In greater control by regular expression      -E 
 - All the 'Test' option of 'find' test option  -   (below its excerpted options)
 
-Copy and paste this Bash function, prepend it in ~/.bashrc file  
 
 Simply type l  
 $ l  
