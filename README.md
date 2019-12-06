@@ -6,7 +6,7 @@ Find and list specific file and/or directory recursively with useful options;
 Would print its:  
 - Size                                         -s
 - Last modification time                       -t 
-- File information (64/32 bit binary, etc)    -f
+- File information (whether 64/32 bit binary etc)    -f
 - Dependencies of one level depth             -d
 
 Would narrow down search:  
