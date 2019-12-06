@@ -9,7 +9,7 @@ fd(){
 }
 
 l(){
-unset a b o E y O N n P u;r=%p;f=0;d=0
+unset a op o E y O N n P u w;r=%p;f=0;d=0
 [[ ${@:1} =~ ^\.$ ]] &&{ find ~+ -type f; return; }
 [[ ${@:1} =~ ^/$ ]] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n ; return; }
 for e
@@ -22,12 +22,12 @@ case ${e:0:3} in
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
--[HDLPO]|-[ac-il-y]?) b=$b${e/=/ }\ ;;
+-[HDLPO]|-[ac-il-y]?) op=$op${e/=/ }\ ;;
 -|--) a=$a$e\ ;break;;
--*) echo if \'$e\' is meant as filename, the last options must be followed by - or --;;
+-*) echo if \'$e\' is meant as filename, the last options must end with - or --;;
 *)	break;;
 esac
-b=$b\ $e
+op=$op\ $e
 }
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
@@ -35,37 +35,58 @@ H="-type d -printf \"$r/\n\""
 I="-type f -printf \"$r\n\""
 set -f
 A=`history 1`
-A=${A# *[0-9]*  }
+A=${A# *[0-9]*  }' '
 A=${A%%[&|>]*}
-a=${A#${FUNCNAME[0]}*$b}
-[ ${a// /} ] || { eval "find ~+ \! -ipath ~+ $H -o $I"; return; }
-
+a=${A#*$op* }
+[ $a ] || { eval "find ~+ \! -ipath ~+ $H -o $I"; return; }
 eval set -- "${a//\\/\\\\}$n"
 IFS=$'\n'
+
 for a
 {
+[[ $a =~ [*?] ]];w=$?
 z=${a: -1}
 a=${a%[/.]}
 if [ ${a:0:1} = / ];then
-	p=${a%%[*?]*};s=${p%/*}/
-	P=-ipath\ ${a%/*}/*
-	n=${a##*/};N=-iname\ ${n:-*}
-else	s=~+
-	if [ ${a:0:2} = ./ ] ;then
-		a=${a#./}
-		P=-ipath\ $s/$a
-		n=${a//[!\/]};y=-maxdepth\ $((${#n}+1))
+	P=$a
+	if((w));then
+		s=$a;
 	else
-		N=-iname\ ${a##*/}
-		[[ $a =~ / ]] &&P=-ipath\ *$a
+		p=${a%%[*?]*}
+		s=${p%/*}/
+	fi
+	[ -d $P ] && P=$P/*
+else
+	s=~+
+	if((w));then
+		if [ ${a:0:3} = ../ ] ;then
+			s=${s%/*}
+			P=$s/${a#../}
+		elif [ ${a:0:2} = ./ ] ;then
+			P=$s/${a#./}
+		else
+			P=$s/$a
+		fi
+		[ -d $P ] && P=$P/*
+	else
+		m=${a%%[*?]*}
+		p=${m%/*}
+		P=${m##*/}*${a#*[*?]}
+		if [ ${a:0:3} = ../ ] ;then
+			s=${s%/*}/${p#../}
+		elif [ ${a:0:2} = ./ ] ;then
+			s=$s/${p./}
+		else
+			s=$s/$p
+		fi
 	fi
 fi
 if [ $z = . ] ;then	D=;H=
 elif [ $z = / ] ;then	F=;I=
 else	O=-o
 fi
-if [ $E ] ;then	A="find $s $y -regextype posix-extended -iregex */$a $b \( $H $O $I"
-else	A="find $s $y $P $N $b \( $D $O $F"
+if [ $E ] ;then	A="find $s $y -regextype posix-extended -iregex */$a $op \( $H $O $I"
+else	A="find $s $y -ipath $P $op \( $D $O $F"
 fi
 if((f+d));then
 	export -f fd;eval $A -exec bash -c \'fd $f $d \$0\' {} '\; \)'
