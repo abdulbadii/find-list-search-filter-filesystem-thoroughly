@@ -9,7 +9,7 @@ fd(){
 }
 
 l(){
-unset a op o E y O N n P u w;r=%p;f=0;d=0
+unset a op o E y O N n p P u w;r=%p;f=0;d=0
 [[ ${@:1} =~ ^\.$ ]] &&{ find ~+ -type f; return; }
 [[ ${@:1} =~ ^/$ ]] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n ; return; }
 for e
@@ -31,20 +31,18 @@ op=$op\ $e
 }
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
-H="-type d -printf \"$r/\n\""
-I="-type f -printf \"$r\n\""
 set -f
 A=`history 1`
 A=${A# *[0-9]*  }' '
 A=${A%%[&|>]*}
 a=${A#*$op* }
-[ $a ] || { eval "find ~+ \! -ipath ~+ $H -o $I"; return; }
+[ $a ] || { eval "find ~+ \! -ipath ~+ $D -o $F"; return; }
 eval set -- "${a//\\/\\\\}$n"
 IFS=$'\n'
 
 for a
 {
-[[ $a =~ [*?] ]];w=$?
+[[ ${a} =~ [*?] ]];w=$?
 z=${a: -1}
 a=${a%[/.]}
 if [ ${a:0:1} = / ];then
@@ -53,44 +51,31 @@ if [ ${a:0:1} = / ];then
 		s=$a;
 	else
 		p=${a%%[*?]*}
-		s=${p%/*}/
+		s=${p%/*}
 	fi
-	[ -d $P ] && P=$P/*
 else
 	s=~+
-	if((w));then
-		if [ ${a:0:3} = ../ ] ;then
-			s=${s%/*}
-			P=$s/${a#../}
-		elif [ ${a:0:2} = ./ ] ;then
-			P=$s/${a#./}
-		else
-			P=$s/$a
-		fi
-		[ -d $P ] && P=$P/*
+	if [ ${a:0:3} = ../ ] ;then
+		s=${s%/*}
+		P=$s/*${a#../}
 	else
-		m=${a%%[*?]*}
-		p=${m%/*}
-		P=${m##*/}*${a#*[*?]}
-		if [ ${a:0:3} = ../ ] ;then
-			s=${s%/*}/${p#../}
-		elif [ ${a:0:2} = ./ ] ;then
-			s=$s/${p./}
-		else
-			s=$s/$p
-		fi
+		P=$s/*${a#./}
 	fi
 fi
-if [ $z = . ] ;then	D=;H=
-elif [ $z = / ] ;then	F=;I=
+((w)) && D="$D -exec find {} \; "
+
+if [ $z = . ] ;then	D=
+elif [ $z = / ] ;then	F=
 else	O=-o
 fi
-if [ $E ] ;then	A="find $s $y -regextype posix-extended -iregex */$a $op \( $H $O $I"
+if [ $E ] ;then
+	A="find $s $y -regextype posix-extended -iregex */$a $op \( $D $O $F"
 else	A="find $s $y -ipath $P $op \( $D $O $F"
 fi
 if((f+d));then
 	export -f fd;eval $A -exec bash -c \'fd $f $d \$0\' {} '\; \)'
-else	eval "$A \)"
+else
+	eval "$A \)"
 fi
 }
 set +f
