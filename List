@@ -9,7 +9,7 @@ fd(){
 }
 
 l(){
-unset a op o E y O N n p P u w;r=%p;f=0;d=0
+unset a E op O p P u w y;r=%p;f=0;d=0
 [[ ${@:1} =~ ^\.$ ]] &&{ find ~+ -type f; return; }
 [[ ${@:1} =~ ^/$ ]] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n ; return; }
 for e
@@ -24,7 +24,7 @@ case ${e:0:3} in
 -st) r='%s %p %Tr %Tx';;
 -[HDLPO]|-[ac-il-y]?) op=$op${e/=/ }\ ;;
 -|--) a=$a$e\ ;break;;
--*) echo if \'$e\' is meant as filename, the last options must end with - or --;;
+-*) echo if \'$e\' is a file, the last options must end with - or --;;
 *)	break;;
 esac
 op=$op\ $e
@@ -37,14 +37,19 @@ A=${A# *[0-9]*  }' '
 A=${A%%[&|>]*}
 a=${A#*$op* }
 [ $a ] || { eval "find ~+ \! -ipath ~+ $D -o $F"; return; }
-eval set -- "${a//\\/\\\\}$n"
-IFS=$'\n'
-
+eval set -- "${a//\\/\\\\}"
+IFS=$'\n' 
 for a
 {
 [[ ${a} =~ [*?] ]];w=$?
 z=${a: -1}
 a=${a%[/.]}
+[[ $a =~ ^(.+/)?(.+)$ ]]
+a=${BASH_REMATCH[1]}
+N=${BASH_REMATCH[2]}
+P=*
+s=~+
+if [ $a ] ;then
 if [ ${a:0:1} = / ];then
 	P=$a
 	if((w));then
@@ -54,13 +59,13 @@ if [ ${a:0:1} = / ];then
 		s=${p%/*}
 	fi
 else
-	s=~+
 	if [ ${a:0:3} = ../ ] ;then
 		s=${s%/*}
 		P=$s/*${a#../}
 	else
 		P=$s/*${a#./}
 	fi
+fi
 fi
 ((w)) && D="$D -exec find {} \; "
 
@@ -70,7 +75,7 @@ else	O=-o
 fi
 if [ $E ] ;then
 	A="find $s $y -regextype posix-extended -iregex */$a $op \( $D $O $F"
-else	A="find $s $y -ipath $P $op \( $D $O $F"
+else	A="find $s $y -ipath $P -iname $N $op \( $D $O $F"
 fi
 if((f+d));then
 	export -f fd;eval $A -exec bash -c \'fd $f $d \$0\' {} '\; \)'
