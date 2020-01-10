@@ -36,7 +36,7 @@ A=`history 1`
 A=${A# *[0-9]*  }' '
 A=${A%%[&|>]*}
 a=${A#*$op* }
-[ $a ] || { eval "find ~+ \! -ipath ~+ $D -o $F"; return; }
+[ $a ] || { eval "find ~+ \! -ipath ~+ $op $D -o $F"; set +f;return; }
 eval set -- "${a//\\/\\\\}"
 IFS=$'\n' 
 for a
