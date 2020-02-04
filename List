@@ -38,7 +38,7 @@ A=${A%%[&|>]*}
 a=${A#*$op* }
 [ $a ] || { eval "find ~+ \! -ipath ~+ $op $D -o $F"; set +f;return; }
 eval set -- "${a//\\/\\\\}"
-IFS=$'\n' 
+IFS=$'\n'
 for a
 {
 [[ ${a} =~ [*?] ]];w=$?
@@ -47,8 +47,6 @@ a=${a%[/.]}
 [[ $a =~ ^(.+/)?(.+)$ ]]
 a=${BASH_REMATCH[1]}
 N=${BASH_REMATCH[2]}
-P=*
-s=~+
 if [ $a ] ;then
 if [ ${a:0:1} = / ];then
 	P=$a
@@ -59,6 +57,7 @@ if [ ${a:0:1} = / ];then
 		s=${p%/*}
 	fi
 else
+	s=~+
 	if [ ${a:0:3} = ../ ] ;then
 		s=${s%/*}
 		P=$s/*${a#../}
@@ -66,6 +65,9 @@ else
 		P=$s/*${a#./}
 	fi
 fi
+else
+	s=~+
+	P=*
 fi
 ((w)) && D="$D -exec find {} \; "
 
@@ -74,13 +76,13 @@ elif [ $z = / ] ;then	F=
 else	O=-o
 fi
 if [ $E ] ;then
-	A="find $s $y -regextype posix-extended -iregex */$a $op \( $D $O $F"
-else	A="find $s $y -ipath $P -iname $N $op \( $D $O $F"
+	A="find \"$s\" $y -regextype posix-extended -iregex */$a $op \( $D $O $F"
+else	A="find \"$s\" $y -ipath $P -iname $N $op \( $D $O $F"
 fi
 if((f+d));then
 	export -f fd;eval $A -exec bash -c \'fd $f $d \$0\' {} '\; \)'
 else
-	eval "$A \)"
+	set -o pipefail; (eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2) 3>&1
 fi
 }
 set +f
