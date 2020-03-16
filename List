@@ -44,25 +44,25 @@ for a
 [[ ${a} =~ [*?] ]];w=$?
 z=${a: -1}
 a=${a%[/.]}
-[[ $a =~ ^(.+/)?(.+)$ ]]
-a=${BASH_REMATCH[1]}
-N=${BASH_REMATCH[2]}
-if [ $a ] ;then
-if [ ${a:0:1} = / ];then
-	P=$a
+[[ $a =~ ^((.*)/)?(.+)$ ]]
+p=${BASH_REMATCH[2]}
+N=${BASH_REMATCH[3]}
+if [ $p ] ;then
+if [ ${p:0:1} = / ];then
+	P=$p
 	if((w));then
-		s=$a;
+		s=$p;
 	else
-		p=${a%%[*?]*}
-		s=${p%/*}
+		s=${p%%[*?]*}
+		s=${s%/*}
 	fi
 else
 	s=~+
-	if [ ${a:0:3} = ../ ] ;then
+	if [ ${p:0:3} = ../ ] ;then
 		s=${s%/*}
-		P=$s/*${a#../}
+		P=$s/*${p#../}
 	else
-		P=$s/*${a#./}
+		P=$s/*${p#./}
 	fi
 fi
 else
@@ -76,13 +76,14 @@ elif [ $z = / ] ;then	F=
 else	O=-o
 fi
 if [ $E ] ;then
-	A="find \"$s\" $y -regextype posix-extended -iregex */$a $op \( $D $O $F"
-else	A="find \"$s\" $y -ipath $P -iname $N $op \( $D $O $F"
+	A="find \"$s\" $y -regextype posix-extended -iregex \"*/$a\" $op \( $D $O $F"
+else	A="find \"$s\" $y -ipath \"$P\" -iname \"$N\" $op \( $D $O $F"
 fi
 if((f+d));then
 	export -f fd;eval $A -exec bash -c \'fd $f $d \$0\' {} '\; \)'
 else
-	set -o pipefail; (eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2) 3>&1
+	set -o pipefail;
+	(eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
 fi
 }
 set +f
