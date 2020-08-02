@@ -2,7 +2,7 @@ fd(){
 	f=`file $3`
 	e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/;s/Intel$/32bit/'`
 	if [[ $e =~ ^execu ]];then echo $e
-	else echo $f|sed -E 's/[^:]+: *(.+)/\1/';fi
+	else echo $f|sed -E 's/[^:]+:\s*(.+)/\1/';fi
 	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
 }
 
@@ -17,8 +17,9 @@ for e
 case $e in
 -h|--help) find --help; return;;
 -d) d=1;;
+-i) I=1;;
 -[0-9]*) y=-maxdepth\ ${e:1};;
--E) E=1;;
+-E|-re) E=1;;
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
@@ -26,14 +27,14 @@ case $e in
 -[ac-il-y]?|-[HDLPO]) opt=$opt$e\ ;;
 -?) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a filename, put it after - or --;;
 -|--) break;;
-*) et=1; break;;
+*) ex=1; break;;
 esac
 }
-f=${@:1:((i-et))}
+xt=${@:1:((i-ex))}
 
 A=`history 1`
 set -f
-A=${A# *[0-9]*  *$f }
+A=${A# *[0-9]*  *$xt }
 A=${A%% [12]>*}
 A=${A%%[>&|<]*}
 
@@ -58,7 +59,10 @@ fi
 
 if [ $p ] ;then # If it has dir. path it is possibly either absolute or relative
 if [ ${p:0:1} = / ];then # Absolute Dir. Path
-	if [[ ! $p =~ [*?] ]] ;then # No single wildcard in dir. path 
+	if [ $E ] ;then
+		A="sudo find / $y -regextype posix-extended -iregex *$p$n* $opt \( $D $O $F"
+		return
+	elif [[ ! $p =~ [*?] ]] ;then # No single wildcard in dir. path 
 		s=$p
 		if [[ ! $n =~ \*\* ]] ;then # and not double one in filename
 			N=-iname\ $n
@@ -90,7 +94,10 @@ else # Relative Dir. Path
 		p=${p#../}
 		p=${p#./}
 	done
-	if [[ ! $p =~ [*?] ]] && [[ ! $n =~ \*\* ]] ;then # No single wildcard in dir. path nor double one in filename
+	if [ $E ] ;then
+		A="sudo find $s $y -regextype posix-extended -iregex *$s/$p$n* $opt \( $D $O $F"
+		return
+	elif [[ ! $p =~ [*?] ]] && [[ ! $n =~ \*\* ]] ;then # No single wildcard in dir. path nor double one in filename
 		p=${p%/}
 		s=$s/$p
 		y=-maxdepth\ 1
@@ -109,9 +116,13 @@ else # Relative Dir. Path
 		fi
 	fi	
 fi
+
 else # If has no dir. path, it must be dir./file name relative to PWD
 	s=~+
-	if [[ $n =~ \*\* ]] ;then # if there is double wildcards in filename
+	if [ $E ] ;then
+		A="sudo find $s $y -regextype posix-extended -iregex $s/$p $opt \( $D $O $F"
+		return
+	elif [[ $n =~ \*\* ]] ;then # if there is double wildcards in filename
 		P=-ipath\ $s/$n
 	elif [[ ! $n =~ \* ]] ;then	# if none at all 
 		eval "sudo find $s $y -ipath $s/$n $opt \( -type d -exec find \{\} $y -iname * $opt $D $O $F \; $O $F \)"
@@ -122,13 +133,10 @@ else # If has no dir. path, it must be dir./file name relative to PWD
 	fi
 fi
 
-if [ $E ] ;then
-	A="sudo find $s $y -regextype posix-extended -iregex \"*/$a\" $opt \( $D $O $F"
-else
-	A="sudo find $s $y $P $N $opt \( $D $O $F"
-fi
-if((d));then
-	export -f fd;eval $A -exec bash -c \'fd $d \$0\' {} '\; \)'
+A="sudo find $s $y $P $N $opt \( $D $O $F"
+
+if((d+I));then
+	export -f fd;eval $A -exec bash -c \'fd $d $i \$0\' {} '\; \)'
 else
 	set -o pipefail;
 	(eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
