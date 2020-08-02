@@ -6,7 +6,7 @@ fd(){
 	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
 }
 
-l(){
+li(){
 [[ ${@:1} =~ ^\.$ ]] &&{ find ~+ -type f; return; }
 [[ ${@:1} =~ ^/$ ]] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n ; return; }
 unset a E opt O p P N u w y d i et
@@ -79,10 +79,10 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 			P=-ipath\ $a
 		elif [[ $n =~ \* ]] ;then
 			n=${n//./\.}
-			n=${n//\?/.}
+			n=${n//\?/[^/.]}
 			n=${n//\*/'[^/]*'}
 			p=${p//./\.}
-			p=${p//\?/.}
+			p=${p//\?/[^/.]}
 			p=${p//\*/.*}
 			P="-regextype posix-extended -iregex ^$p$n\$"
 		fi
@@ -107,10 +107,10 @@ else # Relative Dir. Path
 			P=-ipath\ $s/$p$n
 		elif [[ $n =~ \* ]] ;then
 			n=${n//./\.}
-			n=${n//\?/.}
+			n=${n//\?/[^/.]}
 			n=${n//\*/'[^/]*'}
 			p=${p//./\.}
-			p=${p//\?/.}
+			p=${p//\?/[^/.]}
 			p=${p//\*/.*}
 			P="-regextype posix-extended -iregex ^$s/$p$n\$"
 		fi
