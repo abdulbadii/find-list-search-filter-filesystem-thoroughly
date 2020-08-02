@@ -6,7 +6,7 @@ fd(){
 	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
 }
 
-li(){
+l(){
 [[ ${@:1} =~ ^\.$ ]] &&{ find ~+ -type f; return; }
 [[ ${@:1} =~ ^/$ ]] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n ; return; }
 unset a E opt O p P N u w y d i et
@@ -32,14 +32,14 @@ esac
 }
 xt=${@:1:((i-ex))}
 
-A=`history 1`
-set -f
+A=`history 1`' '
 A=${A# *[0-9]*  *$xt }
 A=${A%% [12]>*}
 A=${A%%[>&|<]*}
 
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
+set -f
 [[ $A =~ ^[\ \t]*$ ]] &&{ eval "find ~+ \! -ipath ~+ $opt $D -o $F"; set +f;return; }
 
 eval set -- "${A//\\/\\\\}"

@@ -1,13 +1,13 @@
 Copy and paste "List" above, a Bash function, prepend it in ~/.bashrc file  
 
 
-Find and list specific file and/or directory recursively with useful options;
+Find, list specific file and/or directory recursively with useful options;
 
 Would print its:  
-- Size                                         -s
+- Size                                         			-s
 - Last modification time                       -t 
-- File information (whether 64/32 bit binary etc)    -f
-- Dependencies of one level depth             -d
+- Information on file found (whether 64/32 bit binary etc)    -i
+- Dependencies of file found in one level depth             -d
 
 Would narrow down search:  
 - Limit to find only directory or file type   suffix argument with / or .
@@ -18,7 +18,7 @@ Would narrow down search:
 
 Simply type l  
 $ l  
-list every files and directories under current directory entirely  
+list every file and directory under current directory entirely  
 
 $ l */  
 list every directory only under current directory entirely  
@@ -26,10 +26,12 @@ list every directory only under current directory entirely
 $ l *.  
 list every file only under current directory entirely  
 
-$ l -s -f *.bin  
-query any object with 'bin' end name and list with their size and file information
+$ l -s -fi*.bin  
+query any object having 'bin' name suffix then list with its size and file information
 
-to limit search on this directory only, prefix it with ./
+to limit search ply to be on this directory only, prefix it with ./
+to limit search ply to be this directory and  1 directory below it option -2
+to limit search ply to be this directory and  2 directory below it put option -3  etc.
 
 $ l -t ./*.bin   
 list any object whose name has 'bin' extension on this directory only, with their last modification  
