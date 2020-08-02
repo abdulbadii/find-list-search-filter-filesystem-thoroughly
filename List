@@ -1,90 +1,138 @@
 fd(){
-(($1))&&{
 	f=`file $3`
 	e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/;s/Intel$/32bit/'`
 	if [[ $e =~ ^execu ]];then echo $e
 	else echo $f|sed -E 's/[^:]+: *(.+)/\1/';fi
-}
-(($2))&&ldd $3 2>/dev/nul |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
+	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
 }
 
 l(){
-unset a E op O p P u w y;r=%p;f=0;d=0
 [[ ${@:1} =~ ^\.$ ]] &&{ find ~+ -type f; return; }
 [[ ${@:1} =~ ^/$ ]] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n ; return; }
+unset a E opt O p P N u w y d i et
+r=%p
 for e
 {
-case ${e:0:3} in
--f) f=1;;
+((i++))
+case $e in
+-h|--help) find --help; return;;
 -d) d=1;;
 -[0-9]*) y=-maxdepth\ ${e:1};;
 -E) E=1;;
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
--[HDLPO]|-[ac-il-y]?) op=$op${e/=/ }\ ;;
--|--) a=$a$e\ ;break;;
--*) echo if \'$e\' is a file, the last options must end with - or --;;
-*)	break;;
+-[ac-il-y]) echo \'$e\' : inadequate specific sub-option, ignoring it.;;
+-[ac-il-y]?|-[HDLPO]) opt=$opt$e\ ;;
+-?) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a filename, put it after - or --;;
+-|--) break;;
+*) et=1; break;;
 esac
-op=$op\ $e
 }
+f=${@:1:((i-et))}
+
+A=`history 1`
+set -f
+A=${A# *[0-9]*  *$f }
+A=${A%% [12]>*}
+A=${A%%[>&|<]*}
+
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
-set -f
-A=`history 1`
-A=${A# *[0-9]*  }' '
-A=${A%%[&|>]*}
-a=${A#*$op* }
-[ $a ] || { eval "find ~+ \! -ipath ~+ $op $D -o $F"; set +f;return; }
-eval set -- "${a//\\/\\\\}"
+[[ $A =~ ^[\ \t]*$ ]] &&{ eval "find ~+ \! -ipath ~+ $opt $D -o $F"; set +f;return; }
+
+eval set -- "${A//\\/\\\\}"
 IFS=$'\n'
 for a
 {
-[[ ${a} =~ [*?] ]];w=$?
 z=${a: -1}
 a=${a%[/.]}
-[[ $a =~ ^((.*)/)?(.+)$ ]]
-p=${BASH_REMATCH[2]}
-N=${BASH_REMATCH[3]}
-if [ $p ] ;then
-if [ ${p:0:1} = / ];then
-	P=$p
-	if((w));then
-		s=$p;
-	else
-		s=${p%%[*?]*}
-		s=${s%/*}
-	fi
-else
-	s=~+
-	if [ ${p:0:3} = ../ ] ;then
-		s=${s%/*}
-		P=$s/*${p#../}
-	else
-		P=$s/*${p#./}
-	fi
-fi
-else
-	s=~+
-	P=*
-fi
-((w)) && D="$D -exec find {} \; "
+[[ $a =~ ^(.*/)?([^/]+)$ ]]
+p=${BASH_REMATCH[1]}
+n=${BASH_REMATCH[2]}
 
 if [ $z = . ] ;then	D=
 elif [ $z = / ] ;then	F=
 else	O=-o
 fi
-if [ $E ] ;then
-	A="find \"$s\" $y -regextype posix-extended -iregex \"*/$a\" $op \( $D $O $F"
-else	A="find \"$s\" $y -ipath \"$P\" -iname \"$N\" $op \( $D $O $F"
+
+if [ $p ] ;then # If it has dir. path it is possibly either absolute or relative
+if [ ${p:0:1} = / ];then # Absolute Dir. Path
+	if [[ ! $p =~ [*?] ]] ;then # No single wildcard in dir. path 
+		s=$p
+		if [[ ! $n =~ \*\* ]] ;then # and not double one in filename
+			N=-iname\ $n
+			if [[ ! $n =~ \* ]] ;then # if there is none
+				eval "sudo find $s -maxdepth 1 $N $opt \( -type d -exec find \{\} $y -iname * $opt $D $O $F \; $O $F \)"
+				return
+			fi
+			y=-maxdepth\ 1
+		fi
+	else			# If there's at least a wildcard in dir. path or double ones in filename
+		s=${p%%[*?]*} # s is starting search dir.
+		s=${s%/*}
+		if [[ $n =~ \*\* ]] || [[ ! $n =~ \* ]] ;then # if there is double wildcards in filename or none at all 
+			P=-ipath\ $a
+		elif [[ $n =~ \* ]] ;then
+			n=${n//./\.}
+			n=${n//\?/.}
+			n=${n//\*/'[^/]*'}
+			p=${p//./\.}
+			p=${p//\?/.}
+			p=${p//\*/.*}
+			P="-regextype posix-extended -iregex ^$p$n\$"
+		fi
+	fi
+else # Relative Dir. Path
+	s=~+
+	while [ ${p:0:3} = ../ ] ;do
+		s=${s%/*}
+		p=${p#../}
+		p=${p#./}
+	done
+	if [[ ! $p =~ [*?] ]] && [[ ! $n =~ \*\* ]] ;then # No single wildcard in dir. path nor double one in filename
+		p=${p%/}
+		s=$s/$p
+		y=-maxdepth\ 1
+		N=-iname\ $n
+	else			# If there's at least a wildcard in dir. path or double ones in filename
+		if [[ $n =~ \*\* ]] || [[ ! $n =~ \* ]] ;then # if there is double wildcards in filename or none at all 
+			P=-ipath\ $s/$p$n
+		elif [[ $n =~ \* ]] ;then
+			n=${n//./\.}
+			n=${n//\?/.}
+			n=${n//\*/'[^/]*'}
+			p=${p//./\.}
+			p=${p//\?/.}
+			p=${p//\*/.*}
+			P="-regextype posix-extended -iregex ^$s/$p$n\$"
+		fi
+	fi	
 fi
-if((f+d));then
-	export -f fd;eval $A -exec bash -c \'fd $f $d \$0\' {} '\; \)'
+else # If has no dir. path, it must be dir./file name relative to PWD
+	s=~+
+	if [[ $n =~ \*\* ]] ;then # if there is double wildcards in filename
+		P=-ipath\ $s/$n
+	elif [[ ! $n =~ \* ]] ;then	# if none at all 
+		eval "sudo find $s $y -ipath $s/$n $opt \( -type d -exec find \{\} $y -iname * $opt $D $O $F \; $O $F \)"
+		return
+	elif [[ $n =~ \* ]] ;then
+		n=${n//\*/'[^/]*'}
+		P="-regextype posix-extended -iregex ^$s/$n\$"
+	fi
+fi
+
+if [ $E ] ;then
+	A="sudo find $s $y -regextype posix-extended -iregex \"*/$a\" $opt \( $D $O $F"
+else
+	A="sudo find $s $y $P $N $opt \( $D $O $F"
+fi
+if((d));then
+	export -f fd;eval $A -exec bash -c \'fd $d \$0\' {} '\; \)'
 else
 	set -o pipefail;
 	(eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
 fi
 }
-set +f
+set +f; unset IFS
 }
