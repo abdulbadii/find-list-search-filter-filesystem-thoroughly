@@ -1,7 +1,6 @@
-Copy and paste "List" above, a Bash function, prepend it in ~/.bashrc file  
+Click, copy "List.sh" above, then paste and prepend this Bash function inside ~/.bashrc file  
 
-
-Find, list specific file and/or directory recursively with useful options;
+Find, list specific file and/or directory recursively with the same find utility useful options.
 
 Would print its:  
 - Size                                         			-s
@@ -27,9 +26,8 @@ $ l *.
 list every file only under current directory entirely  
 
 $ l -s -fi*.bin  
-query any object having 'bin' name suffix then list with its size and file information
+query any object having a 'bin' name suffix then list it with the size and file information
 
-to limit search ply to be on this directory only, prefix it with ./
 to limit search ply to be this directory and  1 directory below it option -2
 to limit search ply to be this directory and  2 directory below it put option -3  etc.
 
@@ -60,10 +58,14 @@ $ l *n*.?
  /a/b/c/d/e/menu.c      
  /a/b/c/d/e/min.h
 
-it always searchs as many directories depths as the maximum existing one in file system ,  
-to lower the limit put -1...9 option, e.g. on search for current and 1 directory below put -2, for current and 2 directories below add -3, and so on..  
-$ l -d2 *.c 
-$ cd /  
+it always searchs as many directories depths as the maximum limit provided in file system ,  
+to lower the limit put -1...9 option,    
+e.g. search for current and 1 directory below it put -2,    
+for current and 2 directories below add -3, etc.    
+
+$ cd /
+$ l -2 *.c 
+  
 /a/main.c  
 
 Can be navigated in absolute path way  
