@@ -9,7 +9,7 @@ fd(){
 l(){
 [[ ${@:1} =~ ^\.$ ]] &&{ find ~+ -type f; return; }
 [[ ${@:1} =~ ^/$ ]] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n ; return; }
-unset a E opt O p P N u w y d i et
+unset a E opt u y d I i ex
 r=%p
 for e
 {
@@ -19,7 +19,7 @@ case $e in
 -d) d=1;;
 -i) I=1;;
 -[0-9]*) y=-maxdepth\ ${e:1};;
--E|-re) E=1;;
+-E|--re) E=1;;
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
@@ -37,15 +37,16 @@ A=${A# *[0-9]*  *$xt }
 A=${A%% [12]>*}
 A=${A%%[>&|<]*}
 
-D="-type d -printf \"$r/\n\""
-F="-type f -printf \"$r\n\""
 set -f
-[[ $A =~ ^[\ \t]*$ ]] &&{ eval "find ~+ \! -ipath ~+ $opt $D -o $F"; set +f;return; }
+[[ $A =~ ^[\ \t]*$ ]] &&{ eval "find ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -type d -printf \"$r\n\""; set +f;return; }
 
 eval set -- "${A//\\/\\\\}"
 IFS=$'\n'
 for a
 {
+unset O P N
+D="-type d -printf \"$r/\n\""
+F="-type f -printf \"$r\n\""
 z=${a: -1}
 a=${a%[/.]}
 [[ $a =~ ^(.*/)?([^/]+)$ ]]
@@ -68,7 +69,7 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 			N=-iname\ $n
 			if [[ ! $n =~ \* ]] ;then # if there is none
 				eval "sudo find $s -maxdepth 1 $N $opt \( -type d -exec find \{\} $y -iname * $opt $D $O $F \; $O $F \)"
-				return
+				continue
 			fi
 			y=-maxdepth\ 1
 		fi
@@ -126,7 +127,7 @@ else # If has no dir. path, it must be dir./file name relative to PWD
 		P=-ipath\ $s/$n
 	elif [[ ! $n =~ \* ]] ;then	# if none at all 
 		eval "sudo find $s $y -ipath $s/$n $opt \( -type d -exec find \{\} $y -iname * $opt $D $O $F \; $O $F \)"
-		return
+		continue
 	elif [[ $n =~ \* ]] ;then
 		n=${n//\*/'[^/]*'}
 		P="-regextype posix-extended -iregex ^$s/$n\$"
