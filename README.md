@@ -49,14 +49,6 @@ Let directories of path /a and /a/b/c contain main.c, and the latter contain met
   $ l *.c/
   /a/b/c/
 
-Let's add more under it    
-$ ls /a/b/c/d/e   
-  menu.c min.h  
-$ cd /  
-$ l *n*.?   
- /a/b/c/main.c   
- /a/b/c/d/e/menu.c      
- /a/b/c/d/e/min.h
 
 it always searchs as many directories depths as the maximum limit provided in file system ,  
 to lower the limit put -1...9 option,    
@@ -75,7 +67,7 @@ $ l /a/b/c/m*.c
 /a/b/c/main.c   
 /a/b/c/meta.c   
 
-can even be navigated in way of absolute path followed relative path in a single line 
+can even navigate by way of absolute path followed relative path in a single line 
 
 $ l /a/\\**m\*.c *.h   
 
