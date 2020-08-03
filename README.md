@@ -34,52 +34,52 @@ to limit search ply to be this directory and  2 directory below it put option -3
 $ l -t ./*.bin   
 list any object whose name has 'bin' extension on this directory only, with their last modification  
 
-Let directories of path /a and /a/b/c contain main.c, and the latter contain meta.c and a.h  
-  $ ls /a  
-  main.c  
-  $ ls /a/b/c  
-  main.c meta.c a.h  
-  $ cd /    
-  $ l *.c *.h  
+
+It always searchs up to directories depths given explicitly on path,  
+to search deeper than such, add either "*", a wildcard asterisk, in the directory path/name     
+or "**", double wildcard asterisks, in the file name
+
+If it needs to be limited again of such specified path 
+put -1...9 options,  e.g:  
+search for current and 1 directory below it put -2,    
+for current and 2 directories below add -3, etc.     
+
+If directories of root / has foo.c, foo.h, and path  /a and /a/b/c contain main.c, and /a/b/c also has meta.c, meta.h, arc.h    
+  
+  $ l *.c
+  /foo.c
+    
+  $ l */*.c  
+  /foo.c
   /a/main.c   
   /a/b/c/main.c   
   /a/b/c/meta.c     
-  /a/b/c/a.h  
+
+  $ l */*.h    
+  /foo.h
+  /a/b/c/arc.h  
+  /a/b/c/meta.h  
   
-  $ l *.c/
-  /a/b/c/
+Can navigate by absolute path    
 
-
-it always searchs as many directories depths as the maximum limit provided in file system ,  
-to lower the limit put -1...9 option,    
-e.g. search for current and 1 directory below it put -2,    
-for current and 2 directories below add -3, etc.    
-
-$ cd /
-$ l -2 *.c 
-  
-/a/main.c  
-
-Can be navigated in absolute path way  
-$ cd /z  
-$ l /a/b/c/m*.c  
+$ l /a/b/c/m*.?  
 
 /a/b/c/main.c   
 /a/b/c/meta.c   
+/a/b/c/meta.h   
 
 can even navigate by way of absolute path followed relative path in a single line 
 
-$ l /a/\\**m\*.c *.h   
+$ l /a/\*/m\*.c  \*.h   
 
-can search of POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option
+Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option
 
-$ l -E '/a/**m\w{1,2}\\.[c-h]'  
+$ l -E '/a/*/m\w{1,2}\\.[c-h]'  
   
 /a/b/min.c  
 /a/b/c/d/e/min.h  
-/a/b/c/d/e/f/g/max.c
 
-to better narrow down the search we could utilize Linux 'find' options to test/filter the search
+to better narrow down the search we could utilize Linux core util, "find", options to test/filter the search
 
 $ l -cmin -7 -E '/a/**m\w{1,2}\\.[c-h]'  
 
