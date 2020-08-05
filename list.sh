@@ -30,13 +30,14 @@ case $e in
 esac
 }
 xt=${@:1:((i-ex))}
-set -f
 
+set -f
+trap 'set +f;unset IFS' 1 2 3
 if [[ $@ =~ \* ]] ;then
 	A=$@
 else
 A=`history 1`' '
-A=${A# *[0-9] $xt }
+A=${A# *[0-9]*$xt }
 A=${A#*$xt }
 A=${A%% [12]>*}
 A=${A%%[>&|<]*}
@@ -152,5 +153,4 @@ else
 	(eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
 fi
 }
-set +f; unset IFS
 }
