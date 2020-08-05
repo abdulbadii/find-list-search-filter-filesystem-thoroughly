@@ -83,7 +83,8 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 		if [[ $n =~ \*\* ]] || [[ ! $n =~ \* ]] ;then # if there is double wildcards in filename or none at all 
 			P=-ipath\ $a
 		elif [[ $n =~ \* ]] ;then
-			n=${n//./\.}
+			n=${n//./\\.}
+			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\?/[^/.]}
 			n=${n//\*/'[^/]*'}
 			p=${p//./\.}
@@ -111,7 +112,8 @@ else # Relative Dir. Path
 		if [[ $n =~ \*\* ]] || [[ ! $n =~ \* ]] ;then # if there is double wildcards in filename or none at all 
 			P=-ipath\ $s/$p$n
 		elif [[ $n =~ \* ]] ;then
-			n=${n//./\.}
+			n=${n//./\\.}
+			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\?/[^/.]}
 			n=${n//\*/'[^/]*'}
 			p=${p//./\.}
@@ -133,6 +135,9 @@ else # If has no dir. path, it must be dir./file name relative to PWD
 		eval "sudo find $s $y -ipath $s/$n $opt \( -type d -exec find \{\} $y -iname * $opt $D $O $F \; $O $F \)"
 		continue
 	elif [[ $n =~ \* ]] ;then
+		n=${n//./\\.}
+		n=${n//.\*/\\.\\S[^/]*}
+		n=${n//\?/[^/.]}
 		n=${n//\*/'[^/]*'}
 		P="-regextype posix-extended -iregex ^$s/$n\$"
 	fi
