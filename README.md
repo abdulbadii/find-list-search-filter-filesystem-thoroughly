@@ -1,10 +1,10 @@
-Click, copy "List.sh" above, then paste and prepend this Bash function inside ~/.bashrc file  
+Click, copy "list.sh" above, then paste, prepend this Bash function inside ~/.bashrc file  
 
 Find, list specific file and/or directory recursively with the same find utility useful options.
 
 Would print its:  
-- Size                                         			-s
-- Last modification time                       -t 
+- Size                                          -s
+- Last modification time                        -t 
 - Information on file found (whether 64/32 bit binary etc)    -i
 - Dependencies of file found in one level depth             -d
 
