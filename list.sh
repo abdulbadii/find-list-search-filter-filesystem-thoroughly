@@ -5,7 +5,6 @@ fd(){
 	else echo $f|sed -E 's/[^:]+:\s*(.+)/\1/';fi
 	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
 }
-
 l(){
 [[ ${@:1} =~ ^\.$ ]] &&{ find ~+ -type f; return; }
 [[ ${@:1} =~ ^/$ ]] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n ; return; }
@@ -31,15 +30,17 @@ case $e in
 esac
 }
 xt=${@:1:((i-ex))}
+set -f
 
+if [[ $@ =~ \* ]] ;then
+	A=$@
+else
 A=`history 1`' '
-A=${A# *[0-9]*  *${FUNCNAME[0]}}
-A=${A/\`/}
-A=${A# *[0-9]*  *$xt }
+A=${A#*$xt }
 A=${A%% [12]>*}
 A=${A%%[>&|<]*}
+fi
 
-set -f
 [[ $A =~ ^[\ \t]*$ ]] &&{ eval "find ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -type d -printf \"$r\n\""; set +f;return; }
 
 eval set -- "${A//\\/\\\\}"
