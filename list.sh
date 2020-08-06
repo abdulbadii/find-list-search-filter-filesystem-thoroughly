@@ -8,7 +8,7 @@ fd(){
 l(){
 [[ ${@:1} =~ ^\.$ ]] &&{ find ~+ -type f; return; }
 [[ ${@:1} =~ ^/$ ]] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n ; return; }
-unset a E opt u y d I i ex
+unset a E opt y d I i ex
 r=%p
 for e
 {
@@ -32,18 +32,17 @@ esac
 xt=${@:1:((i-ex))}
 
 set -f
-trap 'set +f;unset IFS' 1 2 3
+trap 'set +f;unset IFS' 1 2
 if [[ $@ =~ \* ]] ;then
 	A=$@
 else
-A=`history 1`' '
-A=${A# *[0-9]*$xt }
-A=${A#*$xt }
+A=`history 1`
+A=${A# *[0-9]*${FUNCNAME}*$xt}
 A=${A%% [12]>*}
 A=${A%%[>&|<]*}
 fi
 
-[[ $A =~ ^[\ \t]*$ ]] &&{ eval "find ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -type d -printf \"$r\n\""; set +f;return; }
+[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -type d -printf \"$r\n\""; set +f;return; }
 
 eval set -- "${A//\\/\\\\}"
 IFS=$'\n'
@@ -68,7 +67,7 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 	if [ $E ] ;then
 		A="sudo find / $y -regextype posix-extended -iregex *$p$n* $opt \( $D $O $F"
 		return
-	elif [[ ! $p =~ [*?] ]] ;then # No single wildcard in dir. path 
+	elif [[ ! $p =~ [*?] ]] ;then # No single wildcard in dir. path
 		s=$p
 		if [[ ! $n =~ \*\* ]] ;then # and not double one in filename
 			N=-iname\ $n
@@ -81,7 +80,7 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 	else			# If there's at least a wildcard in dir. path or double ones in filename
 		s=${p%%[*?]*} # s is starting search dir.
 		s=${s%/*}
-		if [[ $n =~ \*\* ]] || [[ ! $n =~ \* ]] ;then # if there is double wildcards in filename or none at all 
+		if [[ $n =~ \*\* ]] || [[ ! $n =~ \* ]] ;then # if there is double wildcards in filename or none at all
 			P=-ipath\ $a
 		elif [[ $n =~ \* ]] ;then
 			n=${n//./\\.}
@@ -110,7 +109,7 @@ else # Relative Dir. Path
 		y=-maxdepth\ 1
 		N=-iname\ $n
 	else			# If there's at least a wildcard in dir. path or double ones in filename
-		if [[ $n =~ \*\* ]] || [[ ! $n =~ \* ]] ;then # if there is double wildcards in filename or none at all 
+		if [[ $n =~ \*\* ]] || [[ ! $n =~ \* ]] ;then # if there is double wildcards in filename or none at all
 			P=-ipath\ $s/$p$n
 		elif [[ $n =~ \* ]] ;then
 			n=${n//./\\.}
@@ -122,7 +121,7 @@ else # Relative Dir. Path
 			p=${p//\*/.*}
 			P="-regextype posix-extended -iregex ^$s/$p$n\$"
 		fi
-	fi	
+	fi
 fi
 
 else # If has no dir. path, it must be dir./file name relative to PWD
@@ -132,7 +131,7 @@ else # If has no dir. path, it must be dir./file name relative to PWD
 		return
 	elif [[ $n =~ \*\* ]] ;then # if there is double wildcards in filename
 		P=-ipath\ $s/$n
-	elif [[ ! $n =~ \* ]] ;then	# if none at all 
+	elif [[ ! $n =~ \* ]] ;then	# if none at all
 		eval "sudo find $s $y -ipath $s/$n $opt \( -type d -exec find \{\} $y -iname * $opt $D $O $F \; $O $F \)"
 		continue
 	elif [[ $n =~ \* ]] ;then
@@ -153,4 +152,5 @@ else
 	(eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
 fi
 }
+set +f;unset IFS
 }
