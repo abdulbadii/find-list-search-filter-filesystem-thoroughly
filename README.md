@@ -1,112 +1,125 @@
-Click, copy "list.sh" above, then paste, prepend this Bash function inside ~/.bashrc file  
+Click, copy "list.sh" above, then paste, prepend this Bash function inside ~/.bashrc file
 
 Find, list specific file and/or directory recursively with the same find utility useful options.
 
-Would print its:  
+Would print its:
 - Size                                          -s
-- Last modification time                        -t 
+- Last modification time                        -t
 - Information on file found (whether 64/32 bit binary etc)    -i
 - Dependencies of file found in one level depth             -d
 
-Would narrow down search:  
-- Limit to find only directory or file type   suffix argument with / or .
-- Limit to certain depth only                 -1...9 or prefix with ./ for -1
-- In greater control by regular expression      -E 
-- All the 'Test' option of 'find' test option  -   (below its excerpted options)
+Would narrow down search:
+- Limit to find only directory or file type :    suffix the object with / or .
+- Limit to certain depth only :                -1...9 or prefix with ./ for -1
+- In greater control by regular expression      -E
+- All the 'Test' option of 'find' test option  -   (below some excerpt of its manual for options)
 
+Simply type l
+$ l
+list every file and directory under current directory entirely
 
-Simply type l  
-$ l  
-list every file and directory under current directory entirely  
+$ l /
+list entire directories only under current directory
 
-$ l */  
-list every directory only under current directory entirely  
+$ l .
+list entire files only under current directory
 
-$ l *.  
-list every file only under current directory entirely  
+$ l \/
+list every file and directory under / (root) directory
+the preceding \ is to diffrentiate it with second use above
 
-$ l -s -fi*.bin  
-query any object having a 'bin' name suffix then list it with the size and file information
+$ l -s -i *.bin
+query any object having 'bin' name suffix then list it with the size and file information under current directory entirely
 
-to limit search ply to be this directory and  1 directory below it option -2
-to limit search ply to be this directory and  2 directory below it put option -3  etc.
+$ l  -t ./*.bin.
+list any file only excluding directory whose file type is 'bin' on this directory only, with their last modification
 
-$ l -t ./*.bin   
-list any object whose name has 'bin' extension on this directory only, with their last modification  
+It always searchs up to directories depths given explicitly on path such as:
+/qt/*/*/core/meta
+means to search for file/directory meta.c under core dir. being under any directory being under any dir. under qt directory.
+to search somewhere deeper indefinetly than such, add "**", double wildcard asterisks, in the context of intended ply e.g.
+li /qt/*/*/core/**/meta
 
+If being navigated in relative path way i.e. not starting it with character /, the given path will always search for anywhere in any depth of under current directory, does not have to be directly on current directory,
+If it needs to be limited to search for directly under current directory, precede (start) it with ./
 
-It always searchs up to directories depths given explicitly on path,  
-to search deeper than such, add either "*", a wildcard asterisk, in the directory path/name     
-or "**", double wildcard asterisks, in the file name
+Suppose previous explicit part of path exists only where it's specified i.e. core/meta is file/directory only under core dir. being under any directory being under any dir. under qt directory.
+$ cd /qt
+$ li core/meta
 
-If it needs to be limited again of such specified path 
-put -1...9 options,  e.g:  
-search for current and 1 directory below it put -2,    
-for current and 2 directories below add -3, etc.     
+will find it as e.g:
+/qt/src/lib/core/meta
 
-If directories of root / has foo.c, foo.h, and path  /a and /a/b/c contain main.c, and /a/b/c also has meta.c, meta.h, arc.h    
-  
+$ li ./core/meta
+will not find it since there is no /qt/core/meta
+
+If it needs to be limited again of such specified path put -1...9 options,  e.g:
+search for current and 1 directory below it put -2,
+for current and 2 directories below add -3, etc.
+
+If directories of root / has foo.c, foo.h, and path  /a and /a/b/c contain main.c, and /a/b/c also has meta.c, meta.h, arc.h
+
   $ l *.c
   /foo.c
-    
-  $ l */*.c  
+
+  $ l */*.c
   /foo.c
-  /a/main.c   
-  /a/b/c/main.c   
-  /a/b/c/meta.c     
+  /a/main.c
+  /a/b/c/main.c
+  /a/b/c/meta.c
 
-  $ l */*.h    
+  $ l */*.h
   /foo.h
-  /a/b/c/arc.h  
-  /a/b/c/meta.h  
-  
-Can navigate by absolute path    
+  /a/b/c/arc.h
+  /a/b/c/meta.h
 
-$ l /a/b/c/m*.?  
+Can navigate by absolute path
 
-/a/b/c/main.c   
-/a/b/c/meta.c   
-/a/b/c/meta.h   
+$ l /a/b/c/m*.?
 
-can even navigate by way of absolute path followed relative path in a single line 
+/a/b/c/main.c
+/a/b/c/meta.c
+/a/b/c/meta.h
 
-$ l /a/\*/m\*.c  \*.h   
+can even navigate by way of absolute path followed relative path in a single line
+
+$ l /a/\*/m\*.c  \*.h
 
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option
 
-$ l -E '/a/*/m\w{1,2}\\.[c-h]'  
-  
-/a/b/min.c  
-/a/b/c/d/e/min.h  
+$ l -E '/a/*/m\w{1,2}\\.[c-h]'
+
+/a/b/min.c
+/a/b/c/d/e/min.h
 
 to better narrow down the search we could utilize Linux core util, "find", options to test/filter the search
 
-$ l -cmin -7 -E '/a/**m\w{1,2}\\.[c-h]'  
+$ l -cmin -7 -E '/a/**m\w{1,2}\\.[c-h]'
 
 will give as above which were modified less than 7 minutes ago
 
-The 'find' filter options copied from its manual:   
-  Note if a number n specified:  
-     +n     for greater than n    
-     -n     for less than n   
+The 'find' filter options copied from its manual:
+  Note if a number n specified:
+     +n     for greater than n
+     -n     for less than n
       n      for exactly n
 
--amin n   
-       File was last accessed n minutes ago   
--anewer file   
+-amin n
+       File was last accessed n minutes ago
+-anewer file
         File was last accessed more recently than file was modified.   If  file
         is a symbolic link and the -H option or the -L option is in effect, the
-        access time of the file it points to is always used.  
- -atime n  
+        access time of the file it points to is always used.
+ -atime n
         File was last accessed n*24 hours ago.  When find figures out how  many
         24-hour  periods ago the file was last accessed, any fractional part is
         ignored, so to match -atime +1, a file has to  have  been  accessed  at
         least two days ago.
 
- -cmin n  
-        File's status was last changed n minutes ago.   
+ -cmin n
+        File's status was last changed n minutes ago.
 
- -cnewer file   
+ -cnewer file
         File's  status  was  last changed more recently than file was modified.
         If file is a symbolic link and the -H option or the  -L  option  is  in
         effect, the status-change time of the file it points to is always used.
@@ -212,18 +225,18 @@ The 'find' filter options copied from its manual:
         ples.  If no permission bits in mode are set,  this  test  matches  any
         file  (the  idea  here  is to be consistent with the behaviour of -perm
         -000).
- -readable  
+ -readable
         Matches  files which are readable.  This takes into account access con‐
         trol lists  and  other  permissions  artefacts  which  the  -perm  test
         ignores.   This test makes use of the access(2) system call, and so can
         be fooled by NFS servers which  do  UID  mapping  (or  root-squashing),
         since  many  systems  implement access(2) in the client's kernel and so
         cannot make use of the UID mapping information held on the server.
- -samefile name  
+ -samefile name
         File refers to the same inode as name.   When -L is in effect, this can
         include symbolic links.
 
- -size n[cwbkMG]  
+ -size n[cwbkMG]
         File uses n units of space, rounding up.  The following suffixes can be
         used:
 
@@ -261,7 +274,7 @@ The 'find' filter options copied from its manual:
 
         p      named pipe (FIFO)
 
-        f      regular file   
+        f      regular file
         l      symbolic link; this is never true if the -L option or the  -fol‐
                low option is in effect, unless the symbolic link is broken.  If
                you want to search for symbolic links when -L is in effect,  use
@@ -277,16 +290,16 @@ The 'find' filter options copied from its manual:
  -wholename pattern
         See -path.  This alternative is less portable than -path.
  -writable
-        Matches  files which are writable.  This takes into account access control lists  and  other  permissions  artefacts  which  the  -perm  test  
+        Matches  files which are writable.  This takes into account access control lists  and  other  permissions  artefacts  which  the  -perm  test
         ignores.   This test makes use of the access(2) system call, and so can
-        be fooled by NFS servers which  do  UID  mapping.  
- -xtype c  
+        be fooled by NFS servers which  do  UID  mapping.
+ -xtype c
         The same as -type unless the file is a  symbolic  link.   For  symbolic
         links: if the -H or -P option was specified, true if the file is a link
         to a file of type c; if the -L option has been given, true if c is `l'.
         In  other words, for symbolic links, -xtype checks the type of the file
         that -type does not check.
- -context pattern  
+ -context pattern
         (SELinux only) Security context of the file matches glob pattern.
 
 
