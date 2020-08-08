@@ -38,55 +38,43 @@ It always searchs up to directories depths given explicitly on path such as:
 /qt/*/*/core/meta
 means to search for file/directory meta.c under core dir. being under any directory being under any dir. under qt directory.
 to search somewhere deeper indefinetly than such, add "**", double wildcard asterisks, in the context of intended ply e.g.
-li /qt/*/*/core/**/meta
+$ l /qt/*/*/core/**/meta
+
+Will find
+/qt/src/lib/core/meta
+/qt/src/lib/core/c/meta
+/qt/src/lib/core/cc/meta
+/qt/src/lib/core/c/obj/meta
+/qt/lib/so/core/src/c/obj/meta
 
 If being navigated in relative path way i.e. not starting it with character /, the given path will always search for anywhere in any depth of under current directory, does not have to be directly on current directory,
 If it needs to be limited to search for directly under current directory, precede (start) it with ./
 
-Suppose previous explicit part of path exists only where it's specified i.e. core/meta is file/directory only under core dir. being under any directory being under any dir. under qt directory.
-$ cd /qt
-$ li core/meta
+Suppose previous explicit part of path exists only where it's specified i.e. meta is a file/directory only under core dir. being under any directory being under any dir. under qt directory.
 
+$ cd /qt
+$ l core/meta
 will find it as e.g:
 /qt/src/lib/core/meta
 
-$ li ./core/meta
+$ l ./core/meta
 will not find it since there is no /qt/core/meta
 
-If it needs to be limited again of such specified path put -1...9 options,  e.g:
-search for current and 1 directory below it put -2,
-for current and 2 directories below add -3, etc.
+In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard and if there would be a directory found then this way the directory content will automatically be shown entirely.
 
-If directories of root / has foo.c, foo.h, and path  /a and /a/b/c contain main.c, and /a/b/c also has meta.c, meta.h, arc.h
+If this action is needed in other way of path given, put -l option in order to show content of directory found but only in one depth
+To have its content shown up to a depth add the number e.g. -l3 option will show the content to 3 directory plies
+To have its content shown  entirely the number meant for it is 0, so be prepared if to put -l0 option, it will list all of content of every found directory entirely so would be making an output storm or messy lists.
 
-  $ l *.c
-  /foo.c
-
-  $ l */*.c
-  /foo.c
-  /a/main.c
-  /a/b/c/main.c
-  /a/b/c/meta.c
-
-  $ l */*.h
-  /foo.h
-  /a/b/c/arc.h
-  /a/b/c/meta.h
-
-Can navigate by absolute path
-
-$ l /a/b/c/m*.?
-
-/a/b/c/main.c
-/a/b/c/meta.c
-/a/b/c/meta.h
+If it needs to be limited again, put -1...9 options,  e.g:
+search for only on current and 1 directory below it put -2,
+only on current and 2 directories below add -3, etc.
 
 can even navigate by way of absolute path followed relative path in a single line
 
 $ l /a/\*/m\*.c  \*.h
 
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option
-
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'
 
 /a/b/min.c
