@@ -37,7 +37,7 @@ list any file only excluding directory whose file type is 'bin' on this director
 It always searchs up to directories depths given explicitly on path such as:
 /qt/*/*/core/meta
 means to search for file/directory meta.c under core dir. being under any directory being under any dir. under qt directory.
-to search somewhere deeper indefinetly than such, add "**", double wildcard asterisks, in the context of intended ply e.g.
+To search somewhere deeper than such to max, add "**", double wildcard asterisks, in the context of intended ply e.g.
 $ l /qt/*/*/core/**/meta
 
 Will find
@@ -47,8 +47,8 @@ Will find
 /qt/src/lib/core/c/obj/meta
 /qt/lib/so/core/src/c/obj/meta
 
-If being navigated in relative path way i.e. not starting it with character /, the given path will always search for anywhere in any depth of under current directory, does not have to be directly on current directory,
-If it needs to be limited to search for directly under current directory, precede (start) it with ./
+If being navigated in relative path way i.e. not started with character / then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory,
+If it needs to be limited to search for directly on current directory, precede (start) it with ./
 
 Suppose previous explicit part of path exists only where it's specified i.e. meta is a file/directory only under core dir. being under any directory being under any dir. under qt directory.
 
