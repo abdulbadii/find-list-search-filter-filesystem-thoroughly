@@ -6,7 +6,7 @@ fd(){
 	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
 }
 l(){
-unset a E opt ex d I i x l lx; r=%p
+unset a E opt ex d I i x L l lx; r=%p
 for e
 {
 ((i++))
@@ -100,11 +100,13 @@ else # Relative Dir. Path
 	done
 	[ $E ] &&{ A="sudo find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
 	if ((re)) ;then
+		P="-ipath *$p$n"
+	else
 		n=${n//./\\.}
 		n=${n//.\*/\\.\\S[^/]*}
 		n=${n//\?/[^/.]}
 		n=${n//\*/'[^/]*'}
-		if [[ $p =~ \*\* ]]  || [[ ! $p =~ \* ]];then # if double wildcards in path or not at all
+		if [[ $p =~ \* ]] ;then # if any wildcard in path
 			p=${p//\*\*/~\{~}
 			p=${p//\*/[^/]+}
 			p=${p//~\{~/.*}
@@ -113,11 +115,9 @@ else # Relative Dir. Path
 			t=$s
 			s=$s${q# }
 			P="-regextype posix-extended -iregex ^$t/$p$n\$"
-		else # One wildcard in dir. path
-			P="-regextype posix-extended -iregex ^$s/${p//\*/[^/]+}$n\$"
+		else
+			L="-exec find \{\} \! -ipath \{\} -iname * $opt $D $O $F \;"
 		fi
-	else
-		P="-ipath *$p$n"
 	fi
 fi
 
@@ -135,6 +135,7 @@ else # If no dir. path, it'd be one depth dir./filename relative to PWD
 			P="-regextype posix-extended -iregex ^$s/$n\$"
 		else # if no wildcard at all
 			P="-ipath $s/$n"
+			L="-exec find \{\} \! -ipath \{\} -iname * $opt $D $O $F \;"
 		fi
 	fi
 fi
