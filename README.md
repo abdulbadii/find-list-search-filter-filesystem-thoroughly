@@ -1,4 +1,5 @@
-Click, copy "list.sh" above, then paste, prepend this Bash function inside ~/.bashrc file
+Click, copy "list.sh" or "list-su.sh" above, then paste, prepend the Bash functions inside ~/.bashrc file
+list-su is a mode that has internal superuser request (prefixed by sudo command)
 
 Find, list specific file and/or directory recursively with the same find utility useful options.
 
@@ -35,8 +36,10 @@ $ l  -t ./*.bin.
 list any file only excluding directory whose file type is 'bin' on this directory only, with their last modification
 
 It always searchs up to directories depths given explicitly on path such as:
+
 /qt/*/*/core/meta
 means to search for file/directory meta.c under core dir. being under any directory being under any dir. under qt directory.
+
 To search somewhere deeper than such to max, add "**", double wildcard asterisks, in the context of intended ply e.g.
 $ l /qt/*/*/core/**/meta
 
@@ -64,7 +67,7 @@ In this way of having relative path preceded by ./, if it is explicit i.e. there
 
 If this action is needed in other way of path given, put -l option in order to show content of directory found but only in one depth
 To have its content shown up to a depth add the number e.g. -l3 option will show the content to 3 directory plies
-To have its content shown  entirely the number meant for it is 0, so be prepared if to put -l0 option, it will list all of content of every found directory entirely so would be making an output storm or messy lists.
+To have its content shown  entirely the number meant for it is 0, so be prepared if to put -l0 option, it will list entirely  the content of every found directory which could be a bit overwhelming.
 
 If it needs to be limited again, put -1...9 options,  e.g:
 search for only on current and 1 directory below it put -2,
@@ -84,7 +87,7 @@ to better narrow down the search we could utilize Linux core util, "find", optio
 
 $ l -cmin -7 -E '/a/**m\w{1,2}\\.[c-h]'
 
-will give as above which were modified less than 7 minutes ago
+will give as above which has been modified less than 7 minutes ago
 
 The 'find' filter options copied from its manual:
   Note if a number n specified:

@@ -47,7 +47,7 @@ A=${A# *[0-9]*${FUNCNAME}*$xt}
 A=${A%% [12]>*}
 A=${A%%[>&|<]*}
 fi
-[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\""; set +f;return; }
+[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "sudo find ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\""; set +f;return; }
 
 eval set -- "${A//\\/\\\\}"
 IFS=$'\n'
@@ -55,11 +55,11 @@ for a
 {
 unset O P L
 z=${a: -1}
-[ "${a:0:2}" = "\/" ] &&{ eval "find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\"";continue; }
+[ "${a:0:2}" = "\/" ] &&{ eval "sudo find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\"";continue; }
 a=${a%[/.]}
 if [ -z $a ] ;then
-	[ $z = . ] &&{ find ~+ -type f; }
-	[ $z = / ] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n; }
+	[ $z = . ] &&{ sudo find ~+ -type f; }
+	[ $z = / ] &&{ sudo find ~+ \! -ipath ~+ -type d -printf $r/\\n; }
 else
 [ "${a:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
 a=${a#./}
@@ -77,7 +77,7 @@ fi
 
 if [ $p ] ;then # If it has dir. path it is possibly either absolute or relative
 if [ ${p:0:1} = / ];then # Absolute Dir. Path
-	[ $E ] &&{ A="find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
+	[ $E ] &&{ A="sudo find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
 	s=${p%%[*?]*}
 	s=${s%/*}
 	s=${s:-/}
@@ -102,7 +102,7 @@ else # Relative Dir. Path
 		p=${p#../}
 		p=${p#./}
 	done
-	[ $E ] &&{ A="find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
+	[ $E ] &&{ A="sudo find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
 	if ((re)) ;then
 		P="-ipath *$p$n"
 	else
@@ -127,7 +127,7 @@ fi
 
 else # If no dir. path, it'd be one depth dir./filename relative to PWD
 	s=~+
-	[ $E ] &&{ A="find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
+	[ $E ] &&{ A="sudo find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
 	if((re)) ;then
 		P="-iname $n"
 	else
@@ -150,7 +150,7 @@ if((d+I));then
 	export -f di;eval $A -exec bash -c \'di $I $d \$0\' {} '\; \)'
 else
 	set -o pipefail;
-	(eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
+	(eval "sudo $A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
 fi
 fi
 }
