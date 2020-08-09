@@ -1,7 +1,7 @@
-Click, copy "list.sh" or "list-su.sh" above, then paste, prepend the Bash functions inside ~/.bashrc file
-list-su is a mode that has internal superuser request (prefixed by sudo command)
+Click, copy "list.sh" or "list-su.sh" above, then paste, prepend the Bash functions inside ~/.bashrc file   
+list-su is one that has internal superuser request (sudo prefixed command)
 
-Find, list specific file and/or directory recursively with the same find utility useful options.
+Find, list specific file and/or directory recursively with the same find utility useful options   
 
 Would print its:
 - Size                                          -s
