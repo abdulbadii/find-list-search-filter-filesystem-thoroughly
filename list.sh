@@ -9,7 +9,7 @@ di(){
 	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/    &/'
 }
 l(){
-unset a E opt ex i x L l lx
+unset a E opt ex i x lx l L
 d=0; I=0; r=%p
 for e
 {
@@ -53,36 +53,39 @@ eval set -- "${A//\\/\\\\}"
 IFS=$'\n'
 for a
 {
-unset O P L
-z=${a: -1}
-[ "${a:0:2}" = "\/" ] &&{ eval "find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\"";continue; }
-a=${a%[/.]}
-if [ -z $a ] ;then
-	[ $z = . ] &&{ find ~+ -type f; }
-	[ $z = / ] &&{ find ~+ \! -ipath ~+ -type d -printf $r/\\n; }
-else
-[ "${a:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
-a=${a#./}
-[[ $a =~ ^(.*/)?([^/]+)$ ]]
-p=${BASH_REMATCH[1]}
-n=${BASH_REMATCH[2]}
-
+unset O P ll re p n
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
-[ $l ] && L="-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F \;"
+
+z=${a: -1}
 if [ $z = . ] ;then	D=
 elif [ $z = / ] ;then	F=
 else	O=-o
 fi
 
+a=${a%[/.]}
+if [ -z $a ] ;then
+	[ $z = / ] && P=" \! -ipath ${PWD}"
+else
+[ "$a" = \\ ] &&{ eval "find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\"";continue; }
+[ "${a:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
+a=${a#./}
+[[ $a =~ ^(.*/)?([^/]+)$ ]]
+p=${BASH_REMATCH[1]}
+n=${BASH_REMATCH[2]}
+fi
+
 if [ $p ] ;then # If it has dir. path it is possibly either absolute or relative
 if [ ${p:0:1} = / ];then # Absolute Dir. Path
-	[ $E ] &&{ A="find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
-	if [[ $a =~ \* ]] ;then
+	if [ $E ] ;then
+		s=${p%%[*?\\\{\[]*}
+		s=${s%/*}
+		P="-regextype posix-extended -iregex \"*$s/$p$n*\""
+	elif [[ $a =~ \* ]] ;then
 		s=${p%%[*?]*}
 		s=${s%/*}
 		s=${s:-/}
-		if [[ $p =~ \*\* ]] || [[ $n =~ \*\* ]] ;then # if any double wildcards in full path
+		if [[ $p =~ \*\* ]] || [[ $n =~ \*\* ]] ;then # if there's any double wildcards in full path
 			p=${p//\*\*/~\{~}
 			p=${p//\*/[^/]+}
 			p=${p//~\{~/.*}
@@ -98,7 +101,7 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\?/[^/.]}
 			n=${n//\*/'[^/]*'}
-			if [[ ! $p =~ \* ]] ;then # if not at all
+			if [[ ! $p =~ \* ]] ;then # if no wildcard at all in dir. path
 				P="-regextype posix-extended -iregex ^$p$n\$"
 			else P="-regextype posix-extended -iregex ^$s/${p//\*/[^/]+}$n\$"
 			fi
@@ -115,8 +118,9 @@ else # Relative Dir. Path
 		p=${p#../}
 		p=${p#./}
 	done
-	[ $E ] &&{ A="find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
-	if ((re)) ;then
+	if [ $E ] ;then
+		P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
+	elif ((re)) ;then
 		P="-ipath *$p$n"
 	else
 		n=${n//./\\.}
@@ -133,16 +137,30 @@ else # Relative Dir. Path
 			s=$s${q# }
 			P="-regextype posix-extended -iregex ^$t/$p$n\$"
 		else
-			L="-exec find \{\} \! -ipath \{\} -iname * $opt $D $O $F \;"
+			l=1
 		fi
 	fi
 fi
 
 else # If no dir. path, it'd be one depth dir./filename relative to PWD
 	s=~+
-	[ $E ] &&{ A="find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
-	if((re)) ;then
-		P="-iname $n"
+	if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
+	elif [ -z ${re+i} ] ;then : # if unset recursive, nop
+	elif((re)) ;then
+		if [[ $n =~ \*\* ]] ;then
+			n=${n//\*\*/~\{~}
+			n=${n//.\*/\\.\\S[^/]*}
+			n=${n//\*/[^/]*}
+			n=${n//./\\.}
+			n=${n//~\{~/.*}
+			n=${n//\?/[^/.]}
+			P="-regextype posix-extended -iregex ^$s/.*$n\$"
+		elif [[ $n =~ \* ]] ;then
+			P="-iname $n"
+		else
+			P="-iname $n"
+			ll=1
+		fi
 	else
 		if [[ $n =~ \* ]] ;then
 			n=${n//./\\.}
@@ -150,21 +168,22 @@ else # If no dir. path, it'd be one depth dir./filename relative to PWD
 			n=${n//\?/[^/.]}
 			n=${n//\*/'[^/]*'}
 			P="-regextype posix-extended -iregex ^$s/$n\$"
-		else # if no wildcard at all
+		else
 			P="-ipath $s/$n"
-			L="-exec find \{\} \! -ipath \{\} -iname * $opt $D $O $F \;"
+			ll=1
 		fi
 	fi
 fi
 
+((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F \;"}
 A="find $s $x $P $opt \( $D $L $O $F"
+((l)) ||unset L
 
 if((d+I));then
 	export -f di;eval $A -exec bash -c \'di $I $d \$0\' {} '\; \)'
 else
 	set -o pipefail;
 	(eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
-fi
 fi
 }
 set +f;unset IFS
