@@ -78,22 +78,35 @@ fi
 if [ $p ] ;then # If it has dir. path it is possibly either absolute or relative
 if [ ${p:0:1} = / ];then # Absolute Dir. Path
 	[ $E ] &&{ A="find $s $x -regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F";return; }
-	s=${p%%[*?]*}
-	s=${s%/*}
-	s=${s:-/}
-	n=${n//./\\.}
-	n=${n//.\*/\\.\\S[^/]*}
-	n=${n//\?/[^/.]}
-	n=${n//\*/'[^/]*'}
-	if [[ $p =~ \*\* ]] ;then # if double wildcards in path
-		p=${p//\*\*/~\{~}
-		p=${p//\*/[^/]+}
-		p=${p//~\{~/.*}
-		P="-regextype posix-extended -iregex ^$p$n\$"
-	elif [[ ! $p =~ \* ]] ;then # if not at all
-		P="-regextype posix-extended -iregex ^$p$n\$"
-	else # One wildcard in dir. path
-		P="-regextype posix-extended -iregex ^$s/${p//\*/[^/]+}$n\$"
+	if [[ $a =~ \* ]] ;then
+		s=${p%%[*?]*}
+		s=${s%/*}
+		s=${s:-/}
+		if [[ $p =~ \*\* ]] || [[ $n =~ \*\* ]] ;then # if any double wildcards in full path
+			p=${p//\*\*/~\{~}
+			p=${p//\*/[^/]+}
+			p=${p//~\{~/.*}
+			n=${n//\*\*/~\{~}
+			n=${n//.\*/\\.\\S[^/]*}
+			n=${n//\*/[^/]*}
+			n=${n//./\\.}
+			n=${n//~\{~/.*}
+			n=${n//\?/[^/.]}
+			P="-regextype posix-extended -iregex ^$p$n\$"
+		else
+			n=${n//./\\.}
+			n=${n//.\*/\\.\\S[^/]*}
+			n=${n//\?/[^/.]}
+			n=${n//\*/'[^/]*'}
+			if [[ ! $p =~ \* ]] ;then # if not at all
+				P="-regextype posix-extended -iregex ^$p$n\$"
+			else P="-regextype posix-extended -iregex ^$s/${p//\*/[^/]+}$n\$"
+			fi
+		fi
+	else
+		if [ -d $a ] ;then
+			s=$a; P="-iname *"
+		else s=$p; P="-iname $n";fi
 	fi
 else # Relative Dir. Path
 	s=~+
