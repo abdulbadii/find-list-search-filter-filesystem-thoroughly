@@ -82,29 +82,21 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 		s=${s%/*}
 		P="-regextype posix-extended -iregex \"*$s/$p$n*\""
 	elif [[ $a =~ \* ]] ;then
+		p=$p**${n%%\*\**} #double wildcards in name is moved to dir. path
+		n=${n##*\*\*}
 		s=${p%%[*?]*}
 		s=${s%/*}
 		s=${s:-/}
-		if [[ $p =~ \*\* ]] || [[ $n =~ \*\* ]] ;then # if there's any double wildcards in full path
-			p=${p//\*\*/~\{~}
-			p=${p//\*/[^/]+}
-			p=${p//~\{~/.*}
-			n=${n//\*\*/~\{~}
-			n=${n//.\*/\\.\\S[^/]*}
-			n=${n//\*/[^/]*}
-			n=${n//./\\.}
-			n=${n//~\{~/.*}
-			n=${n//\?/[^/.]}
+		p=${p//\*\*/~\{~}
+		p=${p//\*/[^/]+}
+		p=${p//~\{~/.*}
+		n=${n//./\\.}
+		n=${n//.\*/\\.\\S[^/]*}
+		n=${n//\?/[^/.]}
+		n=${n//\*/[^/]*}
+		if [[ ! $p =~ \* ]] ;then # if no wildcard at all in dir. path
 			P="-regextype posix-extended -iregex ^$p$n\$"
-		else
-			n=${n//./\\.}
-			n=${n//.\*/\\.\\S[^/]*}
-			n=${n//\?/[^/.]}
-			n=${n//\*/'[^/]*'}
-			if [[ ! $p =~ \* ]] ;then # if no wildcard at all in dir. path
-				P="-regextype posix-extended -iregex ^$p$n\$"
-			else P="-regextype posix-extended -iregex ^$s/${p//\*/[^/]+}$n\$"
-			fi
+		else P="-regextype posix-extended -iregex ^$p$n\$"
 		fi
 	else
 		if [ -d $a ] ;then
@@ -113,13 +105,28 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 	fi
 else # Relative Dir. Path
 	s=~+
-	while [ ${p:0:3} = ../ ] ;do
+	while [ "${p:0:3}" = ../ ] ;do
 		s=${s%/*}
 		p=${p#../}
 		p=${p#./}
 	done
 	if [ $E ] ;then
-		P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
+		P="-regextype posix-extended -iregex \"^$s/$p$n*\""
+	elif [[ $a =~ \* ]] ;then
+			p=$p**${n%%\*\**}
+			n=${n##*\*\*}
+		if [[ $p =~ \*\* ]] ;then # if there's any double wildcards in path
+			p=${p//\*\*/~\{~}
+			p=${p//\*/[^/]+}
+			p=${p//~\{~/.*}
+		elif [[ $p =~ \* ]] ;then
+			p=${p//\*/[^/]+}
+		fi
+		n=${n//./\\.}
+		n=${n//.\*/\\.\\S[^/]*}
+		n=${n//\?/[^/.]}
+		n=${n//\*/[^/]*}
+		P="-regextype posix-extended -iregex ^$s$p$n\$"
 	elif ((re)) ;then
 		P="-ipath *$p$n"
 	else
