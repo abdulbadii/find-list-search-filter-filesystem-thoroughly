@@ -75,6 +75,8 @@ p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
 fi
 
+p=$p${n%%\*\**}** #double wildcards in name is moved to dir. path
+n=${n##*\*\*}
 if [ $p ] ;then # If it has dir. path it is possibly either absolute or relative
 if [ ${p:0:1} = / ];then # Absolute Dir. Path
 	if [ $E ] ;then
@@ -82,8 +84,6 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 		s=${s%/*}
 		P="-regextype posix-extended -iregex \"*$s/$p$n*\""
 	elif [[ $a =~ \* ]] ;then
-		p=$p**${n%%\*\**} #double wildcards in name is moved to dir. path
-		n=${n##*\*\*}
 		s=${p%%[*?]*}
 		s=${s%/*}
 		s=${s:-/}
@@ -113,8 +113,6 @@ else # Relative Dir. Path
 	if [ $E ] ;then
 		P="-regextype posix-extended -iregex \"^$s/$p$n*\""
 	elif [[ $a =~ \* ]] ;then
-			p=$p**${n%%\*\**}
-			n=${n##*\*\*}
 		if [[ $p =~ \*\* ]] ;then # if there's any double wildcards in path
 			p=${p//\*\*/~\{~}
 			p=${p//\*/[^/]+}
