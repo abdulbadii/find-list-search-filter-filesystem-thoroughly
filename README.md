@@ -15,70 +15,71 @@ Would narrow down search:
 - In greater control by regular expression      -E
 - All the 'Test' option of 'find' test option  -   (below some excerpt of its manual for options)
 
-Simply type l
-$ l
-list every file and directory under current directory entirely
+Simply type l   
+$ l   
+list every file and directory under current directory entirely   
 
-$ l /
-list entire directories only under current directory
+$ l /   
+list entire directories only under current directory   
 
-$ l .
-list entire files only under current directory
+$ l .   
+list entire files only under current directory   
 
-$ l \/
+$ l \\/   
 list every file and directory under / (root) directory
-the preceding \ is to diffrentiate it with second use above
+the preceding \ is to diffrentiate it with second use above   
 
-$ l -s -i *.bin
-query any object having 'bin' name suffix then list it with the size and file information under current directory entirely
+$ l -s -i *.bin   
+query any object having 'bin' name suffix then list it with the size and file information under current directory entirely    
 
-$ l  -t ./*.bin.
-list any file only excluding directory whose file type is 'bin' on this directory only, with their last modification
+$ l  -t ./*.bin.   
+list any file only excluding directory whose file type is 'bin' on this directory only, with their last modification   
 
-It always searchs up to directories depths given explicitly on path such as:
+It always searchs up to directories depths given explicitly on path such as:   
 
-/qt/*/*/core/meta
-means to search for file/directory meta.c under core dir. being under any directory being under any dir. under qt directory.
+/qt/*/*/core/meta   
+means to search for file/directory "meta" under "core" dir. under any directory being under any dir. under "qt" directory.   
 
-To search somewhere deeper than such to max, add "**", double wildcard asterisks, in the context of intended ply e.g.
-$ l /qt/*/*/core/**/meta
+To search somewhere deeper than such up to maximum, add "**" double wildcard asterisks, in the context of intended ply e.g.   
+$ l /qt/*/*/core/**/meta   
 
-Will find
-/qt/src/lib/core/meta
-/qt/src/lib/core/c/meta
-/qt/src/lib/core/cc/meta
-/qt/src/lib/core/c/obj/meta
-/qt/lib/so/core/src/c/obj/meta
+Will find   
+/qt/src/lib/core/meta   
+/qt/src/lib/core/c/meta   
+/qt/src/lib/core/cc/meta   
+/qt/src/lib/core/c/obj/meta   
+/qt/lib/so/core/src/c/obj/meta   
 
-If being navigated in relative path way i.e. not started with character / then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory,
-If it needs to be limited to search for directly on current directory, precede (start) it with ./
+If being navigated in relative path way i.e. not started with character "/" then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
+If it needs to be limited to search for directly on current directory only, precede (start) it with ./   
 
-Suppose previous explicit part of path exists only where it's specified i.e. meta is a file/directory only under core dir. being under any directory being under any dir. under qt directory.
+Suppose previous explicit part of path exists only where it's specified i.e. "meta" is a file/directory only under "core" dir. being under any directory being under any dir. under qt directory.   
 
-$ cd /qt
-$ l core/meta
-will find it as e.g:
-/qt/src/lib/core/meta
+$ cd /qt   
+$ l core/meta   
+will find it as e.g:   
+/qt/src/lib/core/meta   
 
-$ l ./core/meta
-will not find it since there is no /qt/core/meta
+$ l ./core/meta   
+will not find it since there is no /qt/core/meta    
 
-In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard and if there would be a directory found then this way the directory content will automatically be shown entirely.
+In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard and as being searched there is a directory found, then this way the directory content will automatically be shown entirely.
 
-If this action is needed in other way of path given, put -l option in order to show content of directory found but only in one depth
-To have its content shown up to a depth add the number e.g. -l3 option will show the content to 3 directory plies
-To have its content shown  entirely the number meant for it is 0, so be prepared if to put -l0 option, it will list entirely  the content of every found directory which could be a bit overwhelming.
+If this action is needed by other way of path given, put -l option in order to show content of directory found but only in one depth
+To have its content shown up to a depth add the number e.g. -l3 option will show the content to only 3 directory plies.   
+To have its content shown  entirely the number meant for it is 0.   
+So be prepared if to put -l0 option, it will list entirely  the content of every found directory which in turn could be a bit overwhelming.   
 
-If it needs to be limited again, put -1...9 options,  e.g:
-search for only on current and 1 directory below it put -2,
-only on current and 2 directories below add -3, etc.
+If it needs to be limited again, put -1...9 options,  e.g:   
+search for only on current and 1 directory below it put -2,   
+only on current and 2 directories below add -3, etc.   
 
-can even navigate by way of absolute path followed relative path in a single line
+can even navigate by way of absolute path immediately followed relative path in a single line   
 
-$ l /a/\*/m\*.c  \*.h
-
-Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option
-$ l -E '/a/*/m\w{1,2}\\.[c-h]'
+$ l /a/\*/m\*.c  \*.h   
+   
+Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
+$ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
 /a/b/min.c
 /a/b/c/d/e/min.h
