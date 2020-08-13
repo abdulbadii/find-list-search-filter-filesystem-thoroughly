@@ -56,11 +56,11 @@ for a
 unset O P ll re p n
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
-K="-type l -printf \"$r\n\""
+R="-type b,c,p,l,s -printf \"$r\n\""
 
 z=${a: -1}
-if [ $z = . ] ;then	D=
-elif [ $z = / ] ;then	F=
+if [ $z = . ] ;then	D=;R=
+elif [ $z = / ] ;then	F=;R=
 else	O=-o
 fi
 
@@ -76,7 +76,10 @@ p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
 fi
 
-[[ $n =~ \*\* ]] &&{ p=$p${n%%\*\**}**; n=; } #double wildcards in name is moved to dir. path
+if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
+	p=$p${n%%\*\**}**
+	n=${n##*\*\*}
+fi
 if [ $p ] ;then # If it has dir. path it is possibly either absolute or relative
 if [ ${p:0:1} = / ];then # Absolute Dir. Path
 	if [ $E ] ;then
@@ -185,7 +188,7 @@ else # If no dir. path, it'd be one depth dir./filename relative to PWD
 fi
 
 ((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F \;"}
-A="find $s $x $P $opt \( $D $L $O $F"
+A="find $s $x $P $opt \( $D $L $O $F $O $R"
 ((l)) ||unset L
 
 if((d+I));then
