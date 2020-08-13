@@ -124,7 +124,11 @@ else # Relative Dir. Path
 		n=${n//.\*/\\.\\S[^/]*}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}
-		P="-regextype posix-extended -iregex ^$s$p$n\$"
+		if((re)) ;then
+			P="-regextype posix-extended -iregex ^$s/.*$p$n\$"
+		else
+			P="-regextype posix-extended -iregex ^$s/$p$n\$"
+		fi
 	elif ((re)) ;then
 		P="-ipath *$p$n"
 	else
