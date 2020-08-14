@@ -17,7 +17,7 @@ Would narrow down search:
 
 Simply type l   
 $ l   
-list every file and directory under current directory entirely   
+list every file, directory, and other filesystem types under current directory entirely   
 
 $ l /   
 list entire directories only under current directory   
@@ -25,9 +25,16 @@ list entire directories only under current directory
 $ l .   
 list entire files only under current directory   
 
+$ l \   
+list entire links only under current directory   
+
+So just put suffix / to mean searching for directory,   
+suffix . to mean searching for file,   
+suffix \\ to mean searching for link
+
 $ l \\/   
-list every file and directory under / (root) directory
-the preceding \ is to diffrentiate it with second use above   
+list every filesystem type under / (root) directory entirely
+the preceding \\ is to diffrentiate it with second use above   
 
 $ l -s -i *.bin   
 query any object having 'bin' name suffix then list it with the size and file information under current directory entirely    
