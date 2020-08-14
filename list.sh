@@ -9,12 +9,13 @@ di(){
 	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/   &/'
 }
 l(){
-unset a E opt ex i x lx l L
+unset po opt a E ex i x lx l L
 d=0; I=0; r=%p
 for e
 {
 ((i++))
 case $e in
+-[HDLPO]) po=$e;;
 -h|--help)
 	find --help | sed -E '1,3{s/(:\s+)find/\1lf/}'
 	return;;
@@ -30,7 +31,7 @@ case $e in
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
 -[ac-il-x]) echo \'$e\' : inadequate specific sub-option, ignoring it.;;
--[ac-il-x]?|-[HDLPO]) opt=$opt$e\ ;;
+-[ac-il-x]?) opt=$opt$e\ ;;
 -?) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a filename, put it after - or --;;
 -|--) break;;
 *) ex=1; break;;
@@ -56,15 +57,17 @@ for a
 unset O P ll re p n
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
-R="-type b,c,p,l,s -printf \"$r\n\""
+K="-type l -printf \"$r\n\""
+R="-printf \"$r\n\""
 
 z=${a: -1}
-if [ $z = . ] ;then	D=;R=
-elif [ $z = / ] ;then	F=;R=
+if [ $z = . ] ;then	D=;K=;R=
+elif [ $z = / ] ;then	F=;K=;R=
+elif [ $z = \\ ] ;then	D=;F=;R=
 else	O=-o
 fi
 
-a=${a%[/.]}
+a=${a%[/.\\]}
 if [ -z $a ] ;then
 	[ $z = / ] && P=" \! -ipath ${PWD}"
 else
@@ -188,7 +191,7 @@ else # If no dir. path, it'd be one depth dir./filename relative to PWD
 fi
 
 ((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F \;"}
-A="find $s $x $P $opt \( $D $L $O $F $O $R"
+A="find $po $s $x $P $opt \( $D $L $O $F $O $K $O $R"
 ((l)) ||unset L
 
 if((d+I));then
