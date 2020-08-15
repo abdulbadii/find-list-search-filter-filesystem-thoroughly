@@ -40,15 +40,15 @@ $ l -s -i *.bin
 query any object having 'bin' name suffix then list it with the size and file information under current directory entirely    
 
 $ l  -t ./*.bin.   
-list any file only excluding directory whose file type is 'bin' on this directory only, with their last modification   
+list every file only (excluding others) having type name 'bin' on this directory only, with the last modification   
 
 It always searchs up to directories depths given explicitly on path such as:   
 
-/qt/*/*/core/meta   
-means to search for file/directory "meta" under "core" dir. under any directory being under any dir. under "qt" directory.   
+/qt/\*/\*/core/meta   
+means to search for file/directory "meta" under "core" dir. under any directory being under any directory under "qt" directory.   
 
-To search somewhere deeper than such up to maximum, add "**" double wildcard asterisks, in the context of intended ply e.g.   
-$ l /qt/*/*/core/**/meta   
+To search somewhere deeper than such up to maximum, add "\*\*" double wildcard asterisks, in the context of intended ply e.g.   
+$ l /qt/\*/\*/core/\*\*/meta   
 
 Will find   
 /qt/src/lib/core/meta   
@@ -57,13 +57,14 @@ Will find
 /qt/src/lib/core/c/obj/meta   
 /qt/lib/so/core/src/c/obj/meta   
 
-If being navigated in relative path way i.e. not started with character "/" then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
+If being navigated in relative path way i.e. not started with slash character (/), then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
 If it needs to be limited to search for directly on current directory only, precede (start) it with ./   
 
-Suppose previous explicit part of path exists only where it's specified i.e. "meta" is a file/directory only under "core" dir. being under any directory being under any dir. under qt directory.   
+Suppose previous explicit part of path exists only where it's specified i.e. "meta" is only a file/directory under "core" directory being under any directory being under any dir. under qt directory.   
 
 $ cd /qt   
 $ l core/meta   
+
 will find it as e.g:   
 /qt/src/lib/core/meta   
 
