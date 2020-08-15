@@ -1,12 +1,12 @@
 di(){
-	if((1)) ;then
-		f=`file $3`
-		e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/;s/Intel$/32bit/'`
-		if [[ $e =~ ^execu ]];then echo $e
-		else echo $f|sed -E 's/[^:]+:\s*(.+)/\1/'
-		fi
+	#if(($1)) ;then
+	f=`file $3`
+	e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/;s/Intel$/32bit/'`
+	if [[ $e =~ ^execu ]];then echo $e
+	else echo $f|sed -E 's/[^:]+:\s*(.+)/  \1/'
 	fi
-	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/[^>]+>(.+)\s+\(0.+/\1/ ;1s/.*/DEP:&/ ;1! s/.*/   &/'
+	#fi
+	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/^\s*([^>]+>)?(.+)\s+\(0.+/  \2/ ;1cDEP:'
 }
 l(){
 unset po opt a E ex i x lx l L
@@ -48,7 +48,7 @@ A=${A# *[0-9]*${FUNCNAME}*$xt}
 A=${A%% [12]>*}
 A=${A%%[>&|<]*}
 fi
-[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\""; set +f;return; }
+[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find $po ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\""; set +f;return; }
 
 eval set -- "${A//\\/\\\\}"
 IFS=$'\n'
@@ -156,7 +156,6 @@ else # Relative Dir. Path
 		fi
 	fi
 fi
-
 else # If no dir. path, it'd be one depth dir./filename relative to PWD
 	s=~+
 	if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
@@ -195,7 +194,7 @@ A="find $po $s $x $P $opt \( $D $L $O $F $O $K $O $R"
 ((l)) ||unset L
 
 if((d+I));then
-	export -f di;eval $A -exec bash -c \'di $I $d \$0\' {} '\; \)'
+	export -f di;eval "$A \) -exec bash -c 'di $I $d \$0' {} \; "
 else
 	set -o pipefail;
 	(eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
@@ -554,43 +553,6 @@ for s in `find $p $d -type f -regextype posix-extended -iregex ^.*/$f\$ -printf 
 }
 done
 unset IFS
-}
-pacerr(){
-o=;ov=;on=;h=
-(($1)) && h="| head -n$1"
-for n in `eval ls $h`
-{
-
-[[ $n =~ ([a-z0-9]+[a-z])([0-9.]+) ]]
-nn=${BASH_REMATCH[1]}
-nv=${BASH_REMATCH[2]}
-nn=${n%%-[0-9]*};nn=${nn%%[0-9].*}
-
-
-if [ $nn. == $on. ] ;then
-	nv=${n#${nn}};nv=${nv#-}
-	ov=${o#${on}};ov=${ov#-}
-	if [ -d $n ] ;then	
-		if [ $nv. \> $ov. ] ;then
-		rm -rd $o
-		# echo -e "\nrm -rd $o \n"
-		else
-		rm -rd $n
-		# echo -e "\nrm -rd $n \n"
-		fi
-	else
-		if [ $nv. \> $ov. ] ;then
-		rm $o
-		# echo -e "\nrm $o \n"
-		else
-		rm $n
-		# echo -e "\nrm $n \n"
-		fi
-	fi
-fi
-o=$n
-on=$nn
-}
 }
 
 mw() {
