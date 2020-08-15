@@ -68,9 +68,7 @@ else	O=-o
 fi
 
 a=${a%[/.\\]}
-if [ -z $a ] ;then
-	[ $z = / ] && P=" \! -ipath ${PWD}"
-else
+if [ $a ] ;then
 [ "$a" = \\ ] &&{ eval "find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\"";continue; }
 
 [[ $a =~ ^(.*/)?([^/]+)$ ]]
@@ -191,7 +189,7 @@ else # Relative Dir. Path
 	fi
 fi
 ((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F \;"}
-A="find $po $s $x $P $opt \( $D $L $O $F $O $K $O $R"
+A="find $po $s \! -ipath $s $x $P $opt \( $D $L $O $F $O $K $O $R"
 ((l)) ||unset L
 
 if((d+I));then
