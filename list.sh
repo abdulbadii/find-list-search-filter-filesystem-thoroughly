@@ -1,12 +1,12 @@
 di(){
-	#if(($1)) ;then
 	f=`file $3`
-	e=`echo $f|sed -E 's/[^:]+:\s+\S+\s+(\S+(\s+\S+){2}).+/\1/;s/Intel$/32bit/'`
-	if [[ $e =~ ^execu ]];then echo $e
-	else echo $f|sed -E 's/[^:]+:\s*(.+)/  \1/'
+	e=`echo $f | sed -E 's/^[^:]+:[^,]+\s(\S+),.+$/\1/'`
+	if [[ $e =~ ^execut ]];then
+		echo $f|sed -E 's/[^:]+:\s*(.+)/\t\1/'
+		(($2))&&ldd $3 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/\t\2/;s/^.*\blinux-vdso\.s.+/DEP:/'
+	else
+		echo $f|sed -E 's/[^:]+:\s*(.+)/\t\1\n/'
 	fi
-	#fi
-	(($2))&&ldd $3 2>/dev/null |sed -Ee 's/^\s*([^>]+>)?(.+)\s+\(0.+/  \2/ ;1cDEP:'
 }
 l(){
 unset po opt a E ex i x lx l L
@@ -72,8 +72,7 @@ if [ -z $a ] ;then
 	[ $z = / ] && P=" \! -ipath ${PWD}"
 else
 [ "$a" = \\ ] &&{ eval "find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\"";continue; }
-[ "${a:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
-a=${a#./}
+
 [[ $a =~ ^(.*/)?([^/]+)$ ]]
 p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
@@ -90,26 +89,29 @@ if [ ${p:0:1} = / ];then # Absolute Dir. Path
 		s=${s%/*}
 		P="-regextype posix-extended -iregex \"*$s/$p$n*\""
 	elif [[ $a =~ \* ]] ;then
-		s=${p%%[*?]*}
-		s=${s%/*}
-		s=${s:-/}
-		p=${p//\*\*/~\{~}
-		p=${p//\*/[^/]+}
-		p=${p//~\{~/.*}
 		n=${n//./\\.}
 		n=${n//.\*/\\.\\S[^/]*}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}
-		if [[ ! $p =~ \* ]] ;then # if no wildcard at all in dir. path
-			P="-regextype posix-extended -iregex ^$p$n\$"
-		else P="-regextype posix-extended -iregex ^$p$n\$"
+		if [[ $p =~ \* ]] ;then # if any wildcard in dir. path
+			s=${p%%[*?]*}
+			s=${s%/*}
+			s=${s:-/}
+			p=${p//\*\*/~\{~}
+			p=${p//\*/[^/]+}
+			p=${p//~\{~/.*}
+		else
+			s=$p
 		fi
+		P="-regextype posix-extended -iregex ^$p$n\$"
+	elif [ -d $a ] ;then
+		s=$a; P="-iname *"
 	else
-		if [ -d $a ] ;then
-			s=$a; P="-iname *"
-		else s=$p; P="-iname $n";fi
+		s=$p; P="-ipath $a"
 	fi
 else # Relative Dir. Path
+	[ "${p:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
+	p=${p#./}
 	s=~+
 	while [ "${p:0:3}" = ../ ] ;do
 		s=${s%/*}
@@ -156,7 +158,9 @@ else # Relative Dir. Path
 		fi
 	fi
 fi
-else # If no dir. path, it'd be one depth dir./filename relative to PWD
+else			# if no dir. path, it's one depth dir./filename relative to PWD
+	[ "${p:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
+	p=${p#./}
 	s=~+
 	if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
 	elif [ -z ${re+i} ] ;then : # if unset recursive, nop
