@@ -48,10 +48,10 @@ A=${A# *[0-9]*${FUNCNAME}*$xt}
 A=${A%% [12]>*}
 A=${A%%[>&|<]*}
 fi
-[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "sudo find $po ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\""; set +f;return; }
+[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "sudo find $po ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\""; set +f;return; }
 
-eval set -- "${A//\\/\\\\}"
 IFS=$'\n'
+eval set -- "${A//\\/\\\\}"
 for a
 {
 unset O P ll re p n
@@ -71,7 +71,7 @@ a=${a%[/.\\]}
 if [ -z $a ] ;then
 	[ $z = / ] && P=" \! -ipath ${PWD}"
 else
-[ "$a" = \\ ] &&{ eval "sudo find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -type f -printf \"$r\n\"";continue; }
+[ "$a" = \\ ] &&{ eval "sudo find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\"";continue; }
 
 [[ $a =~ ^(.*/)?([^/]+)$ ]]
 p=${BASH_REMATCH[1]}
@@ -82,8 +82,8 @@ if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
 	p=$p${n%%\*\**}**
 	n=${n##*\*\*}
 fi
-if [ $p ] ;then # If it has dir. path it is possibly either absolute or relative
-if [ ${p:0:1} = / ];then # Absolute Dir. Path
+
+if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 	if [ $E ] ;then
 		s=${p%%[*?\\\{\[]*}
 		s=${s%/*}
@@ -113,86 +113,83 @@ else # Relative Dir. Path
 	[ "${p:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
 	p=${p#./}
 	s=~+
-	while [ "${p:0:3}" = ../ ] ;do
-		s=${s%/*}
-		p=${p#../}
-		p=${p#./}
-	done
-	if [ $E ] ;then
-		P="-regextype posix-extended -iregex \"^$s/$p$n*\""
-	elif [[ $a =~ \* ]] ;then
-		if [[ $p =~ \*\* ]] ;then # if there's any double wildcards in path
-			p=${p//\*\*/~\{~}
-			p=${p//\*/[^/]+}
-			p=${p//~\{~/.*}
-		elif [[ $p =~ \* ]] ;then
-			p=${p//\*/[^/]+}
-		fi
-		n=${n//./\\.}
-		n=${n//.\*/\\.\\S[^/]*}
-		n=${n//\?/[^/.]}
-		n=${n//\*/[^/]*}
-		if((re)) ;then
-			P="-regextype posix-extended -iregex ^$s/.*$p$n\$"
-		else
-			P="-regextype posix-extended -iregex ^$s/$p$n\$"
-		fi
-	elif ((re)) ;then
-		P="-ipath *$p$n"
-	else
-		n=${n//./\\.}
-		n=${n//.\*/\\.\\S[^/]*}
-		n=${n//\?/[^/.]}
-		n=${n//\*/'[^/]*'}
-		if [[ $p =~ \* ]] ;then # if any wildcard in path
-			p=${p//\*\*/~\{~}
-			p=${p//\*/[^/]+}
-			p=${p//~\{~/.*}
-			q=\ ${p%%[*?]*}
-			q=${q%[ /]*}
-			t=$s
-			s=$s${q# }
-			P="-regextype posix-extended -iregex ^$t/$p$n\$"
-		else
-			l=1
-		fi
-	fi
-fi
-else			# if no dir. path, it's one depth dir./filename relative to PWD
-	[ "${p:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
-	p=${p#./}
-	s=~+
-	if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
-	elif [ -z ${re+i} ] ;then : # if unset recursive, nop
-	elif((re)) ;then
-		if [[ $n =~ \*\* ]] ;then
-			n=${n//\*\*/~\{~}
-			n=${n//.\*/\\.\\S[^/]*}
-			n=${n//\*/[^/]*}
+	if [[ $p =~ / ]] ;then # if has some dir. depth to current dir.
+		while [ "${p:0:3}" = ../ ] ;do
+			s=${s%/*}
+			p=${p#../}
+			p=${p#./}
+		done
+		if [ $E ] ;then
+			P="-regextype posix-extended -iregex \"^$s/$p$n*\""
+		elif [[ $a =~ \* ]] ;then
+			if [[ $p =~ \*\* ]] ;then # if there's any double wildcards in path
+				p=${p//\*\*/~\{~}
+				p=${p//\*/[^/]+}
+				p=${p//~\{~/.*}
+			elif [[ $p =~ \* ]] ;then
+				p=${p//\*/[^/]+}
+			fi
 			n=${n//./\\.}
-			n=${n//~\{~/.*}
+			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\?/[^/.]}
-			P="-regextype posix-extended -iregex ^$s/.*$n\$"
-		elif [[ $n =~ \* ]] ;then
-			P="-iname $n"
+			n=${n//\*/[^/]*}
+			if((re)) ;then
+				P="-regextype posix-extended -iregex ^$s/.*$p$n\$"
+			else
+				P="-regextype posix-extended -iregex ^$s/$p$n\$"
+			fi
+		elif ((re)) ;then
+			P="-ipath *$p$n"
 		else
-			P="-iname $n"
-			ll=1
-		fi
-	else
-		if [[ $n =~ \* ]] ;then
 			n=${n//./\\.}
 			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\?/[^/.]}
 			n=${n//\*/'[^/]*'}
-			P="-regextype posix-extended -iregex ^$s/$n\$"
+			if [[ $p =~ \* ]] ;then # if any wildcard in path
+				p=${p//\*\*/~\{~}
+				p=${p//\*/[^/]+}
+				p=${p//~\{~/.*}
+				q=\ ${p%%[*?]*}
+				q=${q%[ /]*}
+				t=$s
+				s=$s${q# }
+				P="-regextype posix-extended -iregex ^$t/$p$n\$"
+			else
+				l=1
+			fi
+		fi
+	else			# if one depth dir./filename relative to current dir
+		if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
+		elif [ -z $n ] ;then : # if no n, nop
+		elif((re)) ;then
+			if [[ $n =~ \*\* ]] ;then
+				n=${n//\*\*/~\{~}
+				n=${n//.\*/\\.\\S[^/]*}
+				n=${n//\*/[^/]*}
+				n=${n//./\\.}
+				n=${n//~\{~/.*}
+				n=${n//\?/[^/.]}
+				P="-regextype posix-extended -iregex ^$s/.*$n\$"
+			elif [[ $n =~ \* ]] ;then
+				P="-iname $n"
+			else
+				P="-iname $n"
+				ll=1
+			fi
 		else
-			P="-ipath $s/$n"
-			ll=1
+			if [[ $n =~ \* ]] ;then
+				n=${n//./\\.}
+				n=${n//.\*/\\.\\S[^/]*}
+				n=${n//\?/[^/.]}
+				n=${n//\*/'[^/]*'}
+				P="-regextype posix-extended -iregex ^$s/$n\$"
+			else
+				P="-ipath $s/$n"
+				ll=1
+			fi
 		fi
 	fi
 fi
-
 ((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F \;"}
 A="find $po $s $x $P $opt \( $D $L $O $F $O $K $O $R"
 ((l)) ||unset L
