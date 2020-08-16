@@ -1,10 +1,10 @@
-Click, copy "list.sh" or "list-su.sh" above, then paste, prepend the Bash functions inside ~/.bashrc file   
-list-su is one with internal superuser request (sudo prefixed command) but not in -d, -i option use   
+Click, copy "list.sh" or "list-su.sh" above, then paste, prepend the Bash functions inside to ~/.bashrc file   
+list-su differ only in having superuser request (sudo prefixed command) but not if using -d, -i option
 
-Find, list specific file and/or directory recursively with the same find utility useful options   
+Find and list specific file, directory, or link recursively while can utilze some "find" utility useful options   
 
 Would print its:
-- Size                                          -s
+- Size                                             -s
 - Last modification time                        -t
 - Information on file found (whether 64/32 bit binary etc)    -i
 - Dependencies of file found in one level depth             -d
