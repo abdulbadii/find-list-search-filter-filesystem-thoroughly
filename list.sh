@@ -66,21 +66,17 @@ elif [ $z = / ] ;then	F=;K=;R=
 elif [ $z = \\ ] ;then	D=;F=;R=
 else	O=-o
 fi
-
 a=${a%[/.\\]}
-if [ $a ] ;then
 [ "$a" = \\ ] &&{ eval "find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\"";continue; }
 
 [[ $a =~ ^(.*/)?([^/]+)$ ]]
 p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
-fi
 
 if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
 	p=$p${n%%\*\**}**
 	n=${n##*\*\*}
 fi
-
 if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 	if [ $E ] ;then
 		s=${p%%[*?\\\{\[]*}
