@@ -154,29 +154,29 @@ else # Relative Dir. Path
 	else			# if one depth dir./filename relative to current dir
 		if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
 		elif [ -z $n ] ;then : # if no n, nop
-        n=${n//.\*/\\.\\S[^/]*}
-        n=${n//\*/[^/]*}
-        n=${n//./\\.}
-        n=${n//\?/[^/.]}
-		elif((re)) ;then
-			if [[ $n =~ \* ]] ;then
-				P="-regextype posix-extended -iregex ^$s/.*$n\$"
-			else
-				P="-iname $n"
-			fi
 		else
-			if [[ $n =~ \* ]] ;then
-				P="-regextype posix-extended -iregex ^$s/$n\$"
-			else
-				P="-ipath $s/$n"
-				ll=1
-			fi
-		fi
+            n=${n//.\*/\\.\\S[^/]*}
+            n=${n//\*/[^/]*}
+            n=${n//./\\.}
+            n=${n//\?/[^/.]}
+            if((re)) ;then
+                if [[ $n =~ \* ]] ;then
+                    P="-regextype posix-extended -iregex ^$s/.*$n\$"
+                else
+                    P="-iname $n"
+                fi
+            elif [[ $n =~ \* ]] ;then
+                P="-regextype posix-extended -iregex ^$s/$n\$"
+            else
+                P="-ipath $s/$n"
+                ll=1
+            fi
+        fi
 	fi
 fi
-((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F $O $K $O $R \;"}
+((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F -o -printf '%p\n' \;"}
 A="find $po $s \! -ipath $s $x $P $opt \( $D $L $O $F $O $K $O $R"
-((l)) ||unset L
+((ll)) &&unset L
 
 if((d+I));then
 	export -f di;eval "$A \) -exec bash -c 'di $I $d \$0' {} \; "
