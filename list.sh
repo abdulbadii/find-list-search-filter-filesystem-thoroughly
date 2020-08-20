@@ -9,15 +9,15 @@ di(){
 	fi
 }
 l(){
-unset po opt a E ex i x lx l L
+unset po opt a E ex ct x lx l L
 d=0; I=0; r=%p
 for e
 {
-((i++))
+((ct++))
 case $e in
 -[HDLPO]) po=$e;;
 -h|--help)
-	find --help | sed -E '1,3{s/(:\s+)find/\1lf/}'
+	find --help | sed -E "1,3{s/find/${FUNCNAME}/}"
 	return;;
 -d) d=1;;
 -i) I=1;;
@@ -37,9 +37,9 @@ case $e in
 *) ex=1; break;;
 esac
 }
-xt=${@:1:((i-ex))}
-set -f
-trap 'set +f;unset IFS' 1 2
+xt=${@:1:((ct-ex))}
+
+set -f;trap 'set +f;unset IFS' 1 2
 if [[ $@ =~ \* ]] ;then
 	A=$@
 else
@@ -68,7 +68,6 @@ else	O=-o
 fi
 a=${a%[/.\\]}
 [ "$a" = \\ ] &&{ eval "find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\"";continue; }
-
 [[ $a =~ ^(.*/)?([^/]+)$ ]]
 p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
@@ -155,27 +154,18 @@ else # Relative Dir. Path
 	else			# if one depth dir./filename relative to current dir
 		if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
 		elif [ -z $n ] ;then : # if no n, nop
+        n=${n//.\*/\\.\\S[^/]*}
+        n=${n//\*/[^/]*}
+        n=${n//./\\.}
+        n=${n//\?/[^/.]}
 		elif((re)) ;then
-			if [[ $n =~ \*\* ]] ;then
-				n=${n//\*\*/~\{~}
-				n=${n//.\*/\\.\\S[^/]*}
-				n=${n//\*/[^/]*}
-				n=${n//./\\.}
-				n=${n//~\{~/.*}
-				n=${n//\?/[^/.]}
+			if [[ $n =~ \* ]] ;then
 				P="-regextype posix-extended -iregex ^$s/.*$n\$"
-			elif [[ $n =~ \* ]] ;then
-				P="-iname $n"
 			else
 				P="-iname $n"
-				ll=1
 			fi
 		else
 			if [[ $n =~ \* ]] ;then
-				n=${n//./\\.}
-				n=${n//.\*/\\.\\S[^/]*}
-				n=${n//\?/[^/.]}
-				n=${n//\*/'[^/]*'}
 				P="-regextype posix-extended -iregex ^$s/$n\$"
 			else
 				P="-ipath $s/$n"
@@ -184,7 +174,7 @@ else # Relative Dir. Path
 		fi
 	fi
 fi
-((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F \;"}
+((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F $O $K $O $R \;"}
 A="find $po $s \! -ipath $s $x $P $opt \( $D $L $O $F $O $K $O $R"
 ((l)) ||unset L
 
