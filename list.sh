@@ -41,12 +41,12 @@ xt=${@:1:((ct-ex))}
 
 set -f;trap 'set +f;unset IFS' 1 2
 if [[ $@ =~ \* ]] ;then
-	A=$@
+	A=${@#$xt}
 else
-A=`history 1`
-A=${A# *[0-9]*${FUNCNAME}*$xt}
-A=${A%% [12]>*}
-A=${A%%[>&|<]*}
+    A=`history 1`
+    A=${A# *[0-9]*${FUNCNAME}*$xt}
+    A=${A%% [12]>*}
+    A=${A%%[>&|<]*}
 fi
 [[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find $po ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\""; set +f;return; }
 
@@ -174,9 +174,15 @@ else # Relative Dir. Path
         fi
 	fi
 fi
-((l+ll)) &&L=${L-"-exec find \{\} $lx \! -ipath \{\} -iname * $opt $D $O $F -o -printf '%p\n' \;"}
-A="find $po $s \! -ipath $s $x $P $opt \( $D $L $O $F $O $K $O $R"
-((ll)) &&unset L
+if ((l+ll)) ;then
+    if [ -z $lx ] ;then
+        D="-type d -prune -exec find \{\} -iname \* $opt $D -o -printf '%p\n' \;"
+    else
+        D="-type d -exec find \{\} $lx -iname \* $opt $D -o -printf '%p\n' \;"
+    fi
+fi
+A="find $po $s \! -ipath $s $x $P $opt \( $D $O $F $O $K $O $R"
+((ll)) &&unset ll
 
 if((d+I));then
 	export -f di;eval "$A \) -exec bash -c 'di $I $d \$0' {} \; "
