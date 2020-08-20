@@ -10,8 +10,8 @@ Would print its:
 - Dependencies of file found in one level depth             -d
 
 Would narrow down search:
-- Limit to find only directory or file type :    suffix the object with / or .
-- Limit to certain depth only :                -1...9 or prefix with ./ for -1
+- Limit to find only directory or file or link type :    suffix the object with / . or \
+- Limit to certain depth only :                  -1...9 or prefix with ./ for -1
 - In greater control by regular expression      -E
 - All the 'Test' option of 'find' test option  -   (below some excerpt of its manual for options)
 
@@ -71,12 +71,12 @@ will find it as e.g:
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
-In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard and as being searched there is a directory found, then this way the directory content will automatically be shown entirely.
+In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard, while being searched then a directory is found, then this way the entire directory content will automatically be shown.
 
-If this action is needed by other way of path given, put -l option in order to show content of directory found but only in one depth
-To have its content shown up to a depth add the number e.g. -l3 option will show the content to only 3 directory plies.   
-To have its content shown  entirely the number meant for it is 0.   
-So be prepared if to put -l0 option, it will list entirely  the content of every found directory which in turn could be a bit overwhelming.   
+If this action is needed in another way of path, put -l option in order to show content of directory found only in one depth   
+To have it shown up to certain depth add the number e.g. -l3 option will show to 3 directory plies.   
+To have the found directory's content shown  entirely the number meant for it is 0.   
+So be prepared if to put -l0 option, it will list entirely  the content of every found directory which could be a bit overwhelming.   
 
 If it needs to be limited again, put -1...9 options,  e.g:   
 search for only on current and 1 directory below it put -2,   
