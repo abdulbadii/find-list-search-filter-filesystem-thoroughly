@@ -1,7 +1,7 @@
 Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file   
 the "list-su.sh" differs only in having superuser request (sudo prefixed command) but not if using -d, -i option   
 
-Find and list specific file, directory, or link recursively while can utilze some "find" utility useful options   
+Find and list specific file, directory, or link recursively while keep utilizing "find" utility useful options   
 
 Would print its:
 - Size                                             -s
@@ -33,8 +33,7 @@ suffix . to mean searching for file,
 suffix \\ to mean searching for link
 
 $ l \\/   
-list every filesystem type under / (root) directory entirely
-the preceding \\ is to diffrentiate it with second use above   
+list every filesystem type under / (root) directory entirely, the preceding \\ is to differentiate it with second use above   
 
 $ l -s -i *.bin   
 query any object having 'bin' name suffix then list it with the size and file information under current directory entirely    
