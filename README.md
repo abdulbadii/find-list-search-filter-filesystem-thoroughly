@@ -1,5 +1,5 @@
-Click, copy "list.sh" or "list-su.sh" above, then paste, prepend the Bash functions inside to ~/.bashrc file   
-list-su differ only in having superuser request (sudo prefixed command) but not if using -d, -i option
+Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file   
+the "list-su.sh" differs only in having superuser request (sudo prefixed command) but not if using -d, -i option   
 
 Find and list specific file, directory, or link recursively while can utilze some "find" utility useful options   
 
@@ -11,7 +11,7 @@ Would print its:
 
 Would narrow down search:
 - Limit to find only directory or file or link type :    suffix the object with / . or \
-- Limit to certain depth only :                  -1...9 or prefix with ./ for -1
+- Limit to certain depth only :                  -1...9 or prefix with ./ as one depth
 - In greater control by regular expression      -E
 - All the 'Test' option of 'find' test option  -   (below some excerpt of its manual for options)
 

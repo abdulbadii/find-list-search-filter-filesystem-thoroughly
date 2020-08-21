@@ -63,7 +63,7 @@ R="-printf \"$r\n\""
 z=${a: -1}
 if [ $z = . ] ;then	D=;K=;R=
 elif [ $z = / ] ;then	F=;K=;R=
-elif [ $z = \\ ] ;then	D=;F=;R=
+elif [ $z = \\ ] ;then D=;F=;R=
 else	O=-o
 fi
 a=${a%[/.\\]}
@@ -73,7 +73,7 @@ p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
 
 if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
-	p=$p${n%%\*\**}**
+	p=$p${n%\*\**}**
 	n=${n##*\*\*}
 fi
 if [ "${p:0:1}" = / ];then # Absolute Dir. Path
@@ -175,10 +175,10 @@ else # Relative Dir. Path
 	fi
 fi
 if ((l+ll)) ;then
-    if [ -z $lx ] ;then
-        D="-type d -prune -exec find \{\} -iname \* $opt $D -o -printf '%p\n' \;"
-    else
+    if [ $lx ] ;then
         D="-type d -exec find \{\} $lx -iname \* $opt $D -o -printf '%p\n' \;"
+    else
+        D="-type d -prune -exec find \{\} -iname \* $opt $D -o -printf '%p\n' \;"
     fi
 fi
 A="find $po $s \! -ipath $s $x $P $opt \( $D $O $F $O $K $O $R"
