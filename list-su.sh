@@ -102,75 +102,51 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		[ -d $a ] &&ll=1
 	fi
 else # Relative Dir. Path
-	[ "${p:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
+	[ "${p:0:2}" = ./ ] || re=.* # must be recursive if no prefix ./
 	p=${p#./}
 	s=~+
-	if [[ $p =~ / ]] ;then # if has some dir. depth to current dir.
-		while [ "${p:0:3}" = ../ ] ;do
-			s=${s%/*}
-			p=${p#../}
-			p=${p#./}
-		done
-		if [ $E ] ;then
-			P="-regextype posix-extended -iregex \"^$s/$p$n*\""
-		elif [[ $a =~ \* ]] ;then
-			if [[ $p =~ \*\* ]] ;then # if there's any double wildcards in path
-				p=${p//\*\*/~\{~}
-				p=${p//\*/[^/]+}
-				p=${p//~\{~/.*}
-			elif [[ $p =~ \* ]] ;then
-				p=${p//\*/[^/]+}
-			fi
+	while [ "${p:0:3}" = ../ ] ;do
+		s=${s%/*}
+		p=${p#../}
+		p=${p#./}
+	done
+	if [ $E ] ;then
+		P="-regextype posix-extended -iregex \"^$s/$p$n*\""
+	elif [ $p ] ;then
+		if [[ $a =~ \* ]] ;then
+			p=${p//\*\*/~\{~}
+			p=${p//\*/[^/]+}
+			p=${p//~\{~/.*}
 			n=${n//./\\.}
 			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}
-			if((re)) ;then
-				P="-regextype posix-extended -iregex ^$s/.*$p$n\$"
-			else
-				P="-regextype posix-extended -iregex ^$s/$p$n\$"
-			fi
-		elif ((re)) ;then
-			P="-ipath *$p$n"
+			q=\ ${p%%[*?]*}
+			q=${q%[ /]*}
+			t=$s
+			s=$s${q# }
+			P="-regextype posix-extended -iregex ^$t/$re$p$n\$"
 		else
-			n=${n//./\\.}
-			n=${n//.\*/\\.\\S[^/]*}
-			n=${n//\?/[^/.]}
-			n=${n//\*/'[^/]*'}
-			if [[ $p =~ \* ]] ;then # if any wildcard in path
-				p=${p//\*\*/~\{~}
-				p=${p//\*/[^/]+}
-				p=${p//~\{~/.*}
-				q=\ ${p%%[*?]*}
-				q=${q%[ /]*}
-				t=$s
-				s=$s${q# }
-				P="-regextype posix-extended -iregex ^$t/$p$n\$"
-			else
-				ll=1
-			fi
+			P="-ipath ${re#.}$p$n"
+			[ $re ] || ll=1
 		fi
 	else			# if one depth dir./filename relative to current dir
 		if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
 		elif [ -z $n ] ;then : # if no n, nop
 		else
-            n=${n//.\*/\\.\\S[^/]*}
-            n=${n//\*/[^/]*}
-            n=${n//./\\.}
-            n=${n//\?/[^/.]}
-            if((re)) ;then
-                if [[ $n =~ \* ]] ;then
-                    P="-regextype posix-extended -iregex ^$s/.*$n\$"
-                else
-                    P="-iname $n"
-                fi
-            elif [[ $n =~ \* ]] ;then
-                P="-regextype posix-extended -iregex ^$s/$n\$"
-            else
-					P="-ipath $s/$n"
-					ll=1
-            fi
-        fi
+			n=${n//.\*/\\.\\S[^/]*}
+			n=${n//\*/[^/]*}
+			n=${n//./\\.}
+			n=${n//\?/[^/.]}
+			if [[ $n =~ \* ]] ;then
+				P="-regextype posix-extended -iregex ^$s/$re$n\$"
+			elif [ $re ] ;then
+				P="-iname $n"
+			else
+				P="-ipath $s/$n"
+				ll=1
+			fi
+		fi
 	fi
 fi
 if ((l+ll)) ;then
