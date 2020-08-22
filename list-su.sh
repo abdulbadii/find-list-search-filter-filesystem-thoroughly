@@ -97,10 +97,9 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 			s=$p
 		fi
 		P="-regextype posix-extended -iregex ^$p$n\$"
-	elif [ -d $a ] ;then
-		s=$a; P="-iname *"
 	else
 		s=$p; P="-ipath $a"
+		[ -d $a ] &&ll=1
 	fi
 else # Relative Dir. Path
 	[ "${p:0:2}" = ./ ]; re=$? # defaults to recursive if no prefix ./
@@ -148,7 +147,7 @@ else # Relative Dir. Path
 				s=$s${q# }
 				P="-regextype posix-extended -iregex ^$t/$p$n\$"
 			else
-				l=1
+				ll=1
 			fi
 		fi
 	else			# if one depth dir./filename relative to current dir
@@ -168,8 +167,8 @@ else # Relative Dir. Path
             elif [[ $n =~ \* ]] ;then
                 P="-regextype posix-extended -iregex ^$s/$n\$"
             else
-                P="-ipath $s/$n"
-                ll=1
+					P="-ipath $s/$n"
+					ll=1
             fi
         fi
 	fi
