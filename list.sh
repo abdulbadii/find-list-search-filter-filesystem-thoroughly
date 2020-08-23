@@ -41,14 +41,14 @@ xt=${@:1:((ct-ex))}
 
 set -f;trap 'set +f;unset IFS' 1 2
 if [[ $@ =~ \* ]] ;then
-	A=${@#$xt}
+	A=${@#*$xt}
 else
-    A=`history 1`
+    A=`history 1`;A=${A//  / }
     A=${A# *[0-9]*${FUNCNAME}*$xt}
     A=${A%% [12]>*}
     A=${A%%[>&|<]*}
 fi
-[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find $po ~+ \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\""; set +f;return; }
+[ -z ${A// /} ] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\""; set +f;return; }
 
 IFS=$'\n'
 eval set -- "${A//\\/\\\\}"
@@ -61,13 +61,13 @@ K="-type l -printf \"$r\n\""
 R="-printf \"$r\n\""
 
 z=${a: -1}
-if [ $z = . ] ;then	D=;K=;R=
-elif [ $z = / ] ;then	F=;K=;R=
+if [ $z = / ] ;then F=;K=;R=
+elif [ $z = . ] ;then	D=;K=;R=
 elif [ $z = \\ ] ;then D=;F=;R=
 else	O=-o
 fi
 a=${a%[/.\\]}
-[ "$a" = \\ ] &&{ eval "find / \! -ipath / $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\"";continue; }
+[ "$a" = \\ ] &&{ eval "$po find / $x \! -ipath / $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\"";continue; }
 [[ $a =~ ^(.*/)?([^/]+)$ ]]
 p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
@@ -156,7 +156,7 @@ if ((l+ll)) ;then
         D="-type d -prune -exec find \{\} -iname \* $opt $D -o -printf '%p\n' \;"
     fi
 fi
-A="find $po $s \! -ipath $s $x $P $opt \( $D $O $F $O $K $O $R"
+A="find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R"
 ((ll)) &&unset ll
 
 if((d+I));then
