@@ -9,8 +9,8 @@ di(){
 	fi
 }
 l(){
-unset po opt a E ex ct x lx l L
-d=0; I=0; r=%p
+unset po opt d I E xc ex ct x lx l L
+r=%p
 for e
 {
 ((ct++))
@@ -19,11 +19,14 @@ case $e in
 -h|--help)
 	find --help | sed -E "1,3{s/find/${FUNCNAME}/}"
 	return;;
+-x*|--ex*|--exc*)
+	[[ $e =~ (-x|--ex=|--exc=)([\!-~A-z]+) ]]
+	xc=${BASH_REMATCH[2]};;
 -d) d=1;;
 -i) I=1;;
 -l) lx=-maxdepth\ 1; l=1;;
 -l[0-9]*)
-	[ ! ${e:2} = 0 ] &&lx=-maxdepth\ ${e:2}
+	((${e:2})) &&lx=-maxdepth\ ${e:2}
 	l=1;;
 -[1-9]*) x=-maxdepth\ ${e:1};;
 -E) E=1;;
@@ -48,7 +51,7 @@ else
     A=${A%% [12]>*}
     A=${A%%[>&|<]*}
 fi
-[ -z ${A// /} ] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\""; set +f;return; }
+[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\""; set +f;return; }
 
 IFS=$'\n'
 eval set -- "${A//\\/\\\\}"
@@ -68,7 +71,7 @@ else	O=-o
 fi
 a=${a%[/.\\]}
 [ "$a" = \\ ] &&{ eval "$po find / $x \! -ipath / $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\"";continue; }
-[[ $a =~ ^(.*/)?([^/]+)$ ]]
+[[ $a =~ ^(.*/)?([^/]*)$ ]]
 p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
 
@@ -98,8 +101,10 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		fi
 		P="-regextype posix-extended -iregex ^$p$n\$"
 	else
-		s=$p; P="-ipath $a"
-		[ -d $a ] &&ll=1
+		a=${a%/}
+		s=$p;
+		P=${a:+"-ipath $a"}
+		[ -d "$a" ] &&ll=1
 	fi
 else # Relative Dir. Path
 	[ "${p:0:2}" = ./ ] || re=.* # must be recursive if no prefix ./
@@ -132,8 +137,7 @@ else # Relative Dir. Path
 		fi
 	else			# if one depth dir./filename relative to current dir
 		if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
-		elif [ -z $n ] ;then : # if no n, nop
-		else
+		elif [ $n ] ;then
 			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\*/[^/]*}
 			n=${n//./\\.}
@@ -150,14 +154,15 @@ else # Relative Dir. Path
 	fi
 fi
 if ((l+ll)) ;then
-    if [ $lx ] ;then
-        D="-type d -exec find \{\} $lx -iname \* $opt $D -o -printf '%p\n' \;"
-    else
-        D="-type d -prune -exec find \{\} -iname \* $opt $D -o -printf '%p\n' \;"
-    fi
+	if [ $lx ] ;then
+		D="-type d -exec find \{\} $lx -iname \* $opt $D -o -printf '%p\n' \;"
+	else
+		D="-type d -prune -exec find \{\} -iname \* $opt $D -o -printf '%p\n' \;"
+	fi
+	unset ll
 fi
+
 A="find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R"
-((ll)) &&unset ll
 
 if((d+I));then
 	export -f di;eval "$A \) -exec bash -c 'di $I $d \$0' {} \; "
