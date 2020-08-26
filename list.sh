@@ -46,12 +46,12 @@ set -f;trap 'set +f;unset IFS' 1 2
 if [[ $@ =~ \* ]] ;then
 	A=${@#*$xt}
 else
-    A=`history 1`;A=${A//  / }
-    A=${A# *[0-9]*${FUNCNAME}*$xt}
-    A=${A%% [12]>*}
-    A=${A%%[>&|<]*}
+	A=`history 1`;A=${A//  / }
+	A=${A# *[0-9]*${FUNCNAME}*$xt}
+	A=${A%% [12]>*}
+	A=${A%%[>&|<]*}
 fi
-[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\""; set +f;return; }
+[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
 
 IFS=$'\n'
 eval set -- "${A//\\/\\\\}"
@@ -70,7 +70,7 @@ elif [ $z = \\ ] ;then D=;F=;R=
 else	O=-o
 fi
 a=${a%[/.\\]}
-[ "$a" = \\ ] &&{ eval "$po find / $x \! -ipath / $opt -type d -printf \"$r/\n\" -o -printf \"$r\n\"";continue; }
+[ "$a" = \\ ] &&{ eval "$po find / $x \! -ipath / $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)";continue; }
 [[ $a =~ ^(.*/)?([^/]*)$ ]]
 p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
@@ -133,7 +133,7 @@ else # Relative Dir. Path
 			else
 				P="-regextype posix-extended -iregex ^$s/$p$n\$"
 				q=/${p%%[*?]*}
-				s=$s/${q%/*}
+				s=$s${q%/*}
 			fi
 		else
 			P="-ipath ${re#.}$p$n"
@@ -157,16 +157,14 @@ else # Relative Dir. Path
 		fi
 	fi
 fi
-
 if ((l+ll)) ;then
 	if [ $lx ] ;then
-		D="-type d -exec find \{\} $lx -iname \* $opt $D -o -printf '%p\n' \;"
+		D="-type d -exec find \{\} $lx -iname \* $opt \( $D -o -printf '%p\n' \; \)"
 	else
-		D="-type d -prune -exec find \{\} -iname \* $opt $D -o -printf '%p\n' \;"
+		D="-type d -prune -exec find \{\} -iname \* $opt \( $D -o -printf '%p\n' \; \)"
 	fi
 	unset ll
 fi
-
 A="find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R"
 
 if((d+I));then
@@ -176,6 +174,5 @@ else
 	(eval "$A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
 fi
 }
-
 set +f;unset IFS
 }
