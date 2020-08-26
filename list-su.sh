@@ -19,7 +19,7 @@ case $e in
 -h|--help)
 	find --help | sed -E "1,3{s/find/${FUNCNAME}/}"
 	return;;
--x*|--ex*|--exc*)
+--ex*|--exc*)
 	[[ $e =~ (-x|--ex=|--exc=)([\!-~A-z]+) ]]
 	xc=${BASH_REMATCH[2]};;
 -d) d=1;;
@@ -77,7 +77,7 @@ n=${BASH_REMATCH[2]}
 
 if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
 	p=$p${n%\*\**}**
-	n=${n##*\*\*}
+	n=*${n##*\*\*}
 fi
 if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 	if [ $E ] ;then
@@ -108,7 +108,7 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 	fi
 else # Relative Dir. Path
 	[ "${p:0:2}" = ./ ] || re=.* # must be recursive if no prefix ./
-	p=${p#./}
+	#p=${p#./}
 	s=~+
 	while [ "${p:0:3}" = ../ ] ;do
 		s=${s%/*}
@@ -122,20 +122,26 @@ else # Relative Dir. Path
 			p=${p//\*\*/~\{~}
 			p=${p//\*/[^/]+}
 			p=${p//~\{~/.*}
+			p=${p//./\\.}
+			p=${p//\?/[^/.]}
 			n=${n//./\\.}
 			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}
-			q=\ ${p%%[*?]*}
-			q=${q%[ /]*}
-			t=$s
-			s=$s${q# }
-			P="-regextype posix-extended -iregex ^$t/$re$p$n\$"
+			if [ $re ] ;then
+                P="-regextype posix-extended -iregex ^$s/$re$p$n\$"
+			else
+                q=${p%%[*?]*}
+                q=${q%/*}
+                {q#.}
+                s=$s${q#/}/
+                P="-regextype posix-extended -iregex ^$s$p$n\$"
+			fi
 		else
 			P="-ipath ${re#.}$p$n"
 			[ $re ] || ll=1
 		fi
-	else			# if one depth dir./filename relative to current dir
+	else			# Only one depth dir./filename relative to current dir
 		if [ $E ] ;then P="-regextype posix-extended -iregex \"*$s/$p$n*\" $opt \( $D $O $F"
 		elif [ $n ] ;then
 			n=${n//.\*/\\.\\S[^/]*}
@@ -153,6 +159,7 @@ else # Relative Dir. Path
 		fi
 	fi
 fi
+
 if ((l+ll)) ;then
 	if [ $lx ] ;then
 		D="-type d -exec find \{\} $lx -iname \* $opt $D -o -printf '%p\n' \;"
@@ -168,8 +175,9 @@ if((d+I));then
 	export -f di;eval "$A \) -exec bash -c 'di $I $d \$0' {} \; "
 else
 	set -o pipefail;
-	(eval "sudo $A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[1;31m\\2\e[m/'>&2 ) 3>&1
+	(eval "sudo $A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
 fi
 }
+
 set +f;unset IFS
 }
