@@ -108,7 +108,7 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 	fi
 else # Relative Dir. Path
 	[ "${p:0:2}" = ./ ] || re=.* # must be recursive if no prefix ./
-	#p=${p#./}
+	p=${p#./}
 	s=~+
 	while [ "${p:0:3}" = ../ ] ;do
 		s=${s%/*}
@@ -129,13 +129,11 @@ else # Relative Dir. Path
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}
 			if [ $re ] ;then
-                P="-regextype posix-extended -iregex ^$s/$re$p$n\$"
+				P="-regextype posix-extended -iregex ^$s/$re$p$n\$"
 			else
-                q=${p%%[*?]*}
-                q=${q%/*}
-                {q#.}
-                s=$s${q#/}/
-                P="-regextype posix-extended -iregex ^$s$p$n\$"
+				P="-regextype posix-extended -iregex ^$s/$p$n\$"
+				q=/${p%%[*?]*}
+				s=$s/${q%/*}
 			fi
 		else
 			P="-ipath ${re#.}$p$n"
