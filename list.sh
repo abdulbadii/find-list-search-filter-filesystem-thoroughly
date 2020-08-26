@@ -159,9 +159,9 @@ else # Relative Dir. Path
 fi
 if ((l+ll)) ;then
 	if [ $lx ] ;then
-		D="-type d -exec find \{\} $lx -iname \* $opt \( $D -o -printf '%p\n' \; \)"
+		D="-type d -exec find \{\} $lx -iname \* $opt \( $D -o -printf '%p\n' \) \;"
 	else
-		D="-type d -prune -exec find \{\} -iname \* $opt \( $D -o -printf '%p\n' \; \)"
+		D="-type d -prune -exec find \{\} -iname \* $opt \( $D -o -printf '%p\n' \) \;"
 	fi
 	unset ll
 fi
