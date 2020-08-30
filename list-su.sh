@@ -77,7 +77,7 @@ n=${BASH_REMATCH[2]}
 
 if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
 	p=$p${n%\*\**}**
-	n=*${n##*\*\*}
+	n=${n##*\*\*}
 fi
 if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 	if [ $E ] ;then
@@ -165,13 +165,13 @@ if ((l+ll)) ;then
 	fi
 	unset ll
 fi
-A="find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R"
+A="find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)"
 
 if((d+I));then
-	export -f di;eval "$A \) -exec bash -c 'di $I $d \$0' {} \; "
+	export -f di;eval "$A -exec bash -c 'di $I $d \$0' {} \; "
 else
 	set -o pipefail;
-	(eval "sudo $A \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
+	(eval "sudo $A" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
 fi
 }
 set +f;unset IFS
