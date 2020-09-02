@@ -51,7 +51,7 @@ else
 	A=${A%% [12]>*}
 	A=${A%%[>&|<]*}
 fi
-[[ $A =~ ^[\ \\t]*$ ]] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
+[[ $A =~ ^[[:space:]]*$ ]] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
 
 IFS=$'\n'
 eval set -- "${A//\\/\\\\}"
