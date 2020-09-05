@@ -9,11 +9,10 @@ di(){
 	fi
 }
 l(){
-unset po opt d I E xc ex ct x lx l
-r=%p
+unset po opt E xc ex ct x lx l
+d=0;I=0;r=%p
 for e
 {
-((ct++))
 case $e in
 -[HDLPO]) po=$e;;
 -h|--help)
@@ -33,35 +32,37 @@ case $e in
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
--[ac-il-x]) echo \'$e\' : inadequate specific sub-option, ignoring it.;;
--[ac-il-x]?) opt=$opt$e\ ;;
--|--) break;;
--*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a filename, put it after - or --;;
-*) ex=1; break;;
+-[ac-il-x]) echo \'$e\' : inadequate specific sub-option, ignoring.;;
+-[ac-il-x]?*) opt=$opt$e\ ;;
+-|--) let ++ct;break;;
+-*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a full path name, put it after - or --;;
+*) break;;
 esac
+let ++ct
 }
-xt=${@:1:((ct-ex))}
+xt=${@:1:ct}
 
 set -f;trap 'set +f;unset IFS' 1 2
 if [[ $@ =~ \* ]] ;then
 	A=${@#*$xt}
+	A=${A//\\/\\\\}
 else
 	A=`history 1`;A=${A//  / }
-	A=${A# *[0-9]*${FUNCNAME}*$xt}
+	A=${A# *[0-9]*$FUNCNAME*$xt}
 	A=${A%% [12]>*}
 	A=${A%%[>&|<]*}
 fi
 [[ $A =~ ^[[:space:]]*$ ]] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
 
 IFS=$'\n'
-eval set -- "${A//\\/\\\\}"
+eval set -- $A
 for a
 {
 unset O P ll re p n
 
 z=${a: -1}
 a=${a%[/.\\]}
-[ "$a" = \\ ] &&{ eval "$po find / $x \! -ipath / $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)";continue; }
+[ "$a" = \\ ] &&{ eval "find / $po $x \! -ipath / $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)";continue; }
 [[ $a =~ ^(.*/)?([^/]*)$ ]]
 p=${BASH_REMATCH[1]}
 n=${BASH_REMATCH[2]}
@@ -120,8 +121,8 @@ else # Relative Dir. Path
 		E="*$s/$p$n*"
 	elif [ $p ] ;then
 		if [[ $a =~ \* ]] ;then
-			p=${p//\*\*/~\{~}
 			p=${p//./\\.}
+			p=${p//\*\*/~\{~}
 			p=${p//\*/[^/]+}
 			p=${p//~\{~/.*}
 			p=${p//\?/[^/.]}
@@ -141,6 +142,7 @@ else # Relative Dir. Path
 			[ $re ] || ll=1
 		fi
 	else			# Only one depth dir./filename relative to current dir
+		n=${n:-*}
 		if [[ $n =~ \* ]] ;then
 			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\*/[^/]*}
@@ -167,26 +169,29 @@ else	O=-o
 fi
 if [ $E ] ;then
 	A="find $po $s $x \! -ipath $s -regextype posix-extended -iregex $E $opt \( $D $O $F $O $K $O $R \)"
-
 elif((ll)) ;then
 	A="find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname \* $opt \( $D $O $F $O $K $O $R \) \; -o  -printf \"$r\n\" \)"
 	unset ll
-else
-	if((l)) ;then
-		if [ $lx ] ;then
-			D="-type d -exec find \{\} $lx -iname \* $opt \( $D -o -printf '%p\n' \) \;"
-		else
-			D="-type d -prune -exec find \{\} -iname \* $opt \( $D -o -printf '%p\n' \) \;"
-		fi
+elif((l)) ;then
+	if [ $lx ] ;then
+		D="-type d -exec find \{\} $lx -iname \* $opt \( $D -o -printf '%p\n' \) \;"
+	else
+		D="-type d -prune -exec find \{\} -iname \* $opt \( $D -o -printf '%p\n' \) \;"
 	fi
-	A="find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)"
 fi
 
 if((d+I));then
-	export -f di;eval "$A -exec bash -c 'di $I $d \$0' {} \; "
+	# export -f di;eval "find $po $s $x \! -ipath $s $P $opt \( \( $F $O $K \) -exec bash -c 'di $I $d \$0' {} \; $O $D $O $R \)"
+	for l in `eval find $po $s $x \! -ipath $s $P $opt`
+	{
+		if [ -d "$l" ] ;then echo "$l/"
+		else echo $l
+		fi
+		[ -f "$l" ] || [ -L "$l" ] &&di $I $d "$l"
+	}
 else
 	set -o pipefail;
-	(eval "$A" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
+	(eval "find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
 fi
 }
 set +f;unset IFS
