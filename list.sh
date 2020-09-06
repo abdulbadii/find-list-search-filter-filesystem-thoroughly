@@ -99,7 +99,7 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		fi
 		P="-regextype posix-extended -iregex ^$p$n\$"
 	else
-		a=${a%/}
+		a=${a%%/}
 		s=$p;
 		P=${a:+"-ipath $a"}
 		[ -d "$a" ] &&ll=1
@@ -170,25 +170,26 @@ fi
 if [ $E ] ;then
 	A="find $po $s $x \! -ipath $s -regextype posix-extended -iregex $E $opt \( $D $O $F $O $K $O $R \)"
 elif((ll)) ;then
-	A="find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname \* $opt \( $D $O $F $O $K $O $R \) \; -o  -printf \"$r\n\" \)"
+	set -o pipefail;
+	(eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \( $D $O $F $O $K $O $R \) \; -o -printf \"$r\n\" \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
 	unset ll
 elif((l)) ;then
 	if [ $lx ] ;then
-		D="-type d -exec find \{\} $lx -iname \* $opt \( $D -o -printf '%p\n' \) \;"
+		D="-type d -exec find \{\} $lx -iname * $opt \( $D -o -printf '%p\n' \) \;"
 	else
-		D="-type d -prune -exec find \{\} -iname \* $opt \( $D -o -printf '%p\n' \) \;"
+		D="-type d -prune -exec find \{\} -iname * $opt \( $D -o -printf '%p\n' \) \;"
 	fi
 fi
 
 if((d+I));then
-	# export -f di;eval "find $po $s $x \! -ipath $s $P $opt \( \( $F $O $K \) -exec bash -c 'di $I $d \$0' {} \; $O $D $O $R \)"
-	for l in `eval find $po $s $x \! -ipath $s $P $opt`
-	{
-		if [ -d "$l" ] ;then echo "$l/"
-		else echo $l
-		fi
-		[ -f "$l" ] || [ -L "$l" ] &&di $I $d "$l"
-	}
+	X="$F $O $K"
+	export -f di;eval "find $po $s $x \! -ipath $s $P $opt \( ${X:+\( $X \) -exec bash -c 'di $I $d \$0' \{\} \; $O} $D $O $R \)"
+	# 	for l in `eval find $po $s $x \! -ipath $s $P $opt`
+	# 	{
+	# 		if [ -d "$l" ] ;then echo "$l/"
+	# 		else echo $l
+	# 		fi
+	# 		[ -f "$l" ] || [ -L "$l" ] &&di $I $d "$l"; }
 else
 	set -o pipefail;
 	(eval "find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
