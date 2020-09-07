@@ -1,15 +1,14 @@
 di(){
 	f=`file $3`
-	e=`echo $f | sed -E 's/^[^:]+:[^,]+\s(\S+),.+$/\1/'`
-	if [[ $e =~ ^execut ]];then
-		echo $f|sed -E 's/[^:]+:\s*(.+)/\t\1/'
-		(($2))&&ldd $3 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/\t\2/;s/^.*\blinux-vdso\.s.+/DEP:/'
-	else
-		echo $f|sed -E 's/[^:]+:\s*(.+)/\t\1\n/'
+	[[ $f =~ ^[^:]+:[[:space:]]*(.+) ]]
+	echo ${BASH_REMATCH[1]}
+	[[ $f =~ ^[^:]+:[^,]+[[:space:]]([[:graph:]]+),.+$ ]]
+	if [[ ${BASH_REMATCH[1]} =~ ^execut ]] &&(($2)) ;then
+		ldd $3 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/\t\2/;s/^.*\blinux-vdso\.s.+/DEP:/'
 	fi
 }
 l(){
-unset po opt E xc ex ct x lx l
+unset po opt E xc ct x lx l
 d=0;I=0;r=%p
 for e
 {
@@ -41,7 +40,6 @@ esac
 let ++ct
 }
 xt=${@:1:ct}
-
 set -f;trap 'set +f;unset IFS' 1 2
 if [[ $@ =~ \* ]] ;then
 	A=${@#*$xt}
@@ -184,15 +182,9 @@ fi
 if((d+I));then
 	X="$F $O $K"
 	export -f di;eval "find $po $s $x \! -ipath $s $P $opt \( ${X:+\( $X \) -exec bash -c 'di $I $d \$0' \{\} \; $O} $D $O $R \)"
-	# 	for l in `eval find $po $s $x \! -ipath $s $P $opt`
-	# 	{
-	# 		if [ -d "$l" ] ;then echo "$l/"
-	# 		else echo $l
-	# 		fi
-	# 		[ -f "$l" ] || [ -L "$l" ] &&di $I $d "$l"; }
 else
 	set -o pipefail;
-	(eval "sudo find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)" 2>&1>&3 | sed -E $'s/:(.+):(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
+	(eval "sudo find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
 fi
 }
 set +f;unset IFS
