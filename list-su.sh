@@ -1,11 +1,15 @@
 di(){
-	f=`file $1`
+d=$1;shift
+for l
+{
+	f=`file $l`
 	[[ $f =~ ^[^:]+:[[:space:]]*(.+) ]]
 	echo ${BASH_REMATCH[1]}
 	[[ $f =~ ^[^:]+:[^,]+[[:space:]]([[:graph:]]+),.+$ ]]
-	if [[ ${BASH_REMATCH[1]} =~ ^execut ]] &&(($3)) ;then
-		ldd $3 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/\t\2/;s/^.*\blinux-vdso\.s.+/DEP:/'
-	fi
+	[[ ${BASH_REMATCH[1]} =~ ^execut ]] &&(($d)) &&{
+		ldd $l 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/ \2/;s/^.*\blinux-vdso\.s.+/DEP:/'
+	}
+}
 }
 l(){
 unset po opt E xc ct x lx l
@@ -74,12 +78,8 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		s=${p%%[*?\\\{\[]*}
 		s=${s%/*}
 		s=${s:-/}
-		s=${s//\\/\\}
-		s=${s//./\.}
-		s=${s//\?/.}
-		s=${s//\*/.*}
-		E="$s/$p$n.*"
-	elif [[ $a =~ \* ]] ;then # convert wildcard to regex
+		E="$a.*"
+	elif [[ $a =~ \* ]] ;then # If any wildcard, convert to regex
 		n=${n//./\\.}
 		n=${n//.\*/\\.\\S[^/]*}
 		n=${n//\?/[^/.]}
@@ -114,11 +114,7 @@ else # Relative Dir. Path
 		p=${p#./}
 	done
 	if [ $E ] ;then
-		s=${s//\\/\\}
-		s=${s//./\.}
-		s=${s//\?/.}
-		s=${s//\*/\*}
-		E="*$s/$p$n*"
+		E=".*$a.*"
 	elif [ $p ] ;then
 		if [[ $a =~ \* ]] ;then
 			p=${p//./\\.}
@@ -151,10 +147,10 @@ else # Relative Dir. Path
 			P="-regextype posix-extended -iregex ^$s/$re$n\$"
 		elif [ $re ] ;then
 			P="-iname $n"
-			((l)) || ll=1
+			let ll=1-l
 		else
 			P="-ipath $s/$n"
-			((l)) || ll=1
+			let ll=1-l
 		fi
 	fi
 fi
@@ -171,7 +167,7 @@ if [ $E ] ;then
 	A="find $po $s $x \! -ipath $s -regextype posix-extended -iregex $E $opt \( $D $O $F $O $K $O $R \)"
 elif((ll)) ;then
 	X="$F $O $K"
-	X="${X:+\( $X \) -exec bash -c 'di \$0 $I $d' \{\} \; -o}"
+	X="${X:+\( $X \) -exec /usr/bin/bash -c 'di $d \$@' \{\} \+ -o}"
 	if((d+I));then
 		export -f di
 		eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \; \( $X $D $O $R \) -o $X -printf \"$r\n\" \)"
@@ -182,13 +178,12 @@ elif((ll)) ;then
 	unset ll
 else
 	if((l)) ;then
-		z=${lx--prune}
-		z=${z%$lx}
+		z=${lx--prune};z=${z%$lx}
 		D="-type d $z -exec find \{\} $lx -iname * $opt \( $D -o -printf '%p\n' \) \;"
 	fi
 	if((d+I));then
 		X="$F $O $K"
-		export -f di;eval "find $po $s $x \! -ipath $s $P $opt \( ${X:+\( $X \) -exec bash -c 'di \$0 $I $d' \{\} \; -o} $D $O $R \)"
+		export -f di;eval "find $po $s $x \! -ipath $s $P $opt \( ${X:+\( $X \) -exec /usr/bin/bash -c 'di $d \$@' \{\} \+ -o} $D $O $R \)"
 	else
 		set -o pipefail;
 		(eval "sudo find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
