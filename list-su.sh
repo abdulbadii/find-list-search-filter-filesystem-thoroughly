@@ -21,7 +21,7 @@ case $e in
 -h|--help)
 	find --help | sed -E "1,3s/find/$FUNCNAME/"
 	return;;
---ex*|--exc*)
+--ex|--exc)
 	[[ $e =~ --exc?=([\!-~A-z]+) ]]
 	xc=${BASH_REMATCH[1]};;
 -d) d=1;;
@@ -105,7 +105,7 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		fi
 	fi
 else # Relative Dir. Path
-	[ "${p:0:2}" = ./ ] || re=.* # must be recursive if no prefix ./
+	[ "${p:0:2}" = ./ ] || re=.*/ # must be recursive if no prefix ./
 	p=${p#./}
 	s=~+
 	while [ "${p:0:3}" = ../ ] ;do
@@ -167,13 +167,13 @@ if [ $E ] ;then
 	A="find $po $s $x \! -ipath $s -regextype posix-extended -iregex $E $opt \( $D $O $F $O $K $O $R \)"
 elif((ll)) ;then
 	X="$F $O $K"
-	X="${X:+\( $X \) -exec /usr/bin/bash -c 'di $d \$@' \{\} \+ -o}"
+	X="${X:+\( $X \) -exec /usr/bin/bash -c 'di $d \$@' dm \{\} \+ -o}"
 	if((d+I));then
 		export -f di
 		eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \; \( $X $D $O $R \) -o $X -printf \"$r\n\" \)"
 	else
 		set -o pipefail;
-		(eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \( $D $O $F $O $K $O $R \) \; -o -printf \"$r\n\" \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
+		(eval "sudo find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \( $D $O $F $O $K $O $R \) \; -o -printf \"$r\n\" \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
 	fi
 	unset ll
 else
@@ -183,7 +183,7 @@ else
 	fi
 	if((d+I));then
 		X="$F $O $K"
-		export -f di;eval "find $po $s $x \! -ipath $s $P $opt \( ${X:+\( $X \) -exec /usr/bin/bash -c 'di $d \$@' \{\} \+ -o} $D $O $R \)"
+		export -f di;eval "find $po $s $x \! -ipath $s $P $opt \( ${X:+\( $X \) -exec /usr/bin/bash -c 'di $d \$@' dm \{\} \+ -o} $D $O $R \)"
 	else
 		set -o pipefail;
 		(eval "sudo find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
