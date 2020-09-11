@@ -2,18 +2,15 @@ di(){
 d=$1;shift
 for l
 {
-	f=`file $l`
-	[[ $f =~ ^[^:]+:[[:space:]]*(.+) ]]
-	echo ${BASH_REMATCH[1]}
-	[[ $f =~ ^[^:]+:[^,]+[[:space:]]([[:graph:]]+),.+$ ]]
-	[[ ${BASH_REMATCH[1]} =~ ^execut ]] &&(($d)) &&{
-		ldd $l 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/ \2/;s/^.*\blinux-vdso\.s.+/DEP:/'
-	}
+	[[ `file $l` =~ ^[^:]+:[[:space:]]*([^,]+$|[^,]+[[:space:]]([^,]+)) ]]
+	echo -e $l\\n${BASH_REMATCH[1]}
+	(($d)) &&	[[ ${BASH_REMATCH[2]} =~ ^execut ]] &&{
+		ldd $l 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/ \2/;s/^.*\blinux-vdso\.s.+/DEP:/';}
 }
 }
 l(){
-unset po opt E xc ct x lx l
-d=0;I=0;r=%p
+unset po opt I E xc ct x lx l
+d=0;r=%p
 for e
 {
 case $e in
@@ -100,7 +97,7 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		P="-ipath $a"
 		if [ -d "$a" ] ;then
 			s=$a
-			P=$P**
+			P=$P*
 		else	s=$p
 		fi
 	fi
@@ -166,10 +163,10 @@ fi
 if [ $E ] ;then
 	A="find $po $s $x \! -ipath $s -regextype posix-extended -iregex $E $opt \( $D $O $F $O $K $O $R \)"
 elif((ll)) ;then
-	X="$F $O $K"
-	X="${X:+\( $X \) -exec /usr/bin/bash -c 'di $d \$@' dm \{\} \+ -o}"
 	if((d+I));then
 		export -f di
+		F="$F $O $K"
+		F="${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o}"
 		eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \; \( $X $D $O $R \) -o $X -printf \"$r\n\" \)"
 	else
 		set -o pipefail;
@@ -182,8 +179,9 @@ else
 		D="-type d $z -exec find \{\} $lx -iname * $opt \( $D -o -printf '%p\n' \) \;"
 	fi
 	if((d+I));then
-		X="$F $O $K"
-		export -f di;eval "find $po $s $x \! -ipath $s $P $opt \( ${X:+\( $X \) -exec /usr/bin/bash -c 'di $d \$@' dm \{\} \+ -o} $D $O $R \)"
+		export -f di
+		F="$F $O $K"
+		eval "find $po $s $x \! -ipath $s $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o} $D $O $R \)"
 	else
 		set -o pipefail;
 		(eval "find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
