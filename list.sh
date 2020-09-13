@@ -58,7 +58,9 @@ for a
 {
 unset O P ll re p n
 
-if [[ ${a:0:1} = \\ ]] ;then	a=/;p=/
+z=${a: -1}
+a=${a%[./\\]}
+if [[ $a =~ ^\\$ ]] ;then	a=/;p=/
 else
 	[[ $a =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
 	a=${a#./}
@@ -71,7 +73,6 @@ if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
 	n=${n##*\*\*}
 fi
 if [ "${p:0:1}" = / ];then # Absolute Dir. Path
-	a=${a%[/.\\]}
 	if [ $E ] ;then
 		s=${p%%[*?\\\{\[]*}
 		s=${s%/*}
@@ -133,7 +134,7 @@ else # Relative Dir. Path
 			[ $re ] || ll=1
 		fi
 	else			# Only one depth dir./filename relative to current dir
-		[[ $a =~ ^..$ ]] &&{ s=${s%/*}; a=;n=;}
+		[[ $a = . ]] &&{ s=${s%/*}; a=;n=;}
 		n=${n:-*}
 		if [[ $n =~ \* ]] ;then
 			n=${n//.\*/\\.\\S[^/]*}
@@ -154,14 +155,12 @@ D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
 K="-type l -printf \"$r\n\""
 R="-printf \"$r\n\""
-
-z=${a: -1}
-
 if [[ $z = / ]] ;then F=;K=;R=
 elif [[ $z = . ]] ;then	D=;K=;R=
 elif [[ $z = \\ ]] ;then D=;F=;R=
 else	O=-o
 fi
+
 if [ $E ] ;then
 	A="find $po $s $x \! -ipath $s -regextype posix-extended -iregex $E $opt \( $D $O $F $O $K $O $R \)"
 elif((ll)) ;then
