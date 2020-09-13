@@ -60,7 +60,7 @@ unset O P ll re p n
 
 z=${a: -1}
 a=${a%[./\\]}
-if [[ $a =~ ^\\$ ]] ;then	a=/;p=/
+if [[ $a =~ ^\\ ]] ;then	a=/;p=/
 else
 	[[ $a =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
 	a=${a#./}
