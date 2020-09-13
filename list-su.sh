@@ -60,8 +60,8 @@ unset O P ll re p n
 
 if [[ ${a:0:1} = \\ ]] ;then	a=/;p=/
 else
-	z=${a: -1}
-	a=${a%[/.\\]}
+	[[ $a =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
+	a=${a#./}
 	[[ $a =~ ^(.*/)?([^/]*)$ ]]
 	p=${BASH_REMATCH[1]}
 	n=${BASH_REMATCH[2]}
@@ -71,6 +71,7 @@ if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
 	n=${n##*\*\*}
 fi
 if [ "${p:0:1}" = / ];then # Absolute Dir. Path
+	a=${a%[/.\\]}
 	if [ $E ] ;then
 		s=${p%%[*?\\\{\[]*}
 		s=${s%/*}
@@ -102,17 +103,14 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		fi
 	fi
 else # Relative Dir. Path
-	[ "${p:0:2}" = ./ ] || re=.*/ # must be recursive if no prefix ./
-	p=${p#./}
 	s=~+
-	while [ "${p:0:3}" = ../ ] ;do
-		s=${s%/*}
-		p=${p#../}
-		p=${p#./}
-	done
-	if [ $E ] ;then
-		E=".*$a.*"
+	if [ $E ] ;then E=".*$a.*"
 	elif [ $p ] ;then
+		while [[ $p =~ ^../ ]] ;do
+			s=${s%/*}
+			p=${p#../}
+			p=${p#./}
+		done
 		if [[ $a =~ \* ]] ;then
 			p=${p//./\\.}
 			p=${p//\*\*/~\{~}
@@ -124,7 +122,7 @@ else # Relative Dir. Path
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}
 			if [ $re ] ;then
-				P="-regextype posix-extended -iregex ^$s/$re$p$n\$"
+				P="-regextype posix-extended -iregex ^$s$re$p$n\$"
 			else
 				P="-regextype posix-extended -iregex ^$s/$p$n\$"
 				q=/${p%%[*?]*}
@@ -135,13 +133,14 @@ else # Relative Dir. Path
 			[ $re ] || ll=1
 		fi
 	else			# Only one depth dir./filename relative to current dir
+		[[ $a =~ ^..$ ]] &&{ s=${s%/*}; a=;n=;}
 		n=${n:-*}
 		if [[ $n =~ \* ]] ;then
 			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\*/[^/]*}
 			n=${n//./\\.}
 			n=${n//\?/[^/.]}
-			P="-regextype posix-extended -iregex ^$s/$re$n\$"
+			P="-regextype posix-extended -iregex ^$s$re$n\$"
 		elif [ $re ] ;then
 			P="-iname $n"
 			let ll=1-l
@@ -155,6 +154,9 @@ D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
 K="-type l -printf \"$r\n\""
 R="-printf \"$r\n\""
+
+z=${a: -1}
+
 if [[ $z = / ]] ;then F=;K=;R=
 elif [[ $z = . ]] ;then	D=;K=;R=
 elif [[ $z = \\ ]] ;then D=;F=;R=
