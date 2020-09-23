@@ -61,6 +61,10 @@ unset O P ll re p n
 z=${a: -1}
 a=${a%[./\\]}
 if [[ $a =~ ^\\ ]] ;then	a=/;p=/
+elif [ "$a" = . ] ;then
+	z=;p=..
+elif [ "$a" = .. ] ;then
+	p=..
 else
 	[[ $a =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
 	a=${a#./}
@@ -79,7 +83,7 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		s=${s:-/}
 		E="$a.*"
 	elif [[ $a =~ \* ]] ;then # If any wildcard, convert to regex
-		n=${n//./\\\\.}
+		n=${n//./\\.}
 		n=${n//.\*/\\.\\S[^/]*}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}
@@ -87,10 +91,10 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 			s=${p%%[*?]*}
 			s=${s%/*}
 			s=${s:-/}
-			p=${p//./\\\\.}
-			p=${p//\*\*/~\{\}}
+			p=${p//./\\.}
+			p=${p//\*\*/~\{~}
 			p=${p//\*/[^/]+}
-			p=${p//~\{\}/.*}
+			p=${p//~\{~/.*}
 		else
 			s=$p
 		fi
@@ -107,18 +111,19 @@ else # Relative Dir. Path
 	s=~+
 	if [ $E ] ;then E=".*$a.*"
 	elif [ $p ] ;then
-		while [[ $p =~ ^../ ]] ;do
+		while [[ $p =~ ^..(/|$) ]] ;do
 			s=${s%/*}
-			p=${p#../}
-			p=${p#./}
+			p=${p#..}
+			p=${p#/}
 		done
+		[[ $p =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
 		if [[ $a =~ \* ]] ;then
-			p=${p//./\\\\.}
-			p=${p//\*\*/~\{\}}
+			p=${p//./\\.}
+			p=${p//\*\*/~\{~}
 			p=${p//\*/[^/]+}
-			p=${p//~\{\}/.*}
+			p=${p//~\{~/.*}
 			p=${p//\?/[^/.]}
-			n=${n//./\\\\.}
+			n=${n//./\\.}
 			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}
@@ -130,16 +135,15 @@ else # Relative Dir. Path
 				s=$s${q%/*}
 			fi
 		else
-			P="-ipath ${re#.}$p$n"
+			P=${n+"-ipath ${re#.}$p$n"}
 			[ $re ] || ll=1
 		fi
 	else			# Only one depth dir./filename relative to current dir
-		[[ $a = . ]] &&{ s=${s%/*}; a=;n=;}
-		n=${n:-*}
+
 		if [[ $n =~ \* ]] ;then
 			n=${n//.\*/\\.\\S[^/]*}
 			n=${n//\*/[^/]*}
-			n=${n//./\\\\.}
+			n=${n//./\\.}
 			n=${n//\?/[^/.]}
 			P="-regextype posix-extended -iregex ^$s$re$n\$"
 		elif [ $re ] ;then
