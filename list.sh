@@ -19,7 +19,7 @@ case $e in
 	find --help | sed -E "1,3s/find/$FUNCNAME/"
 	return;;
 --ex|--exc)
-	[[ $e =~ --exc?=([\!-~A-z]+) ]]
+	[[ $e =~ --exc?=(.+) ]]
 	xc=${BASH_REMATCH[1]};;
 -d) d=1;;
 -i) I=1;;
@@ -56,21 +56,22 @@ IFS=$'\n'
 eval set -- $A
 for a
 {
-unset O P ll re p n
-
-z=${a: -1}
-a=${a%[./\\]}
-if [[ $a =~ ^\\ ]] ;then	a=/;p=/
-elif [ "$a" = . ] ;then
-	z=;p=..
-elif [ "$a" = .. ] ;then
+unset O P ll re p n z
+if [ "$a" = .. ] ;then
 	p=..
+elif [ "$a" = ../ ] ;then
+	p=..;z=/
+elif [[ $a = \\/ ]] ;then	a=/;p=/
 else
 	[[ $a =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
 	a=${a#./}
-	[[ $a =~ ^(.*/)?([^/]*)$ ]]
-	p=${BASH_REMATCH[1]}
-	n=${BASH_REMATCH[2]}
+	z=${a: -1}
+	a=${a%[./\\]}
+	[ $a ] &&{
+		[[ $a =~ ^(.*/)?([^/]*)$ ]]
+		p=${BASH_REMATCH[1]}
+		n=${BASH_REMATCH[2]}
+	}
 fi
 if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
 	p=$p${n%\*\**}**
@@ -84,7 +85,7 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		E="$a.*"
 	elif [[ $a =~ \* ]] ;then # If any wildcard, convert to regex
 		n=${n//./\\.}
-		n=${n//.\*/\\.\\S[^/]*}
+		n=${n//.\*/\\.[^/]+}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}
 		if [[ $p =~ \* ]] ;then # if any wildcard in dir. path
@@ -127,7 +128,7 @@ else # Relative Dir. Path
 			p=${p//~\{~/.*}
 			p=${p//\?/[^/.]}
 			n=${n//./\\.}
-			n=${n//.\*/\\.\\S[^/]*}
+			n=${n//.\*/\\.[^/]+}
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}
 			if [ $re ] ;then
@@ -141,21 +142,17 @@ else # Relative Dir. Path
 			P=${n+"-ipath ${re#.}$p$n"}
 			[ $re ] || ll=1
 		fi
-	else			# Only one depth dir./filename relative to current dir
-
+	else			# if no dir. path relative to current dir
 		if [[ $n =~ \* ]] ;then
-			n=${n//.\*/\\.\\S[^/]*}
-			n=${n//\*/[^/]*}
 			n=${n//./\\.}
+			n=${n//.\*/\\.[^/]+}
+			n=${n//\*/[^/]*}
 			n=${n//\?/[^/.]}
-			P="-regextype posix-extended -iregex ^$s$re$n\$"
-		elif [ $re ] ;then
-			P="-iname $n"
+		elif [ $n ] ;then
 			let ll=1-l
-		else
-			P="-ipath $s/$n"
-			let ll=1-l
+		else n=[^/]+
 		fi
+		P="-regextype posix-extended -iregex ^$s${re%/}/$n\$"
 	fi
 fi
 D="-type d -printf \"$r/\n\""
@@ -175,7 +172,7 @@ elif((ll)) ;then
 		export -f di
 		F="$F $O $K"
 		F="${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o}"
-		eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \; \( $X $D $O $R \) -o $X -printf \"$r\n\" \)"
+		eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \; \( $F $D $O $R \) -o $F -printf \"$r\n\" \)"
 	else
 		set -o pipefail;
 		(eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \( $D $O $F $O $K $O $R \) \; -o -printf \"$r\n\" \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
