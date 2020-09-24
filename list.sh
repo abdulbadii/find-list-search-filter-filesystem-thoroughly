@@ -111,12 +111,15 @@ else # Relative Dir. Path
 	s=~+
 	if [ $E ] ;then E=".*$a.*"
 	elif [ $p ] ;then
-		while [[ $p =~ ^..(/|$) ]] ;do
-			s=${s%/*}
-			p=${p#..}
-			p=${p#/}
-		done
-		[[ $p =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
+		[[ $p =~ ^..(/|$) ]] &&{
+			while [[ $p =~ ^..(/|$) ]] ;do
+				s=${s%/*}
+				p=${p#..}
+				p=${p#/}
+			done
+			[[ $p =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
+			p=${p#./}
+		}
 		if [[ $a =~ \* ]] ;then
 			p=${p//./\\.}
 			p=${p//\*\*/~\{~}
