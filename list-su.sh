@@ -9,8 +9,8 @@ for l
 }
 }
 l(){
-unset po opt I E xc ct x lx l
-d=0;r=%p
+unset po opt E xc ct x lx l
+d=0;I=i; r=%p
 for e
 {
 case $e in
@@ -22,7 +22,7 @@ case $e in
 	[[ $e =~ --exc?=(.+) ]]
 	xc=${BASH_REMATCH[1]};;
 -d) d=1;;
--i) I=1;;
+-cs) I=;;
 -l) lx=-maxdepth\ 1; l=1;;
 -l[0-9]*)
 	((${e:2})) &&lx=-maxdepth\ ${e:2};l=1;;
@@ -41,16 +41,15 @@ let ++ct
 }
 xt=${@:1:ct}
 set -f;trap 'set +f;unset IFS' 1 2
-if [[ $@ =~ \* ]] ;then
-	A=${@#*$xt}
-	A=${A//\\/\\\\}
-else
-	A=`history 1`;A=${A//  / }
-	A=${A# *[0-9]*$FUNCNAME*$xt}
-	A=${A%% [12]>*}
-	A=${A%%[>&|<]*}
-fi
-[[ $A =~ ^[[:space:]]*$ ]] &&{ eval "sudo find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
+
+[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\($FUNCNAME\ +(.*)\)|.+\`$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ [1-9&]>|[><|])? ]]
+A=${BASH_REMATCH[2]}
+: ${A:=${BASH_REMATCH[3]}}
+: ${A:=${BASH_REMATCH[4]}}
+[[ $A =~ (--?[[:alpha:]]+\ ?)+(.*) ]]
+A=${BASH_REMATCH[2]}
+
+[[ $A =~ ^[[:space:]]*$ ]] &&{ eval "sudo find $po ~+ $x \! -${I}path ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
 
 IFS=$'\n'
 eval set -- $A
@@ -65,9 +64,9 @@ elif [[ $a = \\/ ]] ;then	a=/;p=/
 else
 	[[ $a =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
 	a=${a#./}
-	z=${a: -1}
-	a=${a%[./\\]}
 	[ $a ] &&{
+		z=${a: -1}
+		a=${a%[./\\]}
 		[[ $a =~ ^(.*/)?([^/]*)$ ]]
 		p=${BASH_REMATCH[1]}
 		n=${BASH_REMATCH[2]}
@@ -99,9 +98,9 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		else
 			s=$p
 		fi
-		P="-regextype posix-extended -iregex ^$p$n\$"
+		P="-regextype posix-extended -${I}regex ^$p$n\$"
 	else
-		P="-ipath $a"
+		P="-${I}path $a"
 		if [ -d "$a" ] ;then
 			s=$a
 			P=$P*
@@ -132,14 +131,14 @@ else # Relative Dir. Path
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}
 			if [ $re ] ;then
-				P="-regextype posix-extended -iregex ^$s$re$p$n\$"
+				P="-regextype posix-extended -${I}regex ^$s$re$p$n\$"
 			else
-				P="-regextype posix-extended -iregex ^$s/$p$n\$"
+				P="-regextype posix-extended -${I}regex ^$s/$p$n\$"
 				q=/${p%%[*?]*}
 				s=$s${q%/*}
 			fi
 		else
-			P=${n+"-ipath ${re#.}$p$n"}
+			P=${n+"-${I}path ${re#.}$p$n"}
 			[ $re ] || ll=1
 		fi
 	else			# if no dir. path relative to current dir
@@ -152,7 +151,7 @@ else # Relative Dir. Path
 			let ll=1-l
 		else n=[^/]+
 		fi
-		P="-regextype posix-extended -iregex ^$s${re%/}/$n\$"
+		P="-regextype posix-extended -${I}regex ^$s${re%/}/$n\$"
 	fi
 fi
 D="-type d -printf \"$r/\n\""
@@ -172,16 +171,16 @@ elif((ll)) ;then
 		export -f di
 		F="$F $O $K"
 		F="${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o}"
-		eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \; \( $F $D $O $R \) -o $F -printf \"$r\n\" \)"
+		eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x $opt \; \( $F $D $O $R \) -o $F -printf \"$r\n\" \)"
 	else
 		set -o pipefail;
-		(eval "sudo find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x -iname * $opt \( $D $O $F $O $K $O $R \) \; -o -printf \"$r\n\" \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
+		(eval "sudo find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x $opt \( $D $O $F $O $K $O $R \) \; -o -printf \"$r\n\" \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
 	fi
 	unset ll
 else
 	if((l)) ;then
 		z=${lx--prune};z=${z%$lx}
-		D="-type d $z -exec find \{\} $lx -iname * $opt \( $D -o -printf '%p\n' \) \;"
+		D="-type d $z -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
 	fi
 	if((d+I));then
 		export -f di
