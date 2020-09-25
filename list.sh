@@ -9,7 +9,7 @@ for l
 }
 }
 l(){
-unset po opt E xc ct x lx l
+unset po opt E xc x lx l
 d=0;I=i; r=%p
 for e
 {
@@ -33,23 +33,21 @@ case $e in
 -st) r='%s %p %Tr %Tx';;
 -[ac-il-x]) echo \'$e\' : inadequate specific sub-option, ignoring.;;
 -[ac-il-x]?*) opt=$opt$e\ ;;
--|--) let ++ct;break;;
+-|--) break;;
 -*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a full path name, put it after - or --;;
 *) break;;
 esac
-let ++ct
 }
-xt=${@:1:ct}
 set -f;trap 'set +f;unset IFS' 1 2
 
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\($FUNCNAME\ +(.*)\)|.+\`$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ [1-9&]>|[><|])? ]]
 A=${BASH_REMATCH[2]}
 : ${A:=${BASH_REMATCH[3]}}
 : ${A:=${BASH_REMATCH[4]}}
-[[ $A =~ (--?[[:alpha:]]+\ ?)+(.*) ]]
+[[ $A =~ (--?[[:alpha:]]+\ ?)*(.*) ]]
 A=${BASH_REMATCH[2]}
 
-[[ $A =~ ^[[:space:]]*$ ]] &&{ eval "find $po ~+ $x \! -${I}path ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
+[[ $A =~ ^[[:space:]]*$ ]] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
 
 IFS=$'\n'
 eval set -- $A
