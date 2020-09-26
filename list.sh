@@ -68,6 +68,7 @@ else
 		[[ $a =~ ^(.*/)?([^/]*)$ ]]
 		p=${BASH_REMATCH[1]}
 		n=${BASH_REMATCH[2]}
+		[ $n = .. ] &&{ p=$p..;unset n;}
 	}
 fi
 if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
