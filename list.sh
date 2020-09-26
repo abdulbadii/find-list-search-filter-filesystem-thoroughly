@@ -54,22 +54,19 @@ eval set -- $A
 for a
 {
 unset O P ll re p n z
-if [ "$a" = .. ] ;then
-	p=..
-elif [ "$a" = ../ ] ;then
-	p=..;z=/
-elif [[ $a = \\/ ]] ;then	a=/;p=/
+
+if [[ $a = \\/ ]] ;then	a=/;p=/
 else
 	[[ $a =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
 	a=${a#./}
-	[ $a ] &&{
-		z=${a: -1}
-		a=${a%[./\\]}
-		[[ $a =~ ^(.*/)?([^/]*)$ ]]
-		p=${BASH_REMATCH[1]}
-		n=${BASH_REMATCH[2]}
-		[ $n = .. ] &&{ p=$p..;unset n;}
-	}
+	z=${a: -1}
+	a=${a%[./\\]}
+	[[ $a =~ ^(.*/)?([^/]*)$ ]]
+	p=${BASH_REMATCH[1]}
+	n=${BASH_REMATCH[2]}
+	if [[ $n = .. ]] ;then p=$p..;unset n
+	elif [[ $n = . ]] && [[ $z = . ]] ;then p=$p..;unset n z
+	fi
 fi
 if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
 	p=$p${n%\*\**}**
@@ -110,15 +107,11 @@ else # Relative Dir. Path
 	s=~+
 	if [ $E ] ;then E=".*$a.*"
 	elif [ $p ] ;then
-		[[ $p =~ ^..(/|$) ]] &&{
-			while [[ $p =~ ^..(/|$) ]] ;do
-				s=${s%/*}
-				p=${p#..}
-				p=${p#/}
-			done
-			[[ $p =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
-			p=${p#./}
-		}
+		while [[ $p =~ ^..(/|$) ]] ;do
+			s=${s%/*}
+			p=${p#..}
+			p=${p#/}
+		done
 		if [[ $a =~ \* ]] ;then
 			p=${p//./\\.}
 			p=${p//\*\*/~\{~}
@@ -138,7 +131,7 @@ else # Relative Dir. Path
 			fi
 		else
 			P=${n+"-${I}path ${re#.}$p$n"}
-			[ $re ] || ll=1
+			[ $P ] && [ -z $re ] && ll=1-l
 		fi
 	else			# if no dir. path relative to current dir
 		if [[ $n =~ \* ]] ;then
@@ -172,8 +165,9 @@ elif((ll)) ;then
 		F="${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o}"
 		eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x $opt \; \( $F $D $O $R \) -o $F -printf \"$r\n\" \)"
 	else
-		set -o pipefail;
-		(eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x $opt \( $D $O $F $O $K $O $R \) \; -o -printf \"$r\n\" \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
+		#set -o pipefail
+		#(eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x $opt \( $D $O $F $O $K $O $R \) \; -o -printf \"$r\n\" \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2) 3>&1
+		command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "find $po $s \! -ipath $s $P $opt \( -type d -exec find \{\} $x $opt \( $D $O $F $O $K $O $R \) \; -o -printf \"$r\n\" \)"
 	fi
 	unset ll
 else
@@ -186,8 +180,7 @@ else
 		F="$F $O $K"
 		eval "find $po $s $x \! -ipath $s $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o} $D $O $R \)"
 	else
-		set -o pipefail;
-		(eval "find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)" 2>&1>&3 | sed -E $'s/:(.+):\s(.+)/:\e[1;36m\\1:\e[41;1;37m\\2\e[m/'>&2 ) 3>&1
+		command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)"
 	fi
 fi
 }
