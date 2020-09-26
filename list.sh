@@ -31,10 +31,9 @@ case $e in
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
--[ac-il-x]) echo \'$e\' : inadequate specific sub-option, ignoring.;;
+-[ac-il-x]) echo \'$e\' : inadequate specific sub-option, ignored;;
 -[ac-il-x]?*) opt=$opt$e\ ;;
--|--) break;;
--*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a full path name, put it after - or --;;
+-[!-]*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a full path name, put it after - or --;;
 *) break;;
 esac
 }
@@ -56,7 +55,7 @@ unset O P ll re p n z
 
 if [[ $a = \\/ ]] ;then	a=/
 else
-	[[ $a =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
+	[[ $a =~ ^\./ ]] || re=.*/ # must be recursive if no prefix ./
 	a=${a#./}
 	z=${a: -1}
 	a=${a%[./\\]}
@@ -108,7 +107,7 @@ else # Relative Dir. Path
 	s=~+
 	if [ $E ] ;then E=".*$a.*"
 	elif [ $p ] ;then
-		while [[ $p =~ ^..(/|$) ]] ;do
+		while [[ $p =~ ^\.\.(/|$) ]] ;do
 			s=${s%/*}
 			p=${p#..}
 			p=${p#/}
