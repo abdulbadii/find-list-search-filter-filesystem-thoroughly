@@ -40,7 +40,7 @@ esac
 }
 set -f;trap 'set +f;unset IFS' 1 2
 
-[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\($FUNCNAME\ +(.*)\)|.+\`$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ [1-9&]>|[><|])? ]]
+[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ [1-9&]>|[><|])? ]]
 A=${BASH_REMATCH[2]}
 : ${A:=${BASH_REMATCH[3]}}
 : ${A:=${BASH_REMATCH[4]}}
@@ -48,31 +48,32 @@ A=${BASH_REMATCH[2]}
 A=${BASH_REMATCH[2]}
 
 [[ $A =~ ^[[:space:]]*$ ]] &&{ eval "sudo find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
-
 IFS=$'\n'
 eval set -- $A
 for a
 {
 unset O P ll re p n z
 
-if [[ $a = \\/ ]] ;then	a=/;p=/
+if [[ $a = \\/ ]] ;then	a=/
 else
 	[[ $a =~ ^./ ]] || re=.*/ # must be recursive if no prefix ./
 	a=${a#./}
 	z=${a: -1}
 	a=${a%[./\\]}
-	[[ $a =~ ^(.*/)?([^/]*)$ ]]
-	p=${BASH_REMATCH[1]}
-	n=${BASH_REMATCH[2]}
-	if [[ $n = .. ]] ;then p=$p..;unset n
-	elif [[ $n = . ]] && [[ $z = . ]] ;then p=$p..;unset n z
-	fi
+	[ $a ] &&{
+		[[ $a =~ ^(.*/)?([^/]*)$ ]]
+		p=${BASH_REMATCH[1]}
+		n=${BASH_REMATCH[2]}
+		if [[ $n = .. ]] ;then p=$p..;unset n
+		elif [[ $n = . ]] && [[ $z = . ]] ;then p=$p..;unset n z
+		fi
+	}
 fi
 if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
 	p=$p${n%\*\**}**
 	n=${n##*\*\*}
 fi
-if [ "${p:0:1}" = / ];then # Absolute Dir. Path
+if [ "${a:0:1}" = / ];then # Absolute Dir. Path
 	if [ $E ] ;then
 		s=${p%%[*?\\\{\[]*}
 		s=${s%/*}
@@ -96,11 +97,11 @@ if [ "${p:0:1}" = / ];then # Absolute Dir. Path
 		fi
 		P="-regextype posix-extended -${I}regex ^$p$n\$"
 	else
-		P="-${I}path $a"
 		if [ -d "$a" ] ;then
 			s=$a
-			P=$P*
-		else	s=$p
+		else
+			s=$p
+			P="-${I}path $a"
 		fi
 	fi
 else # Relative Dir. Path
@@ -140,7 +141,7 @@ else # Relative Dir. Path
 			n=${n//\*/[^/]*}
 			n=${n//\?/[^/.]}
 		elif [ $n ] ;then
-			let ll=1-l
+			[ $re ] ||let ll=1-l
 		else n=[^/]+
 		fi
 		P="-regextype posix-extended -${I}regex ^$s${re%/}/$n\$"
@@ -157,7 +158,7 @@ else	O=-o
 fi
 
 if [ $E ] ;then
-	A="find $po $s $x \! -ipath $s -regextype posix-extended -iregex $E $opt \( $D $O $F $O $K $O $R \)"
+	A="find $po $s $x \! -ipath $s -regextype posix-extended -${I}regex $E $opt \( $D $O $F $O $K $O $R \)"
 elif((ll)) ;then
 	if((d+I));then
 		export -f di
@@ -171,10 +172,10 @@ elif((ll)) ;then
 	fi
 	unset ll
 else
-	if((l)) ;then
+	((l)) &&{
 		z=${lx--prune};z=${z%$lx}
 		D="-type d $z -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
-	fi
+	}
 	if((d+I));then
 		export -f di
 		F="$F $O $K"
