@@ -8,8 +8,9 @@ for l
 		ldd $l 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/ \2/;s/^.*\blinux-vdso\.s.+/DEP:/';}
 }
 }
+
 l(){
-unset po opt E xc x lx l
+unset po opt E xc x l lx
 d=0;I=i; r=%p
 for e
 {
@@ -31,7 +32,7 @@ case $e in
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
--[ac-il-x]) echo \'$e\' : inadequate specific sub-option, ignored;;
+-[ac-il-x]) echo \'$e\' : inadequate more specific sub-option, ignored;;
 -[ac-il-x]?*) opt=$opt$e\ ;;
 -[!-]*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a full path name, put it after - or --;;
 *) break;;
@@ -43,11 +44,12 @@ set -f;trap 'set +f;unset IFS' 1 2
 A=${BASH_REMATCH[2]}
 : ${A:=${BASH_REMATCH[3]}}
 : ${A:=${BASH_REMATCH[4]}}
-[[ $A =~ (--?[[:alpha:]]+\ ?)*(.*) ]]
+[[ $A =~ (--?[[:alnum:]]+\ ?)*(.*) ]]
 A=${BASH_REMATCH[2]}
 
 [[ $A =~ ^[[:space:]]*$ ]] &&{ eval "sudo find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
 IFS=$'\n'
+A=${A//\\/\\\\}
 eval set -- $A
 for a
 {
@@ -59,8 +61,11 @@ else
 	a=${a#./}
 	z=${a: -1}
 	a=${a%[./\\]}
-	[ $a ] &&{
-		[[ $a =~ ^(.*/)?([^/]*)$ ]]
+	((E)) &&{
+		a=${a//\w/[A-Za-z_0-9]}
+		a=${a//\d/[0-9]}
+	}
+	[[ $a =~ ^(.*/)?([^/]*)$ ]] &&{
 		p=${BASH_REMATCH[1]}
 		n=${BASH_REMATCH[2]}
 		if [[ $n = .. ]] ;then p=$p..;unset n
@@ -68,17 +73,17 @@ else
 		fi
 	}
 fi
-if [[ $n =~ \*\* ]] ;then #double wildcards in name is moved to dir. path
+[[ $n =~ \*\* ]] &&{ #double wildcards in name is moved to dir. path
 	p=$p${n%\*\**}**
 	n=${n##*\*\*}
-fi
+}
 if [ "${a:0:1}" = / ];then # Absolute Dir. Path
-	if [ $E ] ;then
+	if((E)) ;then
 		s=${p%%[*?\\\{\[]*}
 		s=${s%/*}
-		s=${s:-/}
-		E="$a.*"
-	elif [[ $a =~ \* ]] ;then # If any wildcard, convert to regex
+		: ${s:=/}
+		P=$a
+	elif [[ $a =~ \* ]] ;then # any wildcard convert to regex
 		n=${n//./\\.}
 		n=${n//.\*/\\.[^/]+}
 		n=${n//\?/[^/.]}
@@ -86,7 +91,7 @@ if [ "${a:0:1}" = / ];then # Absolute Dir. Path
 		if [[ $p =~ \* ]] ;then # if any wildcard in dir. path
 			s=${p%%[*?]*}
 			s=${s%/*}
-			s=${s:-/}
+			: ${s:=/}
 			p=${p//./\\.}
 			p=${p//\*\*/~\{~}
 			p=${p//\*/[^/]+}
@@ -105,7 +110,7 @@ if [ "${a:0:1}" = / ];then # Absolute Dir. Path
 	fi
 else # Relative Dir. Path
 	s=~+
-	if [ $E ] ;then E=".*$a.*"
+	if((E)) ;then P="-regextype posix-extended -${I}regex $s/$a"
 	elif [ $p ] ;then
 		while [[ $p =~ ^\.\.(/|$) ]] ;do
 			s=${s%/*}
@@ -156,9 +161,7 @@ elif [[ $z = \\ ]] ;then D=;F=;R=
 else	O=-o
 fi
 
-if [ $E ] ;then
-	A="find $po $s $x \! -ipath $s -regextype posix-extended -${I}regex $E $opt \( $D $O $F $O $K $O $R \)"
-elif((ll)) ;then
+if((ll)) ;then
 	if((d+I));then
 		export -f di
 		F="$F $O $K"
