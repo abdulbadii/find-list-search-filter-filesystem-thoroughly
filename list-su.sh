@@ -57,7 +57,7 @@ unset O P ll re p n z
 
 if [[ $a = \\/ ]] ;then	a=/
 else
-	[[ $a =~ ^\./ ]] || re=.*/ # must be recursive if no prefix ./
+	[[ $a =~ ^\./ ]] || re=.* # must be recursive if no prefix ./
 	a=${a#./}
 	z=${a: -1}
 	a=${a%[./\\]}
@@ -93,9 +93,9 @@ if [ "${a:0:1}" = / ];then # Absolute Dir. Path
 			s=${s%/*}
 			: ${s:=/}
 			p=${p//./\\.}
-			p=${p//\*\*/~\{~}
+			p=${p//\*\*/~\}\{}
 			p=${p//\*/[^/]+}
-			p=${p//~\{~/.*}
+			p=${p//~\}\{/.*}
 		else
 			s=$p
 		fi
@@ -128,14 +128,12 @@ else # Relative Dir. Path
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}
 			if [ $re ] ;then
-				P="-regextype posix-extended -${I}regex ^$s$re$p$n\$"
+				P="-regextype posix-extended -${I}regex ^$s$re/$p$n\$"
 			else
 				P="-regextype posix-extended -${I}regex ^$s/$p$n\$"
-				q=/${p%%[*?]*}
-				s=$s${q%/*}
 			fi
 		else
-			P=${n+"-${I}path ${re#.}$p$n"}
+			P=${n+"-${I}path $s${re#.}/$p$n"}
 			[ $P ] && [ -z $re ] && ll=1-l
 		fi
 	else			# if no dir. path relative to current dir
@@ -148,7 +146,7 @@ else # Relative Dir. Path
 			[ $re ] ||let ll=1-l
 		else n=[^/]+
 		fi
-		P="-regextype posix-extended -${I}regex ^$s${re%/}/$n\$"
+		P="-regextype posix-extended -${I}regex ^$s$re/$n\$"
 	fi
 fi
 D="-type d -printf \"$r/\n\""
