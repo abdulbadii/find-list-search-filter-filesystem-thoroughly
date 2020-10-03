@@ -53,91 +53,101 @@ A=${A//\\/\\\\}
 eval set -- $A
 for a
 {
-unset O P ll re p n z s
-if [[ $a = \\/ ]] ;then	a=/
+unset O P S ll re p n z s
+
+a=${a#\\}
+[[ $a =~ ^\./ ]] || re=.* # it's recursively at any depth if no prefix ./
+a=${a#./}
+
+[[ $a =~ ^(.*[^/])(/+)$ ]] &&{
+a=${BASH_REMATCH[1]}; z=${BASH_REMATCH[2]}
+}
+a=${a//\/.\///}
+if [[ $a =~ ^/ ]] ;then
+	while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 else
-	[[ $a =~ ^(.*[^/])(/+)$ ]] &&{ z=${BASH_REMATCH[2]};a=${BASH_REMATCH[1]};}
-	a=${a//\/.\///}
-	[[ $a =~ ^\./ ]] || re=.* # may be recursively at any depth if no prefix ./
-	a=${a#./}
-	if [[ $a =~ ^/ ]] ;then
-		while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
-		[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
-	else
-		if [[ $a =~ ^(\.\.(/\.\.)*)(/.+)? ]] ;then
-			if [ $re ] ;then
-				fx=${BASH_REMATCH[3]}	# fx is first explicit path
-				a=~+/${BASH_REMATCH[1]}
-				while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
-				[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
-				s=$a
-				while [[ $fx =~ [^/.]+/\.\.(/|$) ]] ;do fx=${fx/${BASH_REMATCH[0]}}; done
-				[[ $fx =~ ^/..(/|$) ]] &&{
-					fx=${fx#/};fx=${fx##../}
-					[ $fx = .. ] && fx=/*
-				}
-				a=**$fx
-			else
-				a=~+/$a
-				while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
-				[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
-			fi
+	if [[ $a =~ ^(\.\.(/\.\.)*)(/.+)? ]] ;then
+		if [ $re ] ;then
+			fx=${BASH_REMATCH[3]}	# fx is first explicit path
+			a=~+/${BASH_REMATCH[1]}
+			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
+			s=${a%/}
+			while [[ $fx =~ [^/.]+/\.\.(/|$) ]] ;do fx=${fx/${BASH_REMATCH[0]}}; done
+			[[ $fx =~ ^/..(/|$) ]] &&{
+				fx=${fx#/};fx=${fx##../}
+				[ $fx = .. ] && fx=/*
+			}
+			[[ ! $a =~ [*?] ]] &&{
+				P="-regextype posix-extended -${I}regex ^$s$fx$ \( -type d -exec find '{}' \; -o -print \) -o -${I}regex ^$s.*$fx$ -print"
+			}
+			a=**$fx
 		else
-			if [ $re ] ;then
-				while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
-				a=${a##../}
-				[ $a = .. ] &&a=
-				a=$PWD**/$a
-			else
-				a=~+/$a
-				while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
-				[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
-			fi
+			a=~+/$a
+			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
+		fi
+	else
+		if [ $re ] ;then
+			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+			a=${a##../};[ $a = .. ]&&a=
+			[[ ! $a =~ [*?] ]] &&{
+				s=~+/$a;s=${s%/*}
+				P="-regextype posix-extended -${I}regex ^$PWD/$a$ \( -type d -exec find '{}' \; -o -print \) -o -${I}regex ^$PWD.*/$a$ -print"
+			}
+			a=$PWD**/$a
+		else
+			a=~+/$a
+			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
 	fi
 fi
-if [ $E ] ;then
-	[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
-	s=${BASH_REMATCH[1]}
-	p=${BASH_REMATCH[3]}
-	P="-regextype posix-extended -${I}regex ^$p$"
-	
-elif [[ $a =~ \* ]] ;then
-	a=${a//./\\.}
-	[[ $a =~ ^(.*/(.*\*\*)?)(.*) ]]
-	p=${BASH_REMATCH[1]}
-	n=${BASH_REMATCH[3]}
-	if [ $s ] ;then
-		p=${p//\*\*/~\}\{}
-		p=${p//\*/[^/]*}
-		p=${p//~\}\{/.*}
-		p=${p//\?/[^/.]}
-		n=${n//\\.\*/\\.[^/]+}
-		n=${n//\?/[^/.]}
-		n=${n//\*/[^/]*}		
-		P="-regextype posix-extended -${I}regex ^$s$p$n$"
-	else
+if [ $P ] ;then :
+else
+	S="$opt \( $D $O $F $O $K $O $R \)"
+	if [ $E ] ;then
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 		s=${BASH_REMATCH[1]}
-		: ${s:=/}
-		p=${p//\*\*/~\}\{}
-		p=${p//\*/[^/]*}
-		p=${p//~\}\{/.*}
-		p=${p//\?/[^/.]}
-		n=${n//\\.\*/\\.[^/]+}
-		n=${n//\?/[^/.]}
-		n=${n//\*/[^/]*}
-		P="-regextype posix-extended -${I}regex ^$p$n$"
-	fi
-else
-	if [ -d "$a" ] ;then
-		s=$a
+		p=${BASH_REMATCH[3]}
+		P="-regextype posix-extended -${I}regex ^$p$"
+	elif [[ $a =~ [*?] ]] ;then
+		a=${a//./\\.}
+		[[ $a =~ ^(.*/(.*\*\*)?)(.*) ]]
+		p=${BASH_REMATCH[1]}
+		n=${BASH_REMATCH[3]}
+		if [ $s ] ;then
+			p=${p//\*\*/~\}\{}
+			p=${p//\*/[^/]*}
+			p=${p//~\}\{/.*}
+			p=${p//\?/[^/.]}
+			n=${n//\\.\*/\\.[^/]+}
+			n=${n//\?/[^/.]}
+			n=${n//\*/[^/]*}		
+			P="-regextype posix-extended -${I}regex ^$s$p$n$"
+		else
+			[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
+			s=${BASH_REMATCH[1]}
+			: ${s:=/}
+			p=${p//\*\*/~\}\{}
+			p=${p//\*/[^/]*}
+			p=${p//~\}\{/.*}
+			p=${p//\?/[^/.]}
+			n=${n//\\.\*/\\.[^/]+}
+			n=${n//\?/[^/.]}
+			n=${n//\*/[^/]*}
+			P="-regextype posix-extended -${I}regex ^$p$n$"
+		fi
 	else
-		s=${a%/*}
-		P="-${I}path $a"
+		if [ -d "$a" ] ;then
+			s=$a
+		else
+			s=${a%/*}
+			P="-${I}path $a"
+		fi
 	fi
 fi
-
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
 K="-type l -printf \"$r\n\""
@@ -147,17 +157,16 @@ elif [[ $z = // ]] ;then D=;K=;R=
 elif [[ $z = /// ]] ;then D=;F=;R=
 else	O=-o
 fi
-
 ((l)) &&{
-	z=${lx--prune};z=${z%$lx}
-	D="-type d $z -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
+	[ -z $lx ] &&ll=-prune
+	D="-type d $ll -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
 }
-if((d+I));then
+if((d+I)) &&([ $F ] ||[ $K ]) ;then
 	export -f di
 	F="$F $O $K"
 	eval "find $po $s $x \! -ipath $s $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o} $D $O $R \)"
 else
-	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "sudo find $po $s $x \! -ipath $s $P $opt \( $D $O $F $O $K $O $R \)"
+	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "sudo find $po $s $x \! -ipath $s $P $S"
 fi
 }
 set +f;unset IFS
