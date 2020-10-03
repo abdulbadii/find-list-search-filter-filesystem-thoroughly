@@ -17,23 +17,23 @@ Would narrow down search:
 
 Simply type l   
 $ l   
-list every file, directory, and other filesystem types under current directory entirely   
+list every file, directory, and other kind of filesystem under current directory entirely   
 
 $ l /   
-list entire directories only under current directory   
+list every directory only under current directory entirely   
 
-$ l .   
-list entire files only under current directory   
+$ l //  
+list every files only under current directory   
 
-$ l \   
-list entire links only under current directory   
+$ l ///   
+list every links only under current directory   
 
-So just put suffix / to mean searching for directory,   
-suffix . to mean searching for file,   
-suffix \\ to mean searching for link
+It tells us that just put suffix / to mean searching for directory only,   
+put suffix // to mean searching for file only,   
+put suffix /// to mean searching for link only.  
 
 $ l \\/   
-list every filesystem type under / (root) directory entirely, the preceding \\ is to differentiate it with second use above   
+list every filesystem type under / (root) directory entirely, the preceding \\ is to differentiate it with second use above: list every directory only under current directory   
 
 $ l -s -i *.bin   
 query any object having 'bin' name suffix then list it with the size and file information under current directory entirely    
@@ -41,12 +41,12 @@ query any object having 'bin' name suffix then list it with the size and file in
 $ l  -t ./*.bin.   
 list every file only (excluding others) having type name 'bin' on this directory only, with the last modification   
 
-It always searchs up to directories depths given explicitly on path such as:   
+It always searchs up to directories depths given explicitly, either with or without wildcard, on path such:   
 
 /qt/\*/\*/core/meta   
-means to search for file/directory "meta" under "core" dir. under any directory being under any directory under "qt" directory.   
+means to search for any file type "meta" under "core" dir. being under any directory being under any directory under "qt" directory on top/root of filesystem.   
 
-To search somewhere deeper than such up to maximum, add "\*\*" double wildcard asterisks, in the context of intended ply e.g.   
+To search somewhere deeper than such up to maximum, add "\*\*", double wildcard asterisks, in the context of intended depth ply e.g.   
 $ l /qt/\*/\*/core/\*\*/meta   
 
 Will find   
@@ -54,25 +54,27 @@ Will find
 /qt/src/lib/core/c/meta   
 /qt/src/lib/core/cc/meta   
 /qt/src/lib/core/c/obj/meta   
-/qt/lib/so/core/src/c/obj/meta   
+/qt/lib/so/core/src/c/obj/meta
+so on... with indefinite number of depth ply between "qt" and "core" directory, and between it and "meta" directory   
 
 If being navigated in relative path way i.e. not started with slash character (/), then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
-If it needs to be limited to search for directly on current directory only, precede (start) it with ./   
+If it needs to be limited to search for directly on current directory only, precede (prefix) it with ./   
 
 Suppose previous explicit part of path exists only where it's specified i.e. "meta" is only a file/directory under "core" directory being under any directory being under any dir. under qt directory.   
 
 $ cd /qt   
 $ l core/meta   
 
-will find it as e.g:   
-/qt/src/lib/core/meta   
+will find one as e.g:   
+/qt/src/dev/core/meta   
 
+while doing such:
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
-In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard, while being searched then a directory is found, then this way the entire directory content will automatically be shown.
+In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard, while being searched and a directory is found, then this way the entire directory content will automatically be shown.
 
-If this action is needed in another way of path, put -l option in order to show content of directory found only in one depth   
+If this action is needed in another way of path described above, put -l option in order to show content of directory found only in one depth   
 To have it shown up to certain depth add the number e.g. -l3 option will show to 3 directory plies.   
 To have the found directory's content shown  entirely the number meant for it is 0.   
 So be prepared if to put -l0 option, it will list entirely  the content of every found directory which could be a bit overwhelming.   
