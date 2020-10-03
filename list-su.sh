@@ -96,8 +96,13 @@ else
 		fi
 	fi
 fi
-
-if [[ $a =~ \* ]] ;then
+if [ $E ] ;then
+	[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
+	s=${BASH_REMATCH[1]}
+	p=${BASH_REMATCH[3]}
+	P="-regextype posix-extended -${I}regex ^$p$"
+	
+elif [[ $a =~ \* ]] ;then
 	a=${a//./\\.}
 	[[ $a =~ ^(.*/(.*\*\*)?)(.*) ]]
 	p=${BASH_REMATCH[1]}
@@ -110,9 +115,8 @@ if [[ $a =~ \* ]] ;then
 		n=${n//\\.\*/\\.[^/]+}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}		
-		P="-regextype posix-extended -${I}regex ^$s$p$n\$"
+		P="-regextype posix-extended -${I}regex ^$s$p$n$"
 	else
-		a=${a//./\\.}
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 		s=${BASH_REMATCH[1]}
 		: ${s:=/}
@@ -123,7 +127,7 @@ if [[ $a =~ \* ]] ;then
 		n=${n//\\.\*/\\.[^/]+}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}
-		P="-regextype posix-extended -${I}regex ^$p$n\$"
+		P="-regextype posix-extended -${I}regex ^$p$n$"
 	fi
 else
 	if [ -d "$a" ] ;then
