@@ -50,8 +50,8 @@ To search somewhere deeper than such up to maximum, add "\*\*", double wildcard 
 $ l /qt/\*/\*/core/\*\*/meta   
 
 Will find   
-/qt/src/lib/core/meta   
-/qt/src/lib/core/c/meta   
+/qt/src/dev/core/meta   
+/qt/src/dev/core/c/meta   
 /qt/src/lib/core/cc/meta   
 /qt/src/lib/core/c/obj/meta   
 /qt/lib/so/core/src/c/obj/meta
@@ -60,7 +60,7 @@ so on... with indefinite number of depth ply between "qt" and "core" directory, 
 If being navigated in relative path way i.e. not started with slash character (/), then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
 If it needs to be limited to search for directly on current directory only, precede (prefix) it with ./   
 
-Suppose previous explicit part of path exists only where it's specified i.e. "meta" is only a file/directory under "core" directory being under any directory being under any dir. under qt directory.   
+Suppose previous explicit part of path exists only where it's specified i.e. "meta" exists only under "core" directory being under any directory being under any dir. under qt directory.   
 
 $ cd /qt   
 $ l core/meta   
@@ -68,13 +68,14 @@ $ l core/meta
 will find one as e.g:   
 /qt/src/dev/core/meta   
 
-while doing such:
+while such:
+
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
 In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard, while being searched and a directory is found, then this way the entire directory content will automatically be shown.
 
-If this action is needed in another way of path described above, put -l option in order to show content of directory found only in one depth   
+If this purpose is needed in another way of path described above, put -l option in order to show content of directory found by some wildcard pattern and/or in any depth   
 To have it shown up to certain depth add the number e.g. -l3 option will show to 3 directory plies.   
 To have the found directory's content shown  entirely the number meant for it is 0.   
 So be prepared if to put -l0 option, it will list entirely  the content of every found directory which could be a bit overwhelming.   
@@ -83,17 +84,22 @@ If it needs to be limited again, put -1...9 options,  e.g:
 search for only on current and 1 directory below it put -2,   
 only on current and 2 directories below add -3, etc.   
 
-can even navigate by way of absolute path immediately followed relative path in a single line   
+can even navigate by way of multiple paths such as absolute followed by relative path in single line   
 
-$ l /a/\*/m\*.c  \*.h   
-   
+$ l /qt/\*/\*/core/\*\*/meta  core/\*c   
+
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
-/a/b/min.c
-/a/b/c/d/e/min.h
+The most usefulness of this tool is its "OS recognizablle format" for input and output which then can be used/piped as input of another tool e.g. the below will search "lib" under "dev" instead of "core":   
 
-to better narrow down the search we could utilize Linux core util, "find", options to test/filter the search
+$ l /qt/src/dev/core/../lib/*c   
+
+/qt/src/dev/ext/lib/main.c   
+
+And the result is recognizable as absolute path which can readily be piped   
+
+to better narrow down the search we could utilize Linux core util, "find", options to test or filter the search
 
 $ l -cmin -7 -E '/a/**m\w{1,2}\\.[c-h]'
 
