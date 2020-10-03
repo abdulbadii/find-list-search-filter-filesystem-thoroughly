@@ -19,7 +19,7 @@ case $e in
 -h|--help)
 	find --help | sed -E "1,3s/find/$FUNCNAME/"
 	return;;
---ex|--exc)
+--ex=*|--exc=*)
 	[[ $e =~ --exc?=(.+) ]]
 	xc=${BASH_REMATCH[1]};;
 -d) d=1;;
@@ -112,9 +112,8 @@ if [[ $z = / ]] ;then F=;K=;R=
 elif [[ $z = // ]] ;then D=;K=;R=
 elif [[ $z = /// ]] ;then D=;F=;R=
 else	O=-o
-
-if [ $P ] ;then :
-else
+fi
+if [ -z $P ] ;then :
 	S="$opt \( $D $O $F $O $K $O $R \)"
 	if [ $E ] ;then
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
@@ -157,7 +156,7 @@ else
 		fi
 	fi
 fi
-fi
+
 ((l)) &&{
 	[ -z $lx ] &&ll=-prune
 	D="-type d $ll -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
