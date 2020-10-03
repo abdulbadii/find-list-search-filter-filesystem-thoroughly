@@ -55,8 +55,8 @@ for a
 {
 unset O P S ll re p n z s
 
-a=${a#\\}
-[[ $a =~ ^\./ ]] || re=.* # it's recursively at any depth if no prefix ./
+a=${a#\\\\}
+[[ $a =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
 a=${a#./}
 
 [[ $a =~ ^(.*[^/])(/+)$ ]] &&{
@@ -165,9 +165,9 @@ fi
 if((d+I)) &&([ $F ] ||[ $K ]) ;then
 	export -f di
 	F="$F $O $K"
-	eval "find $po $s $x \! -ipath $s $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o} $D $O $R \)"
+	eval "LC_ALL=C find $po $s $x \! -ipath $s $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o} $D $O $R \)"
 else
-	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "find $po $s $x \! -ipath $s $P $S"
+	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C find $po $s $x \! -ipath $s $P $S"
 fi
 }
 set +f;unset IFS
