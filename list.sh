@@ -104,6 +104,15 @@ else
 		fi
 	fi
 fi
+D="-type d -printf \"$r/\n\""
+F="-type f -printf \"$r\n\""
+K="-type l -printf \"$r\n\""
+R="-printf \"$r\n\""
+if [[ $z = / ]] ;then F=;K=;R=
+elif [[ $z = // ]] ;then D=;K=;R=
+elif [[ $z = /// ]] ;then D=;F=;R=
+else	O=-o
+
 if [ $P ] ;then :
 else
 	S="$opt \( $D $O $F $O $K $O $R \)"
@@ -148,14 +157,6 @@ else
 		fi
 	fi
 fi
-D="-type d -printf \"$r/\n\""
-F="-type f -printf \"$r\n\""
-K="-type l -printf \"$r\n\""
-R="-printf \"$r\n\""
-if [[ $z = / ]] ;then F=;K=;R=
-elif [[ $z = // ]] ;then D=;K=;R=
-elif [[ $z = /// ]] ;then D=;F=;R=
-else	O=-o
 fi
 ((l)) &&{
 	[ -z $lx ] &&ll=-prune
