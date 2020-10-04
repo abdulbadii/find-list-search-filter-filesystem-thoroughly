@@ -16,10 +16,8 @@ for e
 {
 case $e in
 -[HDLPO]) po=$e;;
--h|--help)
-	find --help | sed -E "1,3s/find/$FUNCNAME/";return;;
+-h|--help) find --help | sed -E "1,3s/find/$FUNCNAME/";return;;
 --ex=*|--exc=*)
-	
 	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ *[1-9&]>|[><|])? ]]
 	A=${BASH_REMATCH[2]}
 	: ${A:=${BASH_REMATCH[3]}}
@@ -27,8 +25,8 @@ case $e in
 	A=$A
 	[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(.*) ]]
 	eval set -- "${BASH_REMATCH[1]}"
-	for a;{ [[ $a =~ ^--exc?=(.+)$ ]] &&{ fc ${BASH_REMATCH[1]};break;} }
-	XC="\! ${I}path $X";;
+	for a;{ [[ $a =~ ^--exc?=(.+)$ ]] &&{ fc ${BASH_REMATCH[1]} $I;break;} }
+	XC="\! $X";;
 	
 -d) d=1;;
 --cs) I=;;
@@ -120,7 +118,7 @@ elif [[ $z = // ]] ;then D=;K=;R=
 elif [[ $z = /// ]] ;then D=;F=;R=
 else	O=-o
 fi
-if [ -z $P ] ;then :
+if [ -z $P ] ;then
 	S="$opt \( $D $O $F $O $K $O $R \)"
 	if [ $E ] ;then
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
@@ -163,8 +161,6 @@ if [ -z $P ] ;then :
 		fi
 	fi
 fi
-
-
 ((l)) &&{
 	[ -z $lx ] &&ll=-prune
 	D="-type d $ll -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
