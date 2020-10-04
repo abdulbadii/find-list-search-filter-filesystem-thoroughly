@@ -13,7 +13,9 @@ Would narrow down search
 - Limit to find only directory or file or link type :    suffix the object with / . or    
 - Limit to certain depth only :                 -1...99 or prefix with ./ as one dept   
 - In greater control by regular expression      -E   
-- All the 'Test' option of 'find' test option   (below some excerpt of its manual for options   
+- All the 'Test' option of 'find' test option
+
+(below some excerpt of its manual for options   
 
 Simply type l   
 $ l   
@@ -52,13 +54,14 @@ $ l /qt/\*/\*/core/\*\*/meta
 Will find   
 /qt/src/dev/core/meta   
 /qt/src/dev/core/c/meta   
-/qt/src/lib/core/cc/meta   
-/qt/src/lib/core/c/obj/meta   
+/qt/src/con/core/cc/dev/meta   
+/qt/lib/so/core/c/obj/meta   
 /qt/lib/so/core/src/c/obj/met   
-so on... with 2 plies depth between "qt" and "core" directory, and indefinite number of ply between it and "meta" directory   
+
+so on... with 2 plies depth between "qt" and "core" directory, and indefinite number of ply between "core" and "meta" directory   
 
 If being navigated in relative path way i.e. not started with slash character (/), then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
-If it needs to be limited to search for directly on current directory only, precede (prefix) it with ./   
+If it needs to be limited to search for on current directory only, precede (prefix) it with ./   
 
 Suppose previous explicit part of path exists only where it's specified i.e. "meta" exists only under "core" directory being under any directory being under any dir. under qt directory.   
 
@@ -104,9 +107,9 @@ $ l /qt/src/dev/core/../lib/*.c
 
 And the result is recognizable as absolute path which is ready to be piped correctly    
 
-e.g. 2nd, the below will search such above with addition stricter filter that is the one wthout letter "e" in all "c" files found:   
+e.g. 2nd, the below will search such above with additional stricter filter that is the one without letter "e" in all "c" files found:   
 
-$ l --exc= /qt/src/dev/core/../lib/*e*.c   /qt/src/dev/core/../lib/*.c   
+$ l --exc= /qt/src/dev/core/../lib/\*e\*.c   /qt/src/dev/core/../lib/\*.c   
 /qt/src/dev/lib/main.c   
 /qt/src/dev/lib/add.c   
 
