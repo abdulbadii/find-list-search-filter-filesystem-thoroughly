@@ -49,12 +49,11 @@ elif [[ $z = // ]] ;then D=;K=;R=
 elif [[ $z = /// ]] ;then D=;F=;R=
 else	O=-o
 fi
-S="$opt \( $D $O $F $O $K $O $R \)"
 if [ $E ] ;then
 	[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	s=${BASH_REMATCH[1]}
 	p=${BASH_REMATCH[3]}
-	X="\! -${2}regex ^$p$"
+	X="\! -${2}regex ^$p$ \( $D $O $F $O $K $O $R \)"
 elif [[ $a =~ [*?] ]] ;then
 	a=${a//./\\\\.}
 	[[ $a =~ ^(.*/(.*\*\*)?)(.*) ]]
@@ -123,9 +122,9 @@ case $e in
 -de) de=1;;
 -cs) I=;;
 -l) lx=-maxdepth\ 1; l=1;;
--l[0-9][0-9]*)
+-l[0-9]|-[1-9][0-9])
 	((${e:2})) &&lx=-maxdepth\ ${e:2};l=1;;
--[1-9][0-9]) d=-maxdepth\ ${e:1};;
+-[1-9]|-[1-9][0-9]) d=-maxdepth\ ${e:1};;
 -E) E=1;;
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
@@ -141,8 +140,8 @@ esac
 A=${BASH_REMATCH[2]}
 : ${A:=${BASH_REMATCH[3]}}
 : ${A:=${BASH_REMATCH[4]}}
-[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(.*) ]]
-A=${BASH_REMATCH[3]}
+[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(--?\ )?(.*) ]]
+A=${BASH_REMATCH[4]}
 
 [[ $A =~ ^[[:space:]]*$ ]] &&{ eval "sudo find $po ~+ $d \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
 IFS=$'\n'
@@ -208,7 +207,6 @@ R="-print"
 if [[ $z = / ]] ;then F=;K=;R=
 elif [[ $z = // ]] ;then D=;K=;R=
 elif [[ $z = /// ]] ;then D=;F=;R=
-#else	O=-o
 else	S="\( $D -o -print \)"
 fi
 if [ -z $P ] ;then
@@ -261,7 +259,7 @@ fi
 if((de+I)) &&([ $F ] ||[ $K ]) ;then
 	export -f di
 	F="$F $O $K"
-	eval "LC_ALL=C find $po $s $d \! -ipath $s $X $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
+	eval "LC_ALL=C find $po $s $d \! -ipath $s $X $P $opt $X \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
 else
 	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $X $S"
 fi

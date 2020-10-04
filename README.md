@@ -10,9 +10,9 @@ Would print its
 - Dependencies of file found in one level depth             -de   
 
 Would narrow down search   
-- Limit to find only directory or file or link type :    suffix the object with / . or    
-- Limit to certain depth only :                 -1...99 or prefix with ./ as one dept   
-- In greater control by regular expression      -E   
+- To find only directory or file or link type,    suffix the object with /, // or ///    
+- To certain depth only :                 -1...99, or prefix with ./ to be one depth   
+- To have greater control by regular expression      -E   
 - All the 'Test' option of 'find' test option
 - Case sensitive search only. (Defaults to case insensitive)  -cs
 
@@ -36,15 +36,15 @@ or put suffix // to search for file only,
 or put suffix /// to search for link only   
 
 $ l \\/   
-list every filesystem type under "/" (root) directory entirely, the preceding \\ (but must escapedly be typed as \\\\) is to differentiate it with second use above: list every directory only under current directory   
+list every filesystem type under "/" (root) directory entirely, the preceding \\ (but must escapedly be put as \\\\) is to differentiate it with second use above: list every directory only under current directory   
 
 $ l -s -i *.bin   
 query any object having 'bin' name suffix then list it with the size and file information under current directory entirely    
 
-$ l  -t ./*.bin.   
-list every file only (excluding others) having type name 'bin' on this directory only, with the last modification   
+$ l  -t ./*.bin//   
+list every file only (excluding else type) having type name 'bin' on this directory only, with the last modification   
 
-It always searchs up to directories depths given explicitly, either with or without wildcard, on path such:   
+As absolute path, it always searchs up to directories of depths given explicitly either with or without wildcard, such as:   
 
 /qt/\*/\*/core/meta   
 means to search for any file type "meta" under "core" dir. being under any directory being under any directory under "qt" directory on top/root of filesystem.   
@@ -73,7 +73,6 @@ will find one as e.g:
 /qt/src/dev/core/meta   
 
 while such   
-
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
