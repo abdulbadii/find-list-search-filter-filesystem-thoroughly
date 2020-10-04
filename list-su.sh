@@ -9,7 +9,7 @@ for l
 }
 }
 l(){
-unset po opt E xc X XC x l lx
+unset po opt E xc XC x l lx
 d=0;I=i r=%p
 set -f;trap 'set +f;unset IFS' 1 2
 for e
@@ -26,8 +26,7 @@ case $e in
 	[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(.*) ]]
 	eval set -- "${BASH_REMATCH[1]}"
 	for a;{ [[ $a =~ ^--exc?=(.+)$ ]] &&{ fc ${BASH_REMATCH[1]} $I;break;} }
-	XC="\! $X";;
-	
+	;;
 -d) d=1;;
 --cs) I=;;
 -l) lx=-maxdepth\ 1; l=1;;
@@ -38,7 +37,7 @@ case $e in
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
 -st) r='%s %p %Tr %Tx';;
--[ac-il-x]) echo \'$e\' : inadequate more specific sub-option, ignored;;
+-[ac-il-x]) echo \'$e\' : inadequate more specific sub-option, ignoring;;
 -[ac-il-x]?*) opt=$opt$e\ ;;
 -[!-]*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a full path name, put it after - or --;;
 *) break;;
@@ -75,10 +74,10 @@ else
 	if [[ $a =~ ^(\.\.(/\.\.)*)(/.+)? ]] ;then
 		if [ $re ] ;then
 			fx=${BASH_REMATCH[3]}	# fx is first explicit path
-			a=~+/${BASH_REMATCH[1]}
-			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
-			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
-			s=${a%/}
+			s=~+/${BASH_REMATCH[1]}
+			while [[ $s =~ [^/.]+/\.\.(/|$) ]] ;do s=${s/${BASH_REMATCH[0]}}; done
+			[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s \\n from $a>&2;continue;}
+			s=${s%/}
 			while [[ $fx =~ [^/.]+/\.\.(/|$) ]] ;do fx=${fx/${BASH_REMATCH[0]}}; done
 			[[ $fx =~ ^/..(/|$) ]] &&{
 				fx=${fx#/};fx=${fx##../}
@@ -170,7 +169,7 @@ if((d+I)) &&([ $F ] ||[ $K ]) ;then
 	F="$F $O $K"
 	eval "LC_ALL=C find $po $s $x \! -ipath $s $XC $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o} $D $O $R \)"
 else
-	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $x \! -ipath $s $XC $P $S"
+	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $x \! -ipath $s $P $XC $S"
 fi
 }
 set +f;unset IFS
