@@ -1,5 +1,5 @@
 fc(){
-local unset O P S ll re p n z s
+local unset O P re p n z s
 [[ $1 =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
 a=${1#./}
 [[ $a =~ ^(.*[^/])(/+)$ ]] &&{
@@ -40,10 +40,10 @@ else
 		fi
 	fi
 fi
-D="-type d -printf \"$r/\n\""
-F="-type f -printf \"$r\n\""
-K="-type l -printf \"$r\n\""
-R="-printf \"$r\n\""
+D="-type d"
+F="-type f"
+K="-type l"
+R="-print"
 if [[ $z = / ]] ;then F=;K=;R=
 elif [[ $z = // ]] ;then D=;K=;R=
 elif [[ $z = /// ]] ;then D=;F=;R=
@@ -67,8 +67,8 @@ elif [[ $a =~ [*?] ]] ;then
 		p=${p//\?/[^/.]}
 		n=${n//\\.\*/\\\\.[^/]+}
 		n=${n//\?/[^/.]}
-		n=${n//\*/[^/]*}		
-		X="\! -${2}regex ^$s$p$n$"
+		n=${n//\*/[^/]*}
+		X="\! -${2}regex ^$s$p$n$ \( $D $O $F $O $K $O $R \)"
 	else
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 		s=${BASH_REMATCH[1]}
@@ -80,7 +80,7 @@ elif [[ $a =~ [*?] ]] ;then
 		n=${n//\\.\*/\\\\.[^/]+}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}
-		X="\! -${2}regex ^$p$n$"
+		X="\! -${2}regex ^$p$n$ \( $D $O $F $O $K $O $R \)"
 	fi
 else
 	if [ -d "$a" ];then s=$a
@@ -150,7 +150,7 @@ A=${A//\\/\\\\}
 eval set -- $A
 for a
 {
-unset O P S ll re p n z s
+unset O P S re p n z s
 
 a=${a#\\\\}
 [[ $a =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
@@ -208,10 +208,11 @@ R="-print"
 if [[ $z = / ]] ;then F=;K=;R=
 elif [[ $z = // ]] ;then D=;K=;R=
 elif [[ $z = /// ]] ;then D=;F=;R=
-else	O=-o
+#else	O=-o
+else	S="\( $D -o -print \)"
 fi
 if [ -z $P ] ;then
-	S="$opt \( $D $O $F $O $K $O $R \)"
+	S=${S-"\( $D $O $F $O $K $O $R \)"}
 	if [ $E ] ;then
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 		s=${BASH_REMATCH[1]}
@@ -262,7 +263,7 @@ if((de+I)) &&([ $F ] ||[ $K ]) ;then
 	F="$F $O $K"
 	eval "LC_ALL=C find $po $s $d \! -ipath $s $X $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
 else
-	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C find $po $s $d \! -ipath $s $P $X $S"
+	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C find $po $s $d \! -ipath $s $P $opt $X $S"
 fi
 }
 set +f;unset IFS
