@@ -1,7 +1,7 @@
 Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file   
 the "list-su.sh" differs only in having superuser request (sudo prefixed command) but not if using -d, -i option   
 
-Find and list specific file, directory, or link recursively while keep utilizing "find" utility useful options   
+Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 
 Would print its   
 - Size                                    -s   
@@ -33,7 +33,7 @@ or put suffix // to search for file only,
 or put suffix /// to search for link only   
 
 $ l \\/   
-list every filesystem type under "/" (root) directory entirely, the preceding \\ (but must be escapedlt typed \\\\) is to differentiate it with second use above: list every directory only under current directory   
+list every filesystem type under "/" (root) directory entirely, the preceding \\ (but must escapedly be typed as \\\\) is to differentiate it with second use above: list every directory only under current directory   
 
 $ l -s -i *.bin   
 query any object having 'bin' name suffix then list it with the size and file information under current directory entirely    
@@ -55,7 +55,7 @@ Will find
 /qt/src/lib/core/cc/meta   
 /qt/src/lib/core/c/obj/meta   
 /qt/lib/so/core/src/c/obj/met   
-so on... with indefinite number of depth ply between "qt" and "core" directory, and between it and "meta" directory   
+so on... with 2 plies depth between "qt" and "core" directory, and indefinite number of ply between it and "meta" directory   
 
 If being navigated in relative path way i.e. not started with slash character (/), then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
 If it needs to be limited to search for directly on current directory only, precede (prefix) it with ./   
