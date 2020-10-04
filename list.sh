@@ -123,9 +123,9 @@ case $e in
 -d) d=1;;
 --cs) I=;;
 -l) lx=-maxdepth\ 1; l=1;;
--l[0-9]*)
+-l[0-9][0-9]*)
 	((${e:2})) &&lx=-maxdepth\ ${e:2};l=1;;
--[1-9]*) x=-maxdepth\ ${e:1};;
+-[1-9][0-9]) x=-maxdepth\ ${e:1};;
 -E) E=1;;
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
