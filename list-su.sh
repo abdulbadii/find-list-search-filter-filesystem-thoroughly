@@ -1,3 +1,96 @@
+fc(){
+local unset O P S ll re p n z s
+[[ $1 =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
+a=${1#./}
+[[ $a =~ ^(.*[^/])(/+)$ ]] &&{
+a=${BASH_REMATCH[1]}; z=${BASH_REMATCH[2]}
+}
+a=${a//\/.\///}
+if [[ $a =~ ^/ ]] ;then
+	while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
+else
+	if [[ $a =~ ^(\.\.(/\.\.)*)(/.+)? ]] ;then
+		if [ $re ] ;then
+			fx=${BASH_REMATCH[3]}	# fx is first explicit path
+			s=~+/${BASH_REMATCH[1]}
+			while [[ $s =~ [^/.]+/\.\.(/|$) ]] ;do s=${s/${BASH_REMATCH[0]}}; done
+			[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s \\n from $a>&2;continue;}
+			s=${s%/}
+			while [[ $fx =~ [^/.]+/\.\.(/|$) ]] ;do fx=${fx/${BASH_REMATCH[0]}}; done
+			[[ $fx =~ ^/..(/|$) ]] &&{
+				fx=${fx#/};fx=${fx##../}
+				[ $fx = .. ] && fx=/*
+			}
+			a=**$fx
+		else
+			a=~+/$a
+			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
+		fi
+	else
+		if [ $re ] ;then
+			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+			a=${a##../};[ $a = .. ]&&a=
+			a=$PWD**/$a
+		else
+			a=~+/$a
+			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
+		fi
+	fi
+fi
+D="-type d -printf \"$r/\n\""
+F="-type f -printf \"$r\n\""
+K="-type l -printf \"$r\n\""
+R="-printf \"$r\n\""
+if [[ $z = / ]] ;then F=;K=;R=
+elif [[ $z = // ]] ;then D=;K=;R=
+elif [[ $z = /// ]] ;then D=;F=;R=
+else	O=-o
+fi
+S="$opt \( $D $O $F $O $K $O $R \)"
+if [ $E ] ;then
+	[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
+	s=${BASH_REMATCH[1]}
+	p=${BASH_REMATCH[3]}
+	XC="\! -${2}regex ^$p$"
+elif [[ $a =~ [*?] ]] ;then
+	a=${a//./\\.}
+	[[ $a =~ ^(.*/(.*\*\*)?)(.*) ]]
+	p=${BASH_REMATCH[1]}
+	n=${BASH_REMATCH[3]}
+	if [ $s ] ;then
+		p=${p//\*\*/~\}\{}
+		p=${p//\*/[^/]*}
+		p=${p//~\}\{/.*}
+		p=${p//\?/[^/.]}
+		n=${n//\\.\*/\\.[^/]+}
+		n=${n//\?/[^/.]}
+		n=${n//\*/[^/]*}		
+		XC="\! -${2}regex ^$s$p$n$"
+	else
+		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
+		s=${BASH_REMATCH[1]}
+		: ${s:=/}
+		p=${p//\*\*/~\}\{}
+		p=${p//\*/[^/]*}
+		p=${p//~\}\{/.*}
+		p=${p//\?/[^/.]}
+		n=${n//\\.\*/\\.[^/]+}
+		n=${n//\?/[^/.]}
+		n=${n//\*/[^/]*}
+		XC="\! -${2}regex ^$p$n$"
+	fi
+else
+	if [ -d "$a" ];then s=$a
+	else
+		s=${a%/*}
+		XC="\! -${2}path $a"
+	fi
+fi
+}
+
 di(){
 d=$1;shift
 for l
@@ -17,7 +110,7 @@ for e
 case $e in
 -[HDLPO]) po=$e;;
 -h|--help) find --help | sed -E "1,3s/find/$FUNCNAME/";return;;
---ex=*|--exc=*)
+--ex=?*|--exc=?*)
 	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ *[1-9&]>|[><|])? ]]
 	A=${BASH_REMATCH[2]}
 	: ${A:=${BASH_REMATCH[3]}}
