@@ -7,13 +7,14 @@ Would print its
 - Size                                    -s   
 - Last modification time                        -t   
 - Information on file found (whether 64/32 bit binary etc)    -i   
-- Dependencies of file found in one level depth             -d   
+- Dependencies of file found in one level depth             -de   
 
 Would narrow down search   
 - Limit to find only directory or file or link type :    suffix the object with / . or    
 - Limit to certain depth only :                 -1...99 or prefix with ./ as one dept   
 - In greater control by regular expression      -E   
 - All the 'Test' option of 'find' test option
+- Case sensitive search only. (Defaults to case insensitive)  -cs
 
 (below some excerpt of its manual for options   
 
@@ -61,7 +62,7 @@ Will find
 so on... with 2 plies depth between "qt" and "core" directory, and indefinite number of ply between "core" and "meta" directory   
 
 If being navigated in relative path way i.e. not started with slash character (/), then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
-If it needs to be limited to search for on current directory only, precede (prefix) it with ./   
+To limit the search on current directory only, precede (prefix) it with ./   
 
 Suppose previous explicit part of path exists only where it's specified i.e. "meta" exists only under "core" directory being under any directory being under any dir. under qt directory.   
 
@@ -76,9 +77,9 @@ while such
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
-In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard, while being searched and a directory is found, then this way the entire directory content will automatically be shown   
+In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard, while a directory being searched and found, then the entire directory content will automatically be shown   
 
-If this purpose is needed in another way of path described above, put -l option in order to show content of directory found by some wildcard pattern and/or in any depth   
+If this purpose is needed in another way of path described above, put -l option in order to show content of directory found by some wildcard pattern or specific depth   
 To have it shown up to certain depth add the number e.g. -l3 option will show to 3 directory plies.   
 To have the found directory's content shown  entirely the number meant for it is 0.   
 So be prepared if to put -l0 option, it will list entirely  the content of every found directory which could be a bit overwhelming.   
@@ -94,7 +95,7 @@ $ l /qt/\*/\*/core/\*\*/meta  core/\*c
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
-The most usefull and powerful features of this tool are its "OS recognizable format" of input and output which could be used/piped as input of another tool, and the --exc (or just --ex) option for excluding some certain file (path) from the originally intended target path  
+The most usefull and powerful features of this tool are its "OS recognizable format" of input and output which could be used/piped as input of another tool, and the -exc (or just -ex) exclusion option for excluding some certain files or paths from the original result paths  
 
 e.g. 1st, the below will search under "lib" being under "dev" instead of "core", all of "c" file :   
 
@@ -109,7 +110,7 @@ And the result is recognizable as absolute path which is ready to be piped corre
 
 e.g. 2nd, the below will search such above with additional stricter filter that is the one without letter "e" in all "c" files found:   
 
-$ l --exc= /qt/src/dev/core/../lib/\*e\*.c   /qt/src/dev/core/../lib/\*.c   
+$ l -exc= /qt/src/dev/core/../lib/\*e\*.c   /qt/src/dev/core/../lib/\*.c   
 /qt/src/dev/lib/main.c   
 /qt/src/dev/lib/add.c   
 
@@ -153,7 +154,7 @@ The 'find' filter options copied from its manual
 
  -empty File is empty and is either a regular file or a directory   
 
- -executabl   
+ -executable   
         Matches files which are executable and directories which are searchabl   
         (in a file name resolution sense).  This takes into account access con   
         trol  lists  and  other  permissions  artefacts  which  the  -perm tes   

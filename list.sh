@@ -54,9 +54,9 @@ if [ $E ] ;then
 	[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	s=${BASH_REMATCH[1]}
 	p=${BASH_REMATCH[3]}
-	XC="\! -${2}regex ^$p$"
+	X="\! -${2}regex ^$p$"
 elif [[ $a =~ [*?] ]] ;then
-	a=${a//./\\.}
+	a=${a//./\\\\.}
 	[[ $a =~ ^(.*/(.*\*\*)?)(.*) ]]
 	p=${BASH_REMATCH[1]}
 	n=${BASH_REMATCH[3]}
@@ -65,10 +65,10 @@ elif [[ $a =~ [*?] ]] ;then
 		p=${p//\*/[^/]*}
 		p=${p//~\}\{/.*}
 		p=${p//\?/[^/.]}
-		n=${n//\\.\*/\\.[^/]+}
+		n=${n//\\.\*/\\\\.[^/]+}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}		
-		XC="\! -${2}regex ^$s$p$n$"
+		X="\! -${2}regex ^$s$p$n$"
 	else
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 		s=${BASH_REMATCH[1]}
@@ -77,16 +77,16 @@ elif [[ $a =~ [*?] ]] ;then
 		p=${p//\*/[^/]*}
 		p=${p//~\}\{/.*}
 		p=${p//\?/[^/.]}
-		n=${n//\\.\*/\\.[^/]+}
+		n=${n//\\.\*/\\\\.[^/]+}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}
-		XC="\! -${2}regex ^$p$n$"
+		X="\! -${2}regex ^$p$n$"
 	fi
 else
 	if [ -d "$a" ];then s=$a
 	else
 		s=${a%/*}
-		XC="\! -${2}path $a"
+		X="\! -${2}path $a"
 	fi
 fi
 }
@@ -102,15 +102,15 @@ for l
 }
 }
 l(){
-unset po opt E xc XC x l lx
-d=0;I=i r=%p
+unset po opt E X d l lx
+de=0;I=i r=%p
 set -f;trap 'set +f;unset IFS' 1 2
 for e
 {
 case $e in
 -[HDLPO]) po=$e;;
 -h|--help) find --help | sed -E "1,3s/find/$FUNCNAME/";return;;
---ex=?*|--exc=?*)
+-ex=?*|-exc=?*)
 	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ *[1-9&]>|[><|])? ]]
 	A=${BASH_REMATCH[2]}
 	: ${A:=${BASH_REMATCH[3]}}
@@ -118,14 +118,14 @@ case $e in
 	A=$A
 	[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(.*) ]]
 	eval set -- "${BASH_REMATCH[1]}"
-	for a;{ [[ $a =~ ^--exc?=(.+)$ ]] &&{ fc ${BASH_REMATCH[1]} $I;break;} }
+	for a;{ [[ $a =~ ^-exc?=(.+)$ ]] &&{ fc ${BASH_REMATCH[1]} $I;break;} }
 	;;
--d) d=1;;
---cs) I=;;
+-de) de=1;;
+-cs) I=;;
 -l) lx=-maxdepth\ 1; l=1;;
 -l[0-9][0-9]*)
 	((${e:2})) &&lx=-maxdepth\ ${e:2};l=1;;
--[1-9][0-9]) x=-maxdepth\ ${e:1};;
+-[1-9][0-9]) d=-maxdepth\ ${e:1};;
 -E) E=1;;
 -s) r=%s\ $r;;
 -t) r="$r %Tr %Tx";;
@@ -144,7 +144,7 @@ A=${BASH_REMATCH[2]}
 [[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(.*) ]]
 A=${BASH_REMATCH[3]}
 
-[[ $A =~ ^[[:space:]]*$ ]] &&{ eval "find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
+[[ $A =~ ^[[:space:]]*$ ]] &&{ eval "find $po ~+ $d \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
 IFS=$'\n'
 A=${A//\\/\\\\}
 eval set -- $A
@@ -204,7 +204,7 @@ fi
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
 K="-type l -printf \"$r\n\""
-R="-printf \"$r\n\""
+R="-print"
 if [[ $z = / ]] ;then F=;K=;R=
 elif [[ $z = // ]] ;then D=;K=;R=
 elif [[ $z = /// ]] ;then D=;F=;R=
@@ -218,7 +218,7 @@ if [ -z $P ] ;then
 		p=${BASH_REMATCH[3]}
 		P="-regextype posix-extended -${I}regex ^$p$"
 	elif [[ $a =~ [*?] ]] ;then
-		a=${a//./\\.}
+		a=${a//./\\\\.}
 		[[ $a =~ ^(.*/(.*\*\*)?)(.*) ]]
 		p=${BASH_REMATCH[1]}
 		n=${BASH_REMATCH[3]}
@@ -227,7 +227,7 @@ if [ -z $P ] ;then
 			p=${p//\*/[^/]*}
 			p=${p//~\}\{/.*}
 			p=${p//\?/[^/.]}
-			n=${n//\\.\*/\\.[^/]+}
+			n=${n//\\.\*/\\\\.[^/]+}
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}		
 			P="-regextype posix-extended -${I}regex ^$s$p$n$"
@@ -239,7 +239,7 @@ if [ -z $P ] ;then
 			p=${p//\*/[^/]*}
 			p=${p//~\}\{/.*}
 			p=${p//\?/[^/.]}
-			n=${n//\\.\*/\\.[^/]+}
+			n=${n//\\.\*/\\\\.[^/]+}
 			n=${n//\?/[^/.]}
 			n=${n//\*/[^/]*}
 			P="-regextype posix-extended -${I}regex ^$p$n$"
@@ -257,12 +257,12 @@ fi
 	[ -z $lx ] &&ll=-prune
 	D="-type d $ll -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
 }
-if((d+I)) &&([ $F ] ||[ $K ]) ;then
+if((de+I)) &&([ $F ] ||[ $K ]) ;then
 	export -f di
 	F="$F $O $K"
-	eval "LC_ALL=C find $po $s $x \! -ipath $s $XC $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o} $D $O $R \)"
+	eval "LC_ALL=C find $po $s $d \! -ipath $s $X $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
 else
-	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C find $po $s $x \! -ipath $s $P $XC $S"
+	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C find $po $s $d \! -ipath $s $P $X $S"
 fi
 }
 set +f;unset IFS
