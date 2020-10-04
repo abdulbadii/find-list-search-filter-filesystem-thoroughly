@@ -8,22 +8,30 @@ for l
 		ldd $l 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/ \2/;s/^.*\blinux-vdso\.s.+/DEP:/';}
 }
 }
-
 l(){
-unset po opt E xc x l lx
-d=0;I=i; r=%p
+unset po opt E xc X XC x l lx
+d=0;I=i r=%p
+set -f;trap 'set +f;unset IFS' 1 2
 for e
 {
 case $e in
 -[HDLPO]) po=$e;;
 -h|--help)
-	find --help | sed -E "1,3s/find/$FUNCNAME/"
-	return;;
+	find --help | sed -E "1,3s/find/$FUNCNAME/";return;;
 --ex=*|--exc=*)
-	[[ $e =~ --exc?=(.+) ]]
-	xc=${BASH_REMATCH[1]};;
+	
+	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ *[1-9&]>|[><|])? ]]
+	A=${BASH_REMATCH[2]}
+	: ${A:=${BASH_REMATCH[3]}}
+	: ${A:=${BASH_REMATCH[4]}}
+	A=$A
+	[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(.*) ]]
+	eval set -- "${BASH_REMATCH[1]}"
+	for a;{ [[ $a =~ ^--exc?=(.+)$ ]] &&{ fc ${BASH_REMATCH[1]};break;} }
+	XC="\! ${I}path $X";;
+	
 -d) d=1;;
--cs) I=;;
+--cs) I=;;
 -l) lx=-maxdepth\ 1; l=1;;
 -l[0-9]*)
 	((${e:2})) &&lx=-maxdepth\ ${e:2};l=1;;
@@ -38,14 +46,13 @@ case $e in
 *) break;;
 esac
 }
-set -f;trap 'set +f;unset IFS' 1 2
 
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ *[1-9&]>|[><|])? ]]
 A=${BASH_REMATCH[2]}
 : ${A:=${BASH_REMATCH[3]}}
 : ${A:=${BASH_REMATCH[4]}}
-[[ $A =~ (--?[[:alnum:]]+\ ?)*(.*) ]]
-A=${BASH_REMATCH[2]}
+[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(.*) ]]
+A=${BASH_REMATCH[3]}
 
 [[ $A =~ ^[[:space:]]*$ ]] &&{ eval "sudo find $po ~+ $x \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
 IFS=$'\n'
@@ -157,6 +164,7 @@ if [ -z $P ] ;then :
 	fi
 fi
 
+
 ((l)) &&{
 	[ -z $lx ] &&ll=-prune
 	D="-type d $ll -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
@@ -164,9 +172,9 @@ fi
 if((d+I)) &&([ $F ] ||[ $K ]) ;then
 	export -f di
 	F="$F $O $K"
-	eval "LC_ALL=C find $po $s $x \! -ipath $s $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o} $D $O $R \)"
+	eval "LC_ALL=C find $po $s $x \! -ipath $s $XC $P $opt \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $d \$0 \$@' '{}' + -o} $D $O $R \)"
 else
-	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $x \! -ipath $s $P $S"
+	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $x \! -ipath $s $XC $P $S"
 fi
 }
 set +f;unset IFS
