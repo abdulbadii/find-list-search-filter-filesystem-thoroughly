@@ -164,6 +164,15 @@ a=${a#./}
 }
 a=${a//\/.\///}
 
+D="-type d -printf \"$r/\n\""
+F="-type f -printf \"$r\n\""
+K="-type l -printf \"$r\n\""
+R="-print"
+if [[ $z = / ]] ;then Z=$D
+elif [[ $z = // ]] ;then Z=$F
+elif [[ $z = /// ]] ;then Z=$K
+else	Z="\( $D -o -print \)"
+fi
 if [[ $a =~ ^/ ]] ;then
 	while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
 	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
@@ -180,10 +189,10 @@ else
 				fx=${fx#/};fx=${fx##../}
 				[ $fx = .. ] && fx=/*
 			}
-			[[ ! $a =~ [*?] ]] &&{
-				P="-regextype posix-extended -${I}regex ^$s$fx$ \( -type d -exec find '{}' \; -o -print \) -o -${I}regex ^$s.*$fx$ -print"
+			[[ $fx =~ ^[^*?]+$ ]] &&{
+				P="-regextype posix-extended -${I}regex ^$s$fx$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*$fx$ -print"
 			}
-			a=**$fx
+			a=/**$fx
 		else
 			a=~+/$a
 			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
@@ -195,7 +204,7 @@ else
 			a=${a##../};[[ $a = .. ]]&&a=
 			if [[ $a =~ ^[^*?]+$ ]] ;then
 				s=~+/$a
-				P="-regextype posix-extended -${I}regex ^$s$ \( -type d -exec find '{}' \; -o -print \) -o -${I}regex ^$PWD.*/$a$ -print"
+				P="-regextype posix-extended -${I}regex ^$s$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$PWD.*/$a$ -print"
 				s=${s%/*}
 			else	a=$PWD**/$a;a=${a%/}
 			fi
@@ -205,15 +214,6 @@ else
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
 	fi
-fi
-D="-type d -printf \"$r/\n\""
-F="-type f -printf \"$r\n\""
-K="-type l -printf \"$r\n\""
-R="-print"
-if [[ $z = / ]] ;then Z=$D
-elif [[ $z = // ]] ;then Z=$F
-elif [[ $z = /// ]] ;then Z=$K
-else	Z="\( $D -o -print \)"
 fi
 ((l)) &&{
 	[ -z $lx ] &&l=-prune
