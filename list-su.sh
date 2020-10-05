@@ -1,5 +1,5 @@
 fc(){
-local unset O P re p n z s
+local unset O P re p n s z Z
 [[ $1 =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
 a=${1#./}
 [[ $a =~ ^(.*[^/])(/+)$ ]] &&{
@@ -15,7 +15,7 @@ else
 			fx=${BASH_REMATCH[3]}	# fx is first explicit path
 			s=~+/${BASH_REMATCH[1]}
 			while [[ $s =~ [^/.]+/\.\.(/|$) ]] ;do s=${s/${BASH_REMATCH[0]}}; done
-			[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s \\n from $a>&2;continue;}
+			[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s\\nfrom $PWD$a>&2;continue;}
 			s=${s%/}
 			while [[ $fx =~ [^/.]+/\.\.(/|$) ]] ;do fx=${fx/${BASH_REMATCH[0]}}; done
 			[[ $fx =~ ^/..(/|$) ]] &&{
@@ -44,16 +44,15 @@ D="-type d"
 F="-type f"
 K="-type l"
 R="-print"
-if [[ $z = / ]] ;then F=;K=;R=
-elif [[ $z = // ]] ;then D=;K=;R=
-elif [[ $z = /// ]] ;then D=;F=;R=
-else	O=-o
+if [[ $z = / ]] ;then Z=$D
+elif [[ $z = // ]] ;then Z=$F
+elif [[ $z = /// ]] ;then Z=$K
 fi
 if [ $E ] ;then
 	[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	s=${BASH_REMATCH[1]}
 	p=${BASH_REMATCH[3]}
-	X="\! -${2}regex ^$p$ \( $D $O $F $O $K $O $R \)"
+	X="\! -${2}regex ^$p$ $Z"
 elif [[ $a =~ [*?] ]] ;then
 	a=${a//./\\\\.}
 	[[ $a =~ ^(.*/(.*\*\*)?)(.*) ]]
@@ -67,7 +66,7 @@ elif [[ $a =~ [*?] ]] ;then
 		n=${n//\\.\*/\\\\.[^/]+}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}
-		X="\! -${2}regex ^$s$p$n$ \( $D $O $F $O $K $O $R \)"
+		X="\! -${2}regex ^$s$p$n$ $Z"
 	else
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 		s=${BASH_REMATCH[1]}
@@ -79,7 +78,7 @@ elif [[ $a =~ [*?] ]] ;then
 		n=${n//\\.\*/\\\\.[^/]+}
 		n=${n//\?/[^/.]}
 		n=${n//\*/[^/]*}
-		X="\! -${2}regex ^$p$n$ \( $D $O $F $O $K $O $R \)"
+		X="\! -${2}regex ^$p$n$ $Z"
 	fi
 else
 	if [ -d "$a" ];then s=$a
@@ -121,7 +120,7 @@ case $e in
 		fc $a $I
 		XC=$XC$X' '
 	}
-	;;
+	I=i;;
 -de) de=1;;
 -cs) I=;;
 -ci) I=i;;
