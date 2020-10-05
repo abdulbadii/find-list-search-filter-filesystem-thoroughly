@@ -150,15 +150,17 @@ eval set -- $A
 for a
 {
 unset O P S re p n z s
-
-a=${a#\\\\}
 [[ $a =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
 a=${a#./}
 
 [[ $a =~ ^(.*[^/])?(/+)$ ]] &&{
-a=${BASH_REMATCH[1]}; z=${BASH_REMATCH[2]}
+	a=${BASH_REMATCH[1]}
+	z=${BASH_REMATCH[2]}
+	[[ $a =~ \\ ]] &&{	a=/;	z=${z#/}; }
+	a=${a#\\\\}
 }
 a=${a//\/.\///}
+
 if [[ $a =~ ^/ ]] ;then
 	while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
 	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
@@ -168,7 +170,7 @@ else
 			fx=${BASH_REMATCH[3]}	# fx is first explicit path
 			s=~+/${BASH_REMATCH[1]}
 			while [[ $s =~ [^/.]+/\.\.(/|$) ]] ;do s=${s/${BASH_REMATCH[0]}}; done
-			[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s \\n from $a>&2;continue;}
+			[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s\\nfrom $PWD$a>&2;continue;}
 			s=${s%/}
 			while [[ $fx =~ [^/.]+/\.\.(/|$) ]] ;do fx=${fx/${BASH_REMATCH[0]}}; done
 			[[ $fx =~ ^/..(/|$) ]] &&{
@@ -189,8 +191,9 @@ else
 			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
 			a=${a##../};[[ $a = .. ]]&&a=
 			[[ $a =~ ^[^*?]+$ ]] &&{
-				s=~+/$a;s=${s%/*}
-				P="-regextype posix-extended -${I}regex ^~+/$a$ \( -type d -exec find '{}' \; -o -print \) -o -${I}regex ^$PWD.*/$a$ -print"
+				s=~+/$a
+				P="-regextype posix-extended -${I}regex ^$s$ \( -type d -exec find '{}' \; -o -print \) -o -${I}regex ^$PWD.*/$a$ -print"
+				s=${s%/*}
 			}
 			a=$PWD**/$a
 			a=${a%/}
