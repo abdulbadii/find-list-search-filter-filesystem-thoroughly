@@ -110,11 +110,10 @@ case $e in
 -[HDLPO]) po=$e;;
 -h|--help) find --help | sed -E "1,3s/find/$FUNCNAME/";return;;
 -ex=?*|-exc=?*)
-	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ *[1-9&]>|[><|])? ]]
+	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ +[1-9&]>|\ *[><|])? ]]
 	A=${BASH_REMATCH[2]}
 	: ${A:=${BASH_REMATCH[3]}}
 	: ${A:=${BASH_REMATCH[4]}}
-	A=$A
 	[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(.*) ]]
 	eval set -- "${BASH_REMATCH[1]}"
 	for a;{ [[ $a =~ ^-exc?=(.+)$ ]] &&{ fc ${BASH_REMATCH[1]} $I;break;} }
@@ -136,22 +135,21 @@ case $e in
 esac
 }
 
-[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ *[1-9&]>|[><|])? ]]
+[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*)) ]]
 A=${BASH_REMATCH[2]}
 : ${A:=${BASH_REMATCH[3]}}
 : ${A:=${BASH_REMATCH[4]}}
 [[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(--?\ )?(.*) ]]
 A=${BASH_REMATCH[4]}
+unset IFS;IFS=$'\n';eval set -- $A
 
-[[ $A =~ ^[[:space:]]*$ ]] && A=\'\'
+[[ $1 =~ ^[[:space:]]*$ ]] && A=\'\'
 
-#{	eval "sudo find $po ~+ $d \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
-
-IFS=$'\n'
 A=${A//\\/\\\\}
 eval set -- $A
 for a
 {
+[[ $a =~ ^\ *([1-9&]>|[>|<]) ]] && return
 unset O P Z re p n z s
 [[ $a =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
 a=${a#./}
