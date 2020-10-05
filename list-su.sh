@@ -101,7 +101,7 @@ for l
 }
 }
 l(){
-unset po opt E X d l lx
+unset IFS po opt E X XC d l lx
 de=0;I=i r=%p
 set -f;trap 'set +f;unset IFS' 1 2
 for e
@@ -110,16 +110,21 @@ case $e in
 -[HDLPO]) po=$e;;
 -h|--help) find --help | sed -E "1,3s/find/$FUNCNAME/";return;;
 -ex=?*|-exc=?*)
-	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*))(\ +[1-9&]>|\ *[><|])? ]]
+	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*)) ]]
 	A=${BASH_REMATCH[2]}
 	: ${A:=${BASH_REMATCH[3]}}
 	: ${A:=${BASH_REMATCH[4]}}
-	[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(.*) ]]
-	eval set -- "${BASH_REMATCH[1]}"
-	for a;{ [[ $a =~ ^-exc?=(.+)$ ]] &&{ fc ${BASH_REMATCH[1]} $I;break;} }
+	[[ $A =~ (-[[:alnum:]]+(=.+)?\ +)*-exc?=(.+) ]]
+	eval set -- ${BASH_REMATCH[3]}
+	eval set -- $1
+	for a;{
+		fc $a $I
+		XC=$XC$X' '
+	}
 	;;
 -de) de=1;;
 -cs) I=;;
+-ci) I=i;;
 -l) lx=-maxdepth\ 1; l=1;;
 -l[0-9]|-l[1-9][0-9])
 	((${e:2})) &&lx=-maxdepth\ ${e:2};l=1;;
@@ -141,15 +146,13 @@ A=${BASH_REMATCH[2]}
 : ${A:=${BASH_REMATCH[4]}}
 [[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(--?\ )?(.*) ]]
 A=${BASH_REMATCH[4]}
-unset IFS;IFS=$'\n';eval set -- $A
 
+IFS=$'\n';eval set -- $A
 [[ $1 =~ ^[[:space:]]*$ ]] && A=\'\'
-
 A=${A//\\/\\\\}
 eval set -- $A
 for a
 {
-[[ $a =~ ^\ *([1-9&]>|[>|<]) ]] && return
 unset O P Z re p n z s
 [[ $a =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
 a=${a#./}
@@ -265,9 +268,9 @@ fi
 if((de+I)) &&[ $F -o $K ] ;then
 	export -f di
 	F="$F $O $K"
-	eval "LC_ALL=C find $po $s $d \! -ipath $s $X $P $opt $X \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
+	eval "LC_ALL=C find $po $s $d \! -ipath $s $XC $P $opt $X \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
 else
-	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $X $Z"
+	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $XC $Z"
 fi
 }
 set +f;unset IFS
