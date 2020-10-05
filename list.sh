@@ -155,7 +155,7 @@ a=${a#\\\\}
 [[ $a =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
 a=${a#./}
 
-[[ $a =~ ^(.*[^/])(/+)$ ]] &&{
+[[ $a =~ ^(.*[^/])?(/+)$ ]] &&{
 a=${BASH_REMATCH[1]}; z=${BASH_REMATCH[2]}
 }
 a=${a//\/.\///}
@@ -187,12 +187,13 @@ else
 	else
 		if [ $re ] ;then
 			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
-			a=${a##../};[ $a = .. ]&&a=
-			[[ ! $a =~ [*?] ]] &&{
+			a=${a##../};[[ $a = .. ]]&&a=
+			[[ $a =~ ^[^*?]+$ ]] &&{
 				s=~+/$a;s=${s%/*}
-				P="-regextype posix-extended -${I}regex ^$PWD/$a$ \( -type d -exec find '{}' \; -o -print \) -o -${I}regex ^$PWD.*/$a$ -print"
+				P="-regextype posix-extended -${I}regex ^~+/$a$ \( -type d -exec find '{}' \; -o -print \) -o -${I}regex ^$PWD.*/$a$ -print"
 			}
 			a=$PWD**/$a
+			a=${a%/}
 		else
 			a=~+/$a
 			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
@@ -256,7 +257,7 @@ fi
 	[ -z $lx ] &&ll=-prune
 	D="-type d $ll -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
 }
-if((de+I)) &&([ $F ] ||[ $K ]) ;then
+if((de+I)) &&[ $F -o $K ] ;then
 	export -f di
 	F="$F $O $K"
 	eval "LC_ALL=C find $po $s $d \! -ipath $s $X $P $opt $X \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
