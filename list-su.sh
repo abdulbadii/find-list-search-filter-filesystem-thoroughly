@@ -143,13 +143,16 @@ A=${BASH_REMATCH[2]}
 [[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(--?\ )?(.*) ]]
 A=${BASH_REMATCH[4]}
 
-[[ $A =~ ^[[:space:]]*$ ]] &&{ eval "sudo find $po ~+ $d \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
+[[ $A =~ ^[[:space:]]*$ ]] && A=\'\'
+
+#{	eval "sudo find $po ~+ $d \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -printf \"$r\n\" \)"; set +f;return; }
+
 IFS=$'\n'
 A=${A//\\/\\\\}
 eval set -- $A
 for a
 {
-unset O P S re p n z s
+unset O P Z re p n z s
 [[ $a =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
 a=${a#./}
 
@@ -190,13 +193,12 @@ else
 		if [ $re ] ;then
 			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
 			a=${a##../};[[ $a = .. ]]&&a=
-			[[ $a =~ ^[^*?]+$ ]] &&{
+			if [[ $a =~ ^[^*?]+$ ]] ;then
 				s=~+/$a
 				P="-regextype posix-extended -${I}regex ^$s$ \( -type d -exec find '{}' \; -o -print \) -o -${I}regex ^$PWD.*/$a$ -print"
 				s=${s%/*}
-			}
-			a=$PWD**/$a
-			a=${a%/}
+			else	a=$PWD**/$a;a=${a%/}
+			fi
 		else
 			a=~+/$a
 			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
@@ -208,14 +210,20 @@ D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
 K="-type l -printf \"$r\n\""
 R="-print"
-if [[ $z = / ]] ;then F=;K=;R=
-elif [[ $z = // ]] ;then D=;K=;R=
-elif [[ $z = /// ]] ;then D=;F=;R=
-else	S="\( $D -o -print \)"
+if [[ $z = / ]] ;then Z=$D
+elif [[ $z = // ]] ;then Z=$F
+elif [[ $z = /// ]] ;then Z=$K
+else	Z="\( $D -o -print \)"
 fi
+((l)) &&{
+	[ -z $lx ] &&l=-prune
+	D="-type d $l -exec find \{\} $lx $opt \( $D -o -print \) \;"
+}
+
 if [ -z $P ] ;then
-	S=${S-"\( $D $O $F $O $K $O $R \)"}
-	if [ $E ] ;then
+	if [ -z $a ] ;then
+		s=~+
+	elif [ $E ] ;then
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 		s=${BASH_REMATCH[1]}
 		p=${BASH_REMATCH[3]}
@@ -256,16 +264,12 @@ if [ -z $P ] ;then
 		fi
 	fi
 fi
-((l)) &&{
-	[ -z $lx ] &&ll=-prune
-	D="-type d $ll -exec find \{\} $lx $opt \( $D -o -printf '%p\n' \) \;"
-}
 if((de+I)) &&[ $F -o $K ] ;then
 	export -f di
 	F="$F $O $K"
 	eval "LC_ALL=C find $po $s $d \! -ipath $s $X $P $opt $X \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
 else
-	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $X $S"
+	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $X $Z"
 fi
 }
 set +f;unset IFS
