@@ -3,20 +3,20 @@ the "list-su.sh" differs only in having superuser request (sudo prefixed command
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 
-Would print its   
+Would print its  <pre> 
 - Size                                    -s   
 - Last modification time                        -t   
-- Information on file found (whether 64/32 bit binary etc)    -i   
+- Information on file found (whether 64/32 bit binary etc)    -in   
 - Dependencies of file found in one level depth             -de   
 
 Would narrow down search   
 - To find only directory or file or link type,    suffix the object with /, // or ///    
 - To certain depth only :                 -1...99, or prefix with ./ to be one depth   
 - To have greater control by regular expression      -E   
-- All the 'Test' option of 'find' test option
-- Case sensitive search only. (Defaults to case insensitive)  -cs
-
-(below some excerpt of its manual for options   
+- Case sensitive search only. (Defaults to insensitive -ci option)    -cs   
+- Exclusion for the main search found
+</pre>
+Also most the 'Test' option of 'find' test option, below some excerpt of its manual for options   
 
 Simply type l   
 $ l   
@@ -35,19 +35,22 @@ It indicates that just put suffix / to search for directory only,
 or put suffix // to search for file only,   
 or put suffix /// to search for link only   
 
-$ l \\/   
+$ l \\\\/   
 list every filesystem type under "/" (root) directory entirely, the preceding \\ (but must escapedly be put as \\\\) is to differentiate it with second use above: list every directory only under current directory   
 
 $ l -s -i *.bin   
 query any object having 'bin' name suffix then list it with the size and file information under current directory entirely    
 
 $ l  -t ./*.bin//   
-list every file only (excluding else type) having type name 'bin' on this directory only, with the last modification   
+list every file only (excluding else type) of 'bin' file type on this directory only, with the last modification   
 
-As absolute path, it always searchs up to directories of depths given explicitly either with or without wildcard, such as:   
+As absolute path, it always searchs up to directories of depths specified explicitly, either with or without wildcard, such as:   
+
+/qt/build/core/meta   
+means searching for any file type namedly "meta" under "core under "build" on "qt" directory
 
 /qt/\*/\*/core/meta   
-means to search for any file type "meta" under "core" dir. being under any directory being under any directory under "qt" directory on top/root of filesystem.   
+search for any file type "meta" under "core" dir. being under any directory being under any directory under "qt" directory on top/root of filesystem.   
 
 To search somewhere deeper than such up to maximum, add "\*\*", double wildcard asterisks, in the context of intended depth ply e.g.   
 $ l /qt/\*/\*/core/\*\*/meta   
@@ -55,13 +58,13 @@ $ l /qt/\*/\*/core/\*\*/meta
 Will find   
 /qt/src/dev/core/meta   
 /qt/src/dev/core/c/meta   
-/qt/src/con/core/cc/dev/meta   
+/qt/src/doc/core/build/meta   
 /qt/lib/so/core/c/obj/meta   
 /qt/lib/so/core/src/c/obj/met   
 
 so on... with 2 plies depth between "qt" and "core" directory, and indefinite number of ply between "core" and "meta" directory   
 
-If being navigated in relative path way i.e. not started with slash character (/), then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
+If navigating in way of relative path i.e. not started with slash character (/), then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it with ./   
 
 Suppose previous explicit part of path exists only where it's specified i.e. "meta" exists only under "core" directory being under any directory being under any dir. under qt directory.   
