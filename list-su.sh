@@ -1,6 +1,6 @@
 fc(){
 local unset O P re p n s z Z
-[[ $1 =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
+[[ $1 =~ ^\./[^/] ]] || re=.*
 a=${1#./}
 [[ $a =~ ^(.*[^/])(/+)$ ]] &&{
 a=${BASH_REMATCH[1]}; z=${BASH_REMATCH[2]}
@@ -81,7 +81,6 @@ else
 	X="\! -${2}path $a $Z"
 fi
 }
-
 di(){
 d=$1;shift
 for l
@@ -93,20 +92,31 @@ for l
 }
 }
 l(){
-unset IFS po opt E X XC d l lx
-de=0;I=i r=%p
+unset IFS po opt de if E s X XC d l lx cp cpe
+I=i; r=%p
 set -f;trap 'set +f;unset IFS' 1 2
 for e
 {
 case $e in
 -[HDLPO]) po=$e;;
 -h|--help) find --help | sed -E "1,3s/find/$FUNCNAME/";return;;
+-cp=?*|-cpe=?*)
+	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*)) ]]
+	A=${BASH_REMATCH[2]}
+	: ${A:=${BASH_REMATCH[3]}}
+	: ${A:=${BASH_REMATCH[4]}}
+	[[ $A =~ (-[[:alnum:]]+(=.+)?\ +)*-cpo?=(.+)$ ]]
+	eval set -- ${BASH_REMATCH[3]}
+	eval set -- $1
+	e=${e%%=*}
+	eval ${e#-}=\$@
+	;;
 -ex=?*|-exc=?*)
 	[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*)) ]]
 	A=${BASH_REMATCH[2]}
 	: ${A:=${BASH_REMATCH[3]}}
 	: ${A:=${BASH_REMATCH[4]}}
-	[[ $A =~ (-[[:alnum:]]+(=.+)?\ +)*-exc?=(.+) ]]
+	[[ $A =~ (-[[:alnum:]]+(=.+)?\ +)*-exc?=(.+)$ ]]
 	eval set -- ${BASH_REMATCH[3]}
 	eval set -- $1
 	for a;{
@@ -116,7 +126,7 @@ case $e in
 	I=i;;
 -[1-9]|-[1-9][0-9]) d=-maxdepth\ ${e:1};;
 -de) de=1;;
--in) in=1;;
+-in) if=1;;
 -cs) I=;;
 -ci) I=i;;
 -l) lx=-maxdepth\ 1; l=1;;
@@ -141,7 +151,7 @@ A=${BASH_REMATCH[2]}
 A=${BASH_REMATCH[4]}
 
 A=${A//\\/\\\\}
-[[ $1 =~ ^\ *$ ]] && A=\'\'
+[[ $1 =~ ^\ *$ ]] &&{ eval "LC_ALL=C sudo find $po ~+ $d \! -ipath ~+ $opt \( -type d -printf \"$r/\n\" -o -print \)";}
 
 IFS=$'\n';eval set -- $A
 for e
@@ -150,23 +160,21 @@ unset i re z
 [[ $e =~ ^\./[^/] ]] || re=.* # it's recursively at any depth if no prefix ./
 e=${e#./}
 
-[[ $e =~ ^(.*[^/])?(/+)$ ]] &&{ # Get /, // dir. file etc filter command 
+[[ $e =~ ^(.*[^/])?(/+)$ ]] &&{ # Get /, // as dir. file filter command 
 	e=${BASH_REMATCH[1]}
 	z=${BASH_REMATCH[2]}
 	[[ $e = \\ ]] &&{	e=/;	z=${z#/}; }
 }
-IFS=$'\\';eval set -- ${e//\/.\///}
+IFS=$'\\';eval set -- ${e//\/.\///} # Get multiple items of the same dir. path seperated by \\
 B=${1%/*}/
-
 for a ;{
-unset P Z p n s
+unset P Z p n s RF
 if ((i)) ;then
 	a=$B$a
 else
 	i=1
 	a=$a
 fi
-
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
 K="-type l -printf \"$r\n\""
@@ -204,7 +212,11 @@ else
 	else
 		if [ $re ] ;then
 			while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
-			a=${a##../};[[ $a = .. ]]&&a=
+			[[ $a =~ ^..(/|$) ]]  &&{
+				a=~+/$a
+				while [[ $a =~ [^/.]+/\.\.(/|$) ]] ;do a=${a/${BASH_REMATCH[0]}}; done
+				[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
+			}
 			if [[ $a =~ ^[^*?]+$ ]] ;then
 				s=~+/$a
 				P="-regextype posix-extended -${I}regex ^$s$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$PWD.*/$a$ -print"
@@ -223,8 +235,8 @@ fi
 	D="-type d $l -exec find \{\} $lx $opt \( $D -o -print \) \;"
 }
 
-if [ -z $P ] ;then
-	if [ -z $a ] ;then
+if [ -z "$P" ] ;then
+	if [ -z "$a" ] ;then
 		s=~+
 	elif [ $E ] ;then
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
@@ -233,9 +245,9 @@ if [ -z $P ] ;then
 		P="-regextype posix-extended -${I}regex ^$s$p$"
 	elif [[ $a =~ [*?] ]] ;then
 		a=${a//./\\\\.}
-		[[ $a =~ ^(.*/?(.*\*\*)?)(.*) ]]
+		[[ $a =~ ^(.*\*\*[^/]*|.*)(/[^/]+)?$ ]]
 		p=${BASH_REMATCH[1]}
-		n=${BASH_REMATCH[3]}
+		n=${BASH_REMATCH[2]}
 		if [ $s ] ;then
 			p=${p//\*\*/~\}\{}
 			p=${p//\*/[^/]*}
@@ -267,10 +279,17 @@ if [ -z $P ] ;then
 		fi
 	fi
 fi
-if((de+in)) &&[ "$F" -o "$K" ] ;then
+if((de+if)) &&[ $F$K ] ;then
 	export -f di
 	F="$F $O $K"
 	eval "LC_ALL=C find $po $s $d \! -ipath $s $XC $P $opt $X \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
+elif [ $cp ] ;then
+	sudo mkdir -pv $cp
+	eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $XC -exec mkdir -p $cp/\{\} &>/dev/null \; -exec cp -r '{}' $cp/\{\} \;"
+elif [ $cpe ] ;then
+	sudo mkdir -pv $cpe
+	eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $XC -exec cp -r '{}' $cpe \;"
+	
 else
 	command 2> >(while read s;do echo -e "\e[01;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $XC $Z"
 fi
