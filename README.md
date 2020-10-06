@@ -4,19 +4,19 @@ the "list-su.sh" differs only in having superuser request (sudo prefixed command
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 
 Would print its  <pre> 
-- Size                                    -s   
-- Last modification time                        -t   
-- Information on file found (whether 64/32 bit binary etc)    -in   
-- Dependencies of file found in one level depth             -de   
+- Size																											-s   
+- Last modification time																		-t   
+- Information on file found (whether 64/32 bit binary etc)	-in   
+- Dependencies of file found in one level depth							-de   
 
 Would narrow down search   
-- To find only directory or file or link type,    suffix the object with /, // or ///    
-- To certain depth only :                 -1...99, or prefix with ./ to be one depth   
-- To have greater control by regular expression      -E   
-- Case sensitive search only. (Defaults to insensitive -ci option)    -cs   
-- Exclusion for the main search found
+- To find only directory, file or link type, suffix it with /, // or ///    
+- To certain depth only :															-1..99, ./ prefix to tie on current dir.
+- To have greater control by regular expression											-E   
+- Case sensitive search only. (Defaults to insensitive -ci option)	-cs   
+- Exclusion for the main search found  
 </pre>
-Also most the 'Test' option of 'find' test option, below some excerpt of its manual for options   
+Also most of the 'test' options owned by 'find' may be passed, below some excerpt of its manual for options   
 
 Simply type l   
 $ l   
