@@ -153,11 +153,9 @@ A=${BASH_REMATCH[2]}
 : ${A:=${BASH_REMATCH[4]}}
 [[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(--?\ )?(.*) ]]
 A=${BASH_REMATCH[4]}
-
 A=${A//\\/\\\\}
 
-: ${A:=\'\'}
-IFS=$'\n';eval set -- $A
+IFS=$'\n';eval set -- ${A:-\'\'}
 for e
 {
 unset Fl re z
@@ -169,8 +167,8 @@ e=${e#./}
 	z=${BASH_REMATCH[2]}
 	[[ $e = \\ ]] &&{	e=/;	z=${z#/}; }
 }
-: ${e:=\'\'}
-IFS=$'\\';eval set -- ${e//\/.\///} # Get multiple items of the same dir. path seperated by \\
+e=${e//\/.\///}
+IFS=$'\\';eval set -- ${e:-\'\'} # Get multiple items of the same dir. path seperated by \\
 B=${1%/*}/
 for a ;{
 unset P Z p n s RF
@@ -189,40 +187,40 @@ elif [[ $z = /// ]] ;then Z=$K
 else	Z="\( $D -o -print \)"
 fi
 if [[ $a =~ ^/ ]] ;then
-	while [[ $a =~ (/|$)([^.].|.[^.]|[^/]{3,}|..?)/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
+	while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
 	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 	a=${a%/}
 else
 	if [[ $a =~ ^(\.\.(/\.\.)*)(/.+)? ]] ;then
+		s=~+/${BASH_REMATCH[1]}
+		while [[ $s =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do s=${s/${BASH_REMATCH[0]/\/}};done
+		[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s\\nfrom ~+/$a>&2;continue;}
+		fx=${BASH_REMATCH[3]}	# fx is first explicit path
+		while [[ $fx =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do fx=${fx/${BASH_REMATCH[0]/\/}};done
 		if [ $re ] ;then
-			fx=${BASH_REMATCH[3]}	# fx is first explicit path
-			s=~+/${BASH_REMATCH[1]}
-			while [[ $s =~ (/|$)([^.].|.[^.]|[^/]{3,}|..?)/\.\.(/|$) ]];do s=${s/${BASH_REMATCH[0]/\/}};done
-			[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s\\nfrom ~+/$a>&2;continue;}
-			while [[ $fx =~ (/|$)([^.].|.[^.]|[^/]{3,}|..?)/\.\.(/|$) ]];do fx=${fx/${BASH_REMATCH[0]/\/}};done
 			[[ $fx =~ ^(/\.\.)+(/|$) ]] && fx=${fx/${BASH_REMATCH[0]}}
 			[[ $fx =~ ^[^*?]+$ ]] &&{
 				P="-regextype posix-extended -${I}regex ^$s$fx$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*$fx$ -print"
 			}
-			a=${s%/}**{fx:+/$fx}
+			a=${s%/}**${fx:+/$fx}
 		else
-			a=~+/$a
-			while [[ $a =~ (/|$)([^.].|.[^.]|[^/]{3,}|..?)/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
+			a=$s$fx
+			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
 	else
+		s=~+
 		if [ $re ] ;then
-			while [[ $a =~ (/|$)([^.].|.[^.]|[^/]{3,}|..?)/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
+			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
 			[[ $a =~ ^(/\.\.)+(/|$) ]] && a=${a/${BASH_REMATCH[0]}}
-			s=~+
 			if [[ $a =~ ^[^*?]+$ ]] ;then
 				P="-regextype posix-extended -${I}regex ^~+/$a$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*/$a$ -print"
 			else
-				a=**${a:+/$a}
+				a=$s**${a:+/$a}
 			fi
 		else
-			a=~+/$a
-			while [[ $a =~ (/|$)([^.].|.[^.]|[^/]{3,}|..?)/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
+			a=$s${a:+/$a}
+			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
 	fi
@@ -233,40 +231,30 @@ fi
 }
 
 if [ -z "$P" ] ;then
-	if [ -z "$a" ] ;then
-		s=~+
-	elif [ $E ] ;then
+	#if [ -z "$a" ] ;then
+		#s=~+
+	#el
+	if [ $E ] ;then
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 		s=${BASH_REMATCH[1]}
 		p=${BASH_REMATCH[3]}
 		P="-regextype posix-extended -${I}regex ^$s$p$"
 	elif [[ $a =~ [*?] ]] ;then
 		a=${a//./\\\\.}
-		[[ $a =~ ^(.*\*\*[^/]*)(/[^/]+)$ ]] || [[ $a =~ ^(.*\*\*)?([^/]*)$| ]]
-		p=${BASH_REMATCH[1]}
-		n=${BASH_REMATCH[2]}
-		if [ $s ] ;then
-			p=${p//\*\*/~\}\{}
-			p=${p//\*/[^/]*}
-			p=${p//~\}\{/.*}
-			p=${p//\?/[^/.]}
-			n=${n//\\.\*/\\\\.[^/]+}
-			n=${n//\?/[^/.]}
-			n=${n//\*/[^/]*}		
-			P="-regextype posix-extended -${I}regex ^$s$p$n$"
-		else
-			[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
-			s=${BASH_REMATCH[1]}
-			: ${s:=/}
-			p=${p//\*\*/~\}\{}
-			p=${p//\*/[^/]*}
-			p=${p//~\}\{/.*}
-			p=${p//\?/[^/.]}
-			n=${n//\\.\*/\\\\.[^/]+}
-			n=${n//\?/[^/.]}
-			n=${n//\*/[^/]*}
-			P="-regextype posix-extended -${I}regex ^$p$n$"
-		fi
+		[[ $ =~ ^((/[^/*?]+)+)(/.+)?$ ]]
+		s=${BASH_REMATCH[1]};: ${s:=/}
+
+		[[ $a =~ ^(.*\*\*)([^/]*(/[^/]+)*/)?([^/]*)$ ]]
+		p=${BASH_REMATCH[1]}${BASH_REMATCH[2]}
+		n=${BASH_REMATCH[4]}
+		p=${p//\*\*/~\}\{}
+		p=${p//\*/[^/]*}
+		p=${p//~\}\{/.*}
+		p=${p//\?/[^/.]}
+		n=${n//\\.\*/\\\\.[^/]+}
+		n=${n//\?/[^/.]}
+		n=${n//\*/[^/]*}		
+		P="-regextype posix-extended -${I}regex ^$p$n$"
 	else
 		if [ -d "$a" ] ;then
 			s=$a
