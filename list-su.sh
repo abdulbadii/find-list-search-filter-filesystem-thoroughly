@@ -43,7 +43,6 @@ fi
 D="-type d"
 F="-type f"
 K="-type l"
-R="-print"
 if [[ $z = / ]] ;then Z=$D
 elif [[ $z = // ]] ;then Z=$F
 elif [[ $z = /// ]] ;then Z=$K
@@ -147,7 +146,7 @@ case $e in
 esac
 }
 
-[[ `history 1` =~ ^\ *[0-9]+\ +(.+\$\(\ *$FUNCNAME\ +(.*)\)|.+\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*)) ]]
+[[ `history 1` =~ ^\ *[0-9]+\ +(.*\$\(\ *$FUNCNAME\ +(.*)\)|.*\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*)) ]]
 A=${BASH_REMATCH[2]}
 : ${A:=${BASH_REMATCH[3]}}
 : ${A:=${BASH_REMATCH[4]}}
@@ -180,51 +179,48 @@ fi
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
 K="-type l -printf \"$r\n\""
-R="-print"
+
 if [[ $z = / ]] ;then Z=$D
 elif [[ $z = // ]] ;then Z=$F
 elif [[ $z = /// ]] ;then Z=$K
-else	Z="\( $D -o -print \)"
+else	Z="\( $D -o -printf \"$r\n\" \)"
 fi
 if [[ $a =~ ^/ ]] ;then
-	while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/}};done
+	while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 	a=${a%/}
 else
 	if [[ $a =~ ^(\.\.(/\.\.)*)(/.+)? ]] ;then
 		s=~+/${BASH_REMATCH[1]}
-		while [[ $s =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do s=${s/"${BASH_REMATCH[0]}"/\/}};done
-		[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s\\nfrom ~+/$a>&2;continue;}
 		fx=${BASH_REMATCH[3]}	# fx is first explicit path
-		while [[ $fx =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do fx=${fx/"${BASH_REMATCH[0]}"/\/}};done
+		while [[ $s =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do s=${s/"${BASH_REMATCH[0]}"/\/};done
+		[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s\\nfrom ~+/$a>&2;continue;}
+		s=${s%/}
+		while [[ $fx =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do fx=${fx/"${BASH_REMATCH[0]}"/\/};done
 		if [ $re ] ;then
 			[[ $fx =~ ^(/\.\.)+(/|$) ]] && fx=${fx/${BASH_REMATCH[0]}}
 			[[ $fx =~ ^[^*?]+$ ]] &&{
-				a=$s$fx
-				while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
-				P="-regextype posix-extended -${I}regex ^$a$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*$fx$ -print"
+				P="-${I}path $s$fx \( -type d -exec find '{}' $Z \; -o -printf \"$r\n\" \) -o -${I}path $s*$fx -printf \"$r\n\""
 			}
-			a=${s%/}**${fx:+/$fx}
+			a=$s**${fx:+/$fx}
 		else
 			a=$s$fx
-			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/}};done
+			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
 	else
 		s=~+
 		if [ $re ] ;then
-			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/}};done
+			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^(/\.\.)+(/|$) ]] && a=${a/${BASH_REMATCH[0]}}
 			if [[ $a =~ ^[^*?]+$ ]] ;then
-				a=~+/$a
-				while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
-				P="-regextype posix-extended -${I}regex ^$a$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*/$a$ -print"
+				P="-${I}path $s/$a \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}path $s*/$a -printf \"$r\n\""
 			else
 				a=$s**${a:+/$a}
 			fi
 		else
 			a=$s${a:+/$a}
-			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/}};done
+			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
 	fi
@@ -241,7 +237,7 @@ if [ -z "$P" ] ;then
 		p=${BASH_REMATCH[3]}
 		P="-regextype posix-extended -${I}regex ^$s$p$"
 	elif [[ $a =~ [*?] ]] ;then
-		while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
+		while [[ $a =~ ([^\\])([]\[{}().]) ]] ;do a=${a/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
 		[[ $a =~ ^(/.*\*\*)([^/]*)$ ]] || [[ $a =~ ^(/.+)(/[^/]*)$ ]]
 		p=${BASH_REMATCH[1]}
 		n=${BASH_REMATCH[2]}
@@ -274,13 +270,13 @@ if [ -z "$P" ] ;then
 fi
 if((de+if)) &&[ $F$K ] ;then
 	export -f di
-	F="$F $O $K"
-	eval "LC_ALL=C find $po $s $d \! -ipath $s $XC $P $opt $X \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D $O $R \)"
+	F="$F ${K+-o $K}"
+	eval "LC_ALL=C find $po $s $d \! -ipath $s $XC $P $opt $X \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D -o -printf \"$r\n\" \)"
+
 elif [ $cp ] ;then
 	sudo mkdir -pv $cp
 	
 	eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -r '{}' ${cp[0]}/\{\} \;"
-
 
 elif [ $cpe ] ;then
 	sudo mkdir -pv $cpe

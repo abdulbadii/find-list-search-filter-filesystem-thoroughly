@@ -4,16 +4,16 @@ the "list-su.sh" differs only in having superuser request (sudo prefixed command
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 
 Would print its  <pre> 
-- Size													-s   
+- Size										-s   
 - Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
 - Dependencies of file found in one level depth		-de   
 
 Would narrow down search   
 - To find only directory, file or link type, suffix it with /, // or ///    
-- To certain depth only :							-1..99, ./ prefix to tie on current dir.
+- To certain depth :					-1..99, ./ prefix to tie on current dir.
 - To have greater control by regular expression					-E   
-- To search in case sensitive only. Defaults to insensitive (-ci option)	-cs   
+- To search in case sensitive only. (Defaults to insensitive -ci option)	-cs   
 - The Exclusion from the main search found  
 </pre>
 Also the most 'test' options owned by 'find' may be passed here, below some excerpt of its manual for its options   
@@ -121,16 +121,16 @@ to better narrow down the search use Linux "find" options to test or filter the 
 
 $ l -cmin -7 -E '/a/**m\w{1,2}\\.[c-h]   
 
-will give as above which has been modified less than 7 minutes ag   
+will give as above which has been modified less than 7 minutes ago   
 
-The 'find' filter options copied from its manual   
+"find" filter options    
   Note if a number n specified   
      +n     for greater than    
      -n     for less than    
       n      for exactly    
 
 -amin    
-       File was last accessed n minutes ag   
+       File was last accessed n minutes ago   
 -anewer fil   
         File was last accessed more recently than file was modified.   If  fil   
         is a symbolic link and the -H option or the -L option is in effect, th   
