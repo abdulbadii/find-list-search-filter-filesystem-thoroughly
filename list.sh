@@ -227,7 +227,7 @@ else
 fi
 ((l)) &&{
 	[ -z $lx ] &&l=-prune
-	D="-type d $l -exec find \{\} $lx $opt \( $D -o -print \) \;"
+	D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$r\n\" \) \;"
 }
 
 if [ -z "$P" ] ;then
@@ -252,9 +252,9 @@ if [ -z "$P" ] ;then
 			n=${n//\?/[^/]}
 			n=${n//\*/[^/]*}		
 		fi
-		[[ $p =~ ^(/[^*?]*)([*?].*)$ ]]
+		[[ $p =~ ^((/[^/*?]*)*)(/.*)?$ ]]
 		s=${BASH_REMATCH[1]}
-		p=${BASH_REMATCH[2]//\*\*/~\}\{}
+		p=${BASH_REMATCH[3]//\*\*/~\}\{}
 		p=${p//\*/[^/]*}
 		p=${p//~\}\{/.*}
 		p=${p//\?/[^/]}
