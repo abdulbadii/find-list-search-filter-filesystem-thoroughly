@@ -200,7 +200,9 @@ else
 		if [ $re ] ;then
 			[[ $fx =~ ^(/\.\.)+(/|$) ]] && fx=${fx/${BASH_REMATCH[0]}}
 			[[ $fx =~ ^[^*?]+$ ]] &&{
-				P="-regextype posix-extended -${I}regex ^$s$fx$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*$fx$ -print"
+				a=$s$fx
+				while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/${BASH_REMATCH[0]}/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
+				P="-regextype posix-extended -${I}regex ^$a$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*$fx$ -print"
 			}
 			a=${s%/}**${fx:+/$fx}
 		else
@@ -214,7 +216,9 @@ else
 			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
 			[[ $a =~ ^(/\.\.)+(/|$) ]] && a=${a/${BASH_REMATCH[0]}}
 			if [[ $a =~ ^[^*?]+$ ]] ;then
-				P="-regextype posix-extended -${I}regex ^~+/$a$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*/$a$ -print"
+				a=~+/$a
+				while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/${BASH_REMATCH[0]}/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
+				P="-regextype posix-extended -${I}regex ^$a$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*/$a$ -print"
 			else
 				a=$s**${a:+/$a}
 			fi
@@ -231,30 +235,34 @@ fi
 }
 
 if [ -z "$P" ] ;then
-	#if [ -z "$a" ] ;then
-		#s=~+
-	#el
 	if [ $E ] ;then
 		[[ $a =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 		s=${BASH_REMATCH[1]}
 		p=${BASH_REMATCH[3]}
 		P="-regextype posix-extended -${I}regex ^$s$p$"
 	elif [[ $a =~ [*?] ]] ;then
-		a=${a//./\\\\.}
-		[[ $ =~ ^((/[^/*?]+)+)(/.+)?$ ]]
-		s=${BASH_REMATCH[1]};: ${s:=/}
-
-		[[ $a =~ ^(.*\*\*)([^/]*(/[^/]+)*/)?([^/]*)$ ]]
-		p=${BASH_REMATCH[1]}${BASH_REMATCH[2]}
-		n=${BASH_REMATCH[4]}
-		p=${p//\*\*/~\}\{}
+		while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/${BASH_REMATCH[0]}/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
+		[[ $a =~ ^(/.*\*\*)([^/]*)$ ]] || [[ $a =~ ^(/.+)(/[^/]*)$ ]]
+		p=${BASH_REMATCH[1]}
+		n=${BASH_REMATCH[2]}
+		if [[ $n =~ ^/(\*)(\.\*)?$ ]] ;then
+			if [ ${BASH_REMATCH[2]} ] ;then
+				n=/[^/.][^/]*\\.[^/]+
+			else
+				n='/[^/.][^/]*\(\\.[^/]+\)?'
+			fi
+		elif	[[ $n =~ ^\.\*$ ]] ;then n=\\.[^/]+
+		else
+			n=${n//\?/[^/]}
+			n=${n//\*/[^/]*}		
+		fi
+		[[ $p =~ ^(/[^*?]*)([*?].*)$ ]]
+		s=${BASH_REMATCH[1]}
+		p=${BASH_REMATCH[2]//\*\*/~\}\{}
 		p=${p//\*/[^/]*}
 		p=${p//~\}\{/.*}
-		p=${p//\?/[^/.]}
-		n=${n//\\.\*/\\\\.[^/]+}
-		n=${n//\?/[^/.]}
-		n=${n//\*/[^/]*}		
-		P="-regextype posix-extended -${I}regex ^$p$n$"
+		p=${p//\?/[^/]}
+		P="-regextype posix-extended -${I}regex ^$s$p$n$"
 	else
 		if [ -d "$a" ] ;then
 			s=$a
