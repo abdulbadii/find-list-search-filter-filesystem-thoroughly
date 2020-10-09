@@ -187,16 +187,16 @@ elif [[ $z = /// ]] ;then Z=$K
 else	Z="\( $D -o -print \)"
 fi
 if [[ $a =~ ^/ ]] ;then
-	while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
+	while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/}};done
 	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 	a=${a%/}
 else
 	if [[ $a =~ ^(\.\.(/\.\.)*)(/.+)? ]] ;then
 		s=~+/${BASH_REMATCH[1]}
-		while [[ $s =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do s=${s/${BASH_REMATCH[0]/\/}};done
+		while [[ $s =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do s=${s/"${BASH_REMATCH[0]}"/\/}};done
 		[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s\\nfrom ~+/$a>&2;continue;}
 		fx=${BASH_REMATCH[3]}	# fx is first explicit path
-		while [[ $fx =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do fx=${fx/${BASH_REMATCH[0]/\/}};done
+		while [[ $fx =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do fx=${fx/"${BASH_REMATCH[0]}"/\/}};done
 		if [ $re ] ;then
 			[[ $fx =~ ^(/\.\.)+(/|$) ]] && fx=${fx/${BASH_REMATCH[0]}}
 			[[ $fx =~ ^[^*?]+$ ]] &&{
@@ -207,13 +207,13 @@ else
 			a=${s%/}**${fx:+/$fx}
 		else
 			a=$s$fx
-			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
+			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/}};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
 	else
 		s=~+
 		if [ $re ] ;then
-			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
+			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/}};done
 			[[ $a =~ ^(/\.\.)+(/|$) ]] && a=${a/${BASH_REMATCH[0]}}
 			if [[ $a =~ ^[^*?]+$ ]] ;then
 				a=~+/$a
@@ -224,7 +224,7 @@ else
 			fi
 		else
 			a=$s${a:+/$a}
-			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/${BASH_REMATCH[0]/\/}};done
+			while [[ $a =~ (/|^)([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/}};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
 	fi
