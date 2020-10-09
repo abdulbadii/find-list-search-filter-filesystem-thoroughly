@@ -201,7 +201,7 @@ else
 			[[ $fx =~ ^(/\.\.)+(/|$) ]] && fx=${fx/${BASH_REMATCH[0]}}
 			[[ $fx =~ ^[^*?]+$ ]] &&{
 				a=$s$fx
-				while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/${BASH_REMATCH[0]}/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
+				while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
 				P="-regextype posix-extended -${I}regex ^$a$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*$fx$ -print"
 			}
 			a=${s%/}**${fx:+/$fx}
@@ -217,7 +217,7 @@ else
 			[[ $a =~ ^(/\.\.)+(/|$) ]] && a=${a/${BASH_REMATCH[0]}}
 			if [[ $a =~ ^[^*?]+$ ]] ;then
 				a=~+/$a
-				while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/${BASH_REMATCH[0]}/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
+				while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
 				P="-regextype posix-extended -${I}regex ^$a$ \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}regex ^$s.*/$a$ -print"
 			else
 				a=$s**${a:+/$a}
@@ -241,7 +241,7 @@ if [ -z "$P" ] ;then
 		p=${BASH_REMATCH[3]}
 		P="-regextype posix-extended -${I}regex ^$s$p$"
 	elif [[ $a =~ [*?] ]] ;then
-		while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/${BASH_REMATCH[0]}/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
+		while [[ $a =~ ([^\\])([\]\[\{\}\(\).]) ]] ;do a=${a/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}} ;done
 		[[ $a =~ ^(/.*\*\*)([^/]*)$ ]] || [[ $a =~ ^(/.+)(/[^/]*)$ ]]
 		p=${BASH_REMATCH[1]}
 		n=${BASH_REMATCH[2]}
