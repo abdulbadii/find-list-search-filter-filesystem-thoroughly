@@ -146,11 +146,10 @@ case $e in
 esac
 }
 
-[[ `history 1` =~ ^\ *[0-9]+\ +(.*\$\(\ *$FUNCNAME\ +(.*)\)|.*\`\ *$FUNCNAME\ +(.*)\`|.*$FUNCNAME\ +(.*)) ]]
-A=${BASH_REMATCH[2]}
-: ${A:=${BASH_REMATCH[3]}}
-: ${A:=${BASH_REMATCH[4]}}
-[[ $A =~ (--?[[:alnum:]]+(=.+)?\ +)*(--?\ )?(.*) ]]
+[[ `history 1` =~ ^\ *[0-9]+\ +.+\ \$\(\ *$FUNCNAME\ +(.*)\) ]] || [[ `history 1` =~ ^\ *[0-9]+\ +.+\ \`\ *$FUNCNAME\ +(.*)\` ]] || [[ `history 1` =~ ^\ *[0-9]+\ +.*$FUNCNAME\ +(.*) ]] &&\
+IFS=$';';eval set -- ${BASH_REMATCH[1]}
+
+[[ $1 =~ (--?[[:alnum:]]+(=.+)?\ +)*(--?\ )?(.*) ]]
 A=${BASH_REMATCH[4]}
 A=${A//\\/\\\\}
 
