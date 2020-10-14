@@ -141,7 +141,6 @@ case $e in
 esac
 o=$o$e' '
 }
-
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 IFS=\;;set -- ${BASH_REMATCH[1]}
 for c;{
@@ -151,44 +150,45 @@ a=${a//  / };a=${a//   / };a=${a#$o}
 set -- ${a:-\'\'}
 for e
 {
-unset Fl z as
-[[ $e =~ ^\./ ]] ;re=$? # it's recursively at any depth if no prefix ./
+unset A B Fl z as
+[[ $e =~ ^\./ ]] ;re=$? # it's recursively at any depth of PWD if no prefix ./
 e=${e#./}
 
 [[ $e =~ ^(.*[^/])?(/+)$ ]] &&{ # Get /, // as dir, file filtered search 
 	e=${BASH_REMATCH[1]}
 	z=${BASH_REMATCH[2]}
-	[[ $e =~ ^\\? ]] &&{	e=/;	z=${z#/}; }
+	[[ $e =~ ^\\\\? ]] &&{	e=/;	z=${z#/}; }
 }
 e=${e//\/.\///}
 IFS=$'\\';set -- ${e:-\'\'}
-
-# Get multiple items separated by \\ in same dir. only if any and none has ** or exact .. pattern in the last / (file name)
-if [ "$#" = 1 ] ;then Fl=1
-else for a;{
-	[[ $a =~ (^|/)(\.\.|.*\*\*.*)$ ]] &&{ Fl=1;break;};}
+# Get multiple items separated by \\ in same dir. only if any, and if none has ** or exact .. pattern in the last / (file name)
+if [ "$#" = 1 ] ;then	Fl=1
+else for a;{	[[ $a =~ (^|/)(\.\.|.*\*\*.*)$ ]] &&{ Fl=1;break;};}
 fi
-A=${1##*/}
-B=${1%/*}/
+
+if [[ $1 =~ / ]] ;then
+	A=${1##*/}
+	B=${1%/*}/
+else
+	A=$1
+fi
 S="$A ${@:2}"
 unset IFS
 if(($Fl));then	set -- $S
 else	set -- $A
 fi
-
 for a;{
 unset p n P Z
 a=$B$a
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
 LN="-type l -printf \"$r\n\""
-
 if [[ $z = / ]] ;then Z=$D
 elif [[ $z = // ]] ;then Z=$F
 elif [[ $z = /// ]] ;then Z=$LN
 else	Z="\( $D -o -printf \"$r\n\" \)"
 fi
-#echo -e '\e[41;1;37m'#a=${a//\\/\\\\}
+#echo -e '\e[41;1;37m' #a=${a//\\/\\\\}
 if [[ $a =~ ^/ ]] ;then re=
 	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 		[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
@@ -209,7 +209,6 @@ else
 			while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
-		a=${a%/}
 	else
 		s=~+;	a=${a:+/$a}
 		if((re)) ;then
@@ -221,13 +220,12 @@ else
 			while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
-		a=${a%/}
 	fi
+	a=${a%/}
 fi
 ((l)) &&{ [ -z $lx ] &&l=-prune
 	D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$r\n\" \) \;"
 }
-
 b=${a%/*}/
 Fl=$Fl
 if(($Fl)) ;then
@@ -235,7 +233,6 @@ if(($Fl)) ;then
 else
 	set -- $S;
 fi
-
 for f
 {
 f=$b$f
