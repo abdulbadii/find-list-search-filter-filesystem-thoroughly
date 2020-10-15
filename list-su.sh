@@ -185,7 +185,7 @@ elif [[ $z = // ]] ;then Z=$F
 elif [[ $z = /// ]] ;then Z=$LN
 else	Z="\( $D -o -printf \"$r\n\" \)"
 fi
-#echo -e '\e[41;1;37m'
+#echo -e '\e[41;1;37m' 
 if [[ $a =~ ^/ ]] ;then re=
 	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 		[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
@@ -230,9 +230,9 @@ if((Fl)) ;then
 else
 	set -- $S;
 fi
-for f
+for z
 {
-f=$b$f
+f=$b$z
 if [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	s=${BASH_REMATCH[1]}
@@ -268,8 +268,7 @@ elif [[ $f =~ [*?] ]] ;then
 	P="-regextype posix-extended -${I}regex ^$s$p$"
 else
 	if((re)) ;then
-		f=${f/\\/.*}
-		P="-${I}path $f \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}path $s*/${f#$s} -printf \"$r\n\""
+		P="-${I}path $f \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}path $s/*${f#$s} -printf \"$r\n\""
 	elif [ -d "$f" ] ;then
 		s=$f
 	else
