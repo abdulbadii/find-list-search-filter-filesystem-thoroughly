@@ -166,7 +166,7 @@ if [ "$#" = 1 ] ;then	Fl=1
 else for a;{	[[ $a =~ (^|/)(\.\.|.*\*\*.*)$ ]] &&{ Fl=1;break;};}
 fi
 
-[[ $1 =~ / ]]&&
+[[ $1 =~ / ]]&& #if any explicit path base, get it to be joined with PWD, else just the PWD
 	B=${1%/*}/
 A=${1##*/}
 S="$A ${@:2}"
@@ -233,30 +233,35 @@ fi
 for z
 {
 f=$b$z
+while [[ $f =~ ([^\\])([{}().]) ]] ;do f=${f/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 if [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	s=${BASH_REMATCH[1]}
 	p=${BASH_REMATCH[3]}
 	P="-regextype posix-extended -${I}regex ^$s$p$"
 elif [[ $f =~ [*?] ]] ;then
-	[[ $f =~ ^(/.*\*\*)([^/]*)$ ]] || [[ $f =~ ^(/.+)(/[^/]*)$ ]]
+	if [[ $f =~ (/.*[^/]*\*\*[^/]*)$ ]] ;then
+		n=
+		p=${BASH_REMATCH[1]}
+		[[ $p =~ \.\*$ ]] && p=${p/BASH_REMATCH[0]/\\\\.[^/]+}
+	elif [[ $f =~ ^(.*/)?(.+)$ ]] ;then
+		p=${BASH_REMATCH[1]}
+		n=${BASH_REMATCH[2]}
+	fi
 	if((re)) ;then
-		[[ $p =~ ^(.*/)?(.+)$ ]]
-		p=**${BASH_REMATCH[1]}
-		n=${BASH_REMATCH[2]}
+		p=**${p#$s}
 	else
-		n=${BASH_REMATCH[2]}
-		[[ ${BASH_REMATCH[1]} =~ ^((/[^/*?]*)*)(/.*)?$ ]]
+		[[ $p =~ ^((/[^/*?]*)*)(/.*)?$ ]]
 		s=${BASH_REMATCH[1]}
 		p=${BASH_REMATCH[3]}
 	fi
 	if [[ $n =~ ^/(\*)(\.\*)?$ ]] ;then
 		if [ ${BASH_REMATCH[2]} ] ;then
-			n=/[^/.][^/]*\\.[^/]+
+			n=/[^/.][^/]*\\\\.[^/]+
 		else
-			n='/[^/.][^/]*\(\\.[^/]+\)?'
+			n='/[^/.][^/]*\(\\\\.[^/]+\)?'
 		fi
-	elif	[[ $n =~ ^\.\*$ ]] ;then n=\\.[^/]+
+	elif	[[ $n =~ ^\.\*$ ]] ;then n=/\\\\.[^/]+
 	else
 		n=${n//\?/[^/]}; n=${n//\*/[^/]*}		
 	fi
@@ -264,7 +269,6 @@ elif [[ $f =~ [*?] ]] ;then
 	p=${p//\*/[^/]*}
 	p=${p//~\}\{/.*}
 	p=${p//\?/[^/]}$n
-	while [[ $p =~ ([^\\])([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 	P="-regextype posix-extended -${I}regex ^$s$p$"
 else
 	if((re)) ;then
