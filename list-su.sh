@@ -152,8 +152,9 @@ for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
 }
 a=\ ${a//  / };a=${a//   / };a=${a#$o}
-[[ $a =~ ^\./ ]] ;re=$? # it's recursively at any depth of PWD if no prefix ./
-a=${a#./}
+# it's recursively at any depth of PWD if no prefix ./
+[[ $a =~ ^\./ ]] ;re=$?;a=${a#./}
+
 [ -z $a ]&&{ ((re)) ||d="-maxdepth 1"
 	eval "LC_ALL=C sudo find $po ~+ $d \! -ipath ~+ $opt $XC -type d -printf \"$r/\n\" -o -printf \"$r\n\""
 }	
