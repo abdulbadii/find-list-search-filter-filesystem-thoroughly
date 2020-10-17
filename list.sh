@@ -89,7 +89,7 @@ for l
 }
 }
 l(){
-unset IFS o po opt de if E s X XC d l lx cp cpe
+unset IFS a o po opt de if E s X XC d l lx cp cpe
 I=i; r=%p
 set -f;trap 'set +f;unset IFS' 1 2
 for e
@@ -123,6 +123,11 @@ case $e in
 	}
 	I=i;;
 -[1-9]|-[1-9][0-9]) d=-maxdepth\ ${e:1};;
+-[1-9]-*|[1-9][0-9]-*)
+	d=${e#-}
+	z=${d#*-}
+	z=${z:+ -maxdepth $z}
+	d="-mindepth ${d%-*}$z";;
 -de) de=1;;
 -in) if=1;;
 -cs) I=;;
@@ -139,34 +144,36 @@ case $e in
 -[!-]*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a full path name, put it after - or --;;
 *) break;;
 esac
-o=$o$e' '
+o=$o\ $e
 }
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 IFS=\;;set -- ${BASH_REMATCH[1]}
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
 }
-a=${a//  / };a=${a//   / };a=${a#$o}
-set -- ${a:-\'\'}
+a=\ ${a//  / };a=${a//   / };a=${a#$o}
+[[ $a =~ ^\./ ]] ;re=$? # it's recursively at any depth of PWD if no prefix ./
+a=${a#./}
+[ -z $a ]&&{ ((re)) ||d="-maxdepth 1"
+	eval "LC_ALL=C find $po ~+ $d \! -ipath ~+ $opt $XC -type d -printf \"$r/\n\" -o -printf \"$r\n\""
+}	
+set -- $a
 for e
 {
 unset A B Fl z as
-[[ $e =~ ^\./ ]] ;re=$? # it's recursively at any depth of PWD if no prefix ./
-e=${e#./}
-
-[[ $e =~ ^(.*[^/])?(/+)$ ]] &&{ # Get /, // as dir, file filtered search 
+# Get /, // as dir, file filtered search 
+[[ $e =~ ^(.*[^/])?(/+)$ ]] &&{
 	e=${BASH_REMATCH[1]}
 	z=${BASH_REMATCH[2]}
 	[[ $e =~ ^\\\\? ]] &&{	e=/;	z=${z#/}; }
 }
-e=${e//\/.\///}
-IFS=$'\\';set -- ${e:-\'\'}
+IFS=$'\\';set -- $e
 # Get multiple items separated by \\ in same dir. only if any, and if none has ** or exact .. pattern in the last / (file name)
 if [ "$#" = 1 ] ;then	Fl=1
-else for a;{	[[ $a =~ (^|/)(\.\.|.*\*\*.*)$ ]] &&{ Fl=1;break;};}
+else for a;{	[[ $a =~ ^(\.\.|.*\*\*.*)$ ]] &&{ Fl=1;break;};}
 fi
 
-[[ $1 =~ / ]]&& #if any explicit path base, get it to be joined with PWD, else just the PWD
+[[ $1 =~ / ]]&& #if any explicit path, get and join it to PWD, else just the PWD
 	B=${1%/*}/
 A=${1##*/}
 S="$A ${@:2}"
@@ -233,7 +240,6 @@ fi
 for z
 {
 f=$b$z
-while [[ $f =~ ([^\\])([{}().]) ]] ;do f=${f/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 if [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	s=${BASH_REMATCH[1]}
@@ -269,6 +275,7 @@ elif [[ $f =~ [*?] ]] ;then
 	p=${p//\*/[^/]*}
 	p=${p//~\}\{/.*}
 	p=${p//\?/[^/]}$n
+	while [[ $p =~ ([^\\])([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 	P="-regextype posix-extended -${I}regex ^$s$p$"
 else
 	if((re)) ;then
