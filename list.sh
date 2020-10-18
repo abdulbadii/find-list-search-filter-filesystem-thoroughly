@@ -90,7 +90,7 @@ for l
 }
 l(){
 unset IFS a o po opt de if E s X XC d l lx cp cpe
-I=i; r=%p
+I=i;r=%p
 set -f;trap 'set +f;unset IFS' 1 2
 for e
 {
@@ -126,8 +126,7 @@ case $e in
 -[1-9]-*|[1-9][0-9]-*)
 	d=${e#-}
 	z=${d#*-}
-	z=${z:+ -maxdepth $z}
-	d="-mindepth ${d%-*}$z";;
+	d="-mindepth ${d%-*}${z:+ -maxdepth $z}";;
 -de) de=1;;
 -in) if=1;;
 -cs) I=;;
@@ -144,44 +143,54 @@ case $e in
 -[!-]*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a full path name, put it after - or --;;
 *) break;;
 esac
-o=$o\ $e
+o=\ $o$e
 }
+
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
-IFS=\;;set -- ${BASH_REMATCH[1]}
+IFS=\;
+set -- ${BASH_REMATCH[1]}
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
 }
-a=\ ${a//  / };a=${a//   / };a=${a#$o}
-# it's recursively at any depth of PWD if no prefix ./
-[[ $a =~ ^\./ ]] ;re=$?;a=${a#./}
-
+shopt -s extglob
+a=\ ${a//  / };a=${a//   / }
+a=${a#$o}
+a=${a##+( )}
+# if no prefix ./ it's recursively at any depth of PWD
+[[ $a =~ ^\./ ]];re=$?
+a=${a#./}
 [ -z $a ]&&{ ((re)) ||d="-maxdepth 1"
-	eval "LC_ALL=C find $po ~+ $d \! -ipath ~+ $opt $XC -type d -printf \"$r/\n\" -o -printf \"$r\n\""
-}	
-set -- $a
+	eval "LC_ALL=C find $po ~+ $d \! -ipath ~+ $opt $XC -type d -printf \"$r/\n\" -o -printf \"$r\n\";return";}
+
+unset IFS;eval set -- ${a//\\/\\\\}
 for e
 {
-unset A B Fl z as
-# Get /, // as dir, file filtered search 
+unset B In LO L O z
+# Get suffix / or // as dir, file search filter
 [[ $e =~ ^(.*[^/])?(/+)$ ]] &&{
 	e=${BASH_REMATCH[1]}
 	z=${BASH_REMATCH[2]}
 	[[ $e =~ ^\\\\? ]] &&{	e=/;	z=${z#/}; }
 }
-IFS=$'\\';set -- $e
-# Get multiple items separated by \\ in same dir. only if any, and if none has ** or exact .. pattern in the last / (file name)
-if [ "$#" = 1 ] ;then	Fl=1
-else for a;{	[[ $a =~ ^(\.\.|.*\*\*.*)$ ]] &&{ Fl=1;break;};}
-fi
+# Get multiple items separated by \\ in same dir. only if any, and if none has ** or exact .. pattern in the last /, ie file name
+if [ $e ] ;then
+	IFS=$'\\';set -- $e
 
-[[ $1 =~ / ]]&& #if any explicit path, get and join it to PWD, else just the PWD
-	B=${1%/*}/
-A=${1##*/}
-S="$A ${@:2}"
-unset IFS
-if(($Fl));then	set -- $S
-else	set -- $A
+	fs=${1##*/}
+	if [ $# = 1 ] ;then	LO=$fs;L=$fs
+	else
+		for a;{	[[ $a =~ ^(\.\.|.*\*\*.*)$ ]] &&{ LO="$fs ${@:2}";L=$fs;break;};}
+	fi
+	#if any explicit dir. path, get it (to join with PWD), else just PWD
+	[[ $1 =~ / ]]&&	B=${1%/*}/
+
+	: ${L=$fs ${@:2}}
+	: ${LO=$fs}
+
+else
+	S=\"\"
 fi
+unset IFS; eval set -- $LO
 for a;{
 unset p n P Z
 a=$B$a
@@ -193,7 +202,6 @@ elif [[ $z = // ]] ;then Z=$F
 elif [[ $z = /// ]] ;then Z=$LN
 else	Z="\( $D -o -printf \"$r\n\" \)"
 fi
-#echo -e '\e[41;1;37m' 
 if [[ $a =~ ^/ ]] ;then re=
 	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 		[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
@@ -232,15 +240,14 @@ fi
 	D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$r\n\" \) \;"
 }
 
-b=${a%/*}/
-if((Fl)) ;then
-	set -- $A
+if [ $p ] ;then b=${a%/*}/
 else
-	set -- $S;
+	eval "LC_ALL=C find $po $s $d \! -ipath $s $opt $XC $Z" ;continue
 fi
-for z
+eval set -- $L
+for f
 {
-f=$b$z
+f=$b$f
 if [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	s=${BASH_REMATCH[1]}
@@ -292,16 +299,14 @@ fi
 if((de+if)) &&[ $F$LN ] ;then
 	export -f di
 	F="$F ${LN+-o $LN}"
-	eval "LC_ALL=C find $po $s $d \! -ipath $s $XC $P $opt $X \( ${F:+\( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o} $D -o -printf \"$r\n\" \)"
+	eval "LC_ALL=C find $po $s $d \! -ipath $s $XC $P $opt $X \( \( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o $D -o -printf \"$r\n\" \)"
 
-elif [ $cp ] ;then
-	mkdir -pv $cp
-	
-	eval "LC_ALL=C find $po $s $d \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -r '{}' ${cp[0]}/\{\} \;"
-
-elif [ $cpe ] ;then
-	mkdir -pv $cpe
-	eval "LC_ALL=C find $po $s $d \! -ipath $s $P $opt $XC -exec cp -r '{}' $cpe \;"
+#elif [ $cp ] ;then
+	#mkdir -pv $cp
+	#eval "LC_ALL=C find $po $s $d \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -r '{}' ${cp[0]}/\{\} \;"
+#elif [ $cpe ] ;then
+	#mkdir -pv $cpe
+	#eval "LC_ALL=C find $po $s $d \! -ipath $s $P $opt $XC -exec cp -r '{}' $cpe \;"
 	
 else
 	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "LC_ALL=C find $po $s $d \! -ipath $s $P $opt $XC $Z"
