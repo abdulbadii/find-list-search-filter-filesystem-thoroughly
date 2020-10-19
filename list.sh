@@ -159,10 +159,8 @@ a=${a##+( )}
 # if no prefix ./ it's recursively at any depth of PWD
 [[ $a =~ ^\./ ]];re=$?
 a=${a#./}
-[ -z $a ]&&{ ((re)) ||d="-maxdepth 1"
-	eval "LC_ALL=C find $po ~+ $d \! -ipath ~+ $opt $XC -type d -printf \"$r/\n\" -o -printf \"$r\n\";return";}
-
-unset IFS;eval set -- ${a//\\/\\\\}
+a=${a//\\/\\\\}
+unset IFS;eval set -- ${a:-\"\"}
 for e
 {
 unset B In LO L O z
@@ -174,19 +172,18 @@ unset B In LO L O z
 }
 # Get multiple items separated by \\ in same dir. only if any, and if none has ** or exact .. pattern in the last /, ie file name
 if [ $e ] ;then
-
-	IFS=$'\\';set -- $e
+	while [[ $e =~ ([^\\])(\\\\)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
+	IFS=$'\037';set -- $e
 	fs=${1##*/}
 	if [ $# = 1 ] ;then	LO=$fs;L=$fs
 	else
 		for a;{	[[ $a =~ ^(\.\.|.*\*\*.*)$ ]] &&{ LO="$fs ${@:2}";L=$fs;break;};}
 	fi
 	#if any explicit dir. path, get it (to join with PWD), else just PWD
-	[[ $1 =~ / ]]&&	B=${1%/*}/
-	: ${L=$fs ${@:2}}
-	: ${LO=$fs}
-else
-	LO=\"\"
+	[[ $1 =~ / ]] && B=${1%/*}/
+	: ${LO=$fs}		${L=$fs ${@:2}}
+
+else	LO=\"\"
 fi
 
 unset IFS; eval set -- $LO
@@ -199,7 +196,8 @@ elif [[ $z = // ]] ;then Z=$F
 elif [[ $z = /// ]] ;then Z=$LN
 else	Z="\( $D -o -printf \"$r\n\" \)"
 fi
-[ -z $a ] &&{ eval "LC_ALL=C find $po ~+ $d \! -ipath ~+ $opt $XC $Z" ;continue;}
+[ -z $a ] &&{  ((re)) ||d="-maxdepth 1"
+	eval "LC_ALL=C find $po ~+ $d \! -ipath ~+ $opt $XC $Z" ;continue;}
 
 unset p n P Z
 a=$B$a
