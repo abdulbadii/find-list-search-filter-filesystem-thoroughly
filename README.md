@@ -11,10 +11,10 @@ Would print its  <pre>
 
 Would narrow down search   
 - To find only directory, file or link type, suffix it with /, // or ///    
-- To certain depth :					-1..99, ./ prefix to tie on current dir.
+- To certain depth :		-1..99[-1..99] or ./ prefix to be on current dir.
 - To have greater control by regular expression					-E   
-- To search in case sensitive only. (Defaults to insensitive -ci option)	-cs   
-- The Exclusion from the main search found  
+- To search in case sensitive		-cs (Defaults to insensitive -ci option)   
+- The Exclusion from the main search found   
 </pre>
 Most of 'find' 'test' options may also be passed here, below are some excerpt of its manual on options   
 Simply type l   
@@ -87,30 +87,31 @@ Can be limited with depth by option -1..99[-1..99] options,  e.g:
 search for only on current directory and one below it put -2   
 
 $ l -2 src/core   
-search only on current and next 4 directories add -5 and so on   
+
+to search only on current and next 4 directories add -5 and so on   
 
 to search for only from 3rd ply from current up to 5th    
 
-$ -3-5 src/dev   
+$ l -3-5 src/dev   
 
 to search for only from 2nd ply of current directory up to the last   
 
-$ -2- src/dev   
+$ l -2- src/dev   
 
 can be navigated by way of one-line multiple paths such as absolute followed by relative path      
 
 $ l /qt/\*/\*/core/\*\*/meta  src/\*.c   
 
-can even by multiple object name of the same directory paths e.g. search for h, c and cpp files in one directory path relative to current working directory, separated by separator \\\\\\\\ in a single line   
+can even by multiple object name of the same directory paths e.g. search for h, c and cpp files in one directory path relative to current working directory, separated by separator \\\\\\\\ in a single line. E.g this will search for /qt/src/dev/\*.h and /qt/src/dev/\*.c and /qt/src/dev/\*.cp    
+$ cd /qt
+$ l src/dev/*.h\\\\\*.c\\\\\*.cpp   
 
-$ l /qt/src/*.h\\\\\*.c\\\\\*.cpp   
-
-To change separator other than \\\\ use -sep= option   
+To change separator other than \\\\ use -sep= option, e.g. -sep=;;   
 
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
-The most usefull and powerful features of this tool are its "OS recognizable format" of input and output which could be used/piped as input of another tool, and the -exc (or just -ex) exclusion option for excluding some certain files or paths from the original result paths  
+The most usefull and powerful features of this tool are its "recognized format" of input and output which could be used/piped as input of another tool, and the -exc (or just -ex) exclusion option for excluding some certain files or paths from the original result paths  
 
 e.g. 1st, the below will search under "lib" being under "dev" instead of "core", all of "c" file :   
 
