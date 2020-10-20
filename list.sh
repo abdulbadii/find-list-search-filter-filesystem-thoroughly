@@ -89,7 +89,7 @@ for l
 }
 }
 l(){
-unset IFS a o po opt de if E s X XC d l lx cp cpe
+unset IFS a o po opt se de if E s X XC d l lx cp cpe
 I=i;r=%p
 set -f;trap 'set +f;unset IFS' 1 2
 for e
@@ -127,6 +127,8 @@ case $e in
 	d=${e#-}
 	z=${d#*-}
 	d="-mindepth ${d%-*}${z:+ -maxdepth $z}";;
+-sep=??) se=${e:5};;
+-sep=*) echo Separator must consist of 2 characters;;
 -de) de=1;;
 -in) if=1;;
 -cs) I=;;
@@ -170,9 +172,10 @@ unset B In LO L O z
 	z=${BASH_REMATCH[2]}
 	[[ $e =~ ^\\\\? ]] &&{	e=/;	z=${z#/}; }
 }
-# Get multiple items separated by \\ in same dir. only if any, and if none has ** or exact .. pattern in the last /, ie file name
+# Get multiple items separated by \\ or -sep, in same dir. only if any, and if none has ** or exact .. pattern in the last /, ie file name
 if [ $e ] ;then
-	while [[ $e =~ ([^\\])(\\\\)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
+	: ${se='\\\\'}
+	while [[ $e =~ ([^\\])($se)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
 	IFS=$'\037';set -- $e
 	fs=${1##*/}
 	if [ $# = 1 ] ;then	LO=$fs;L=$fs
@@ -182,10 +185,10 @@ if [ $e ] ;then
 	#if any explicit dir. path, get it (to join with PWD), else just PWD
 	[[ $1 =~ / ]] && B=${1%/*}/
 	: ${LO=$fs}		${L=$fs ${@:2}}
-
 else	LO=\"\"
 fi
 
+while [[ $LO =~ ([^\\]|^)(\\[?]) ]] ;do LO=${LO/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}"} ;done 
 unset IFS; eval set -- $LO
 for a;{
 D="-type d -printf \"$r/\n\""
