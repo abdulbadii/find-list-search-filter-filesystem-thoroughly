@@ -4,7 +4,7 @@ the "list-su.sh" differs only in having superuser request (sudo prefixed command
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 
 Would print its  <pre> 
-- Size										-s   
+- Size									-s   
 - Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
 - Dependencies of file found in one level depth		-de   
@@ -16,9 +16,9 @@ Would narrow down search
 - To search in case sensitive only. (Defaults to insensitive -ci option)	-cs   
 - The Exclusion from the main search found  
 </pre>
-Also the most 'test' options owned by 'find' may be passed here, below some excerpt of its manual for its options   
-
+Most of 'find' 'test' options may also be passed here, below are some excerpt of its manual on options   
 Simply type l   
+
 $ l   
 list every file, directory, and other kind of filesystem under current directory entirely   
 
@@ -35,16 +35,13 @@ It indicates that just put suffix / to search for directory only,
 or put suffix // to search for file only,   
 or put suffix /// to search for link only   
 
-$ l \\\\/   
-list every filesystem type under "/" (root) directory entirely, the preceding \\ (but must escapedly be put as \\\\) is to differentiate it with second use above: list every directory only under current directory   
+$ l \\/   
+list every filesystem type under "/" (root) directory entirely, the preceding \\ (or may be put as \\\\) is to differentiate it with second use above: list every directory only under current directory   
 
-$ l -s -i *.bin   
-query any object having 'bin' name suffix then list it with the size and file information under current directory entirely    
+$ l -s -i *.bin//   
+query any file only (excluding other type) having 'bin' suffix then list it with the size and file information under current directory entirely    
 
-$ l  -t ./*.bin//   
-list every file only (excluding else type) of 'bin' file type on this directory only, with the last modification   
-
-As absolute path, it always searchs up to directories of depths specified explicitly, either with or without wildcard, such as:   
+As absolute path, it always searchs up to directories of depths explicitly specified, either with or without wildcard, such as:   
 
 /qt/build/core/meta   
 means searching for any file type namedly "meta" under "core under "build" on "qt" directory
@@ -61,10 +58,10 @@ Will find
 /qt/src/doc/core/build/meta   
 /qt/lib/so/core/c/obj/meta   
 /qt/lib/so/core/src/c/obj/met   
+...so on   
+with 2 plies depth between "qt" and "core" directory, and indefinite number of ply depth between "core" and "meta" directory   
 
-so on... with 2 plies depth between "qt" and "core" directory, and indefinite number of ply between "core" and "meta" directory   
-
-If navigating in way of relative path i.e. not started with slash character (/), then the given path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
+If navigating in way of relative path i.e. not started with slash character (/), then the given relative path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it with ./   
 
 Suppose previous explicit part of path exists only where it's specified i.e. "meta" exists only under "core" directory being under any directory being under any dir. under qt directory.   
@@ -86,13 +83,29 @@ To have it shown up to certain depth add the number e.g. -l3 option will show to
 To have the found directory's content shown  entirely the number meant for it is 0.   
 So be prepared if to put -l0 option, it will list entirely  the content of every found directory which could be a bit overwhelming.   
 
-Can be limited with depth by option -1...99 options,  e.g:   
-search for only on current and 1 directory below it put -2,   
-only on current and 2 directories below add -3, etc.   
+Can be limited with depth by option -1..99[-1..99] options,  e.g:   
+search for only on current directory and one below it put -2   
 
-can even navigate by way of multiple paths such as absolute followed by relative path in single line   
+$ l -2 src/core   
+search only on current and next 4 directories add -5 and so on   
 
-$ l /qt/\*/\*/core/\*\*/meta  core/\*c   
+to search for only from 3rd ply from current up to 5th    
+
+$ -3-5 src/dev   
+
+to search for only from 2nd ply of current directory up to the last   
+
+$ -2- src/dev   
+
+can be navigated by way of one-line multiple paths such as absolute followed by relative path      
+
+$ l /qt/\*/\*/core/\*\*/meta  src/\*.c   
+
+can even by multiple object name of the same directory paths e.g. search for h, c and cpp files in one directory path relative to current working directory, separated by separator \\\\\\\\ in a single line   
+
+$ l /qt/src/*.h\\\\\*.c\\\\\*.cpp   
+
+To change separator other than \\\\ use -sep= option   
 
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
