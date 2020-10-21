@@ -155,6 +155,9 @@ for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
 }
 shopt -s extglob
+D="-type d -printf \"$r/\n\""
+F="-type f -printf \"$r\n\""
+LN="-type l -printf \"$r\n\""
 a=\ ${a//  / };a=${a//   / }
 a=${a#$o}
 a=${a##+( )}
@@ -183,19 +186,15 @@ if [ $e ] ;then
 	fs=${1##*/}
 	LO=$fs
 	L="$fs ${@:2}"
-	if [ $# = 1 ] ;then	L=$fs
+	if [ $# = 1 ] ;then	L=
 	else
-		[[ $fs =~ ^(\.\.|.*\*\*.*)$ ]] &&{ LO=$L; L=$fs; break;}
-		shift;for a;{	[[ $a =~ (/|^)\.\.(/|$)|\*\* ]] &&{ LO=$L; L=$fs; break;};}
+		[[ $fs =~ ^\.\.$ ]] &&{ LO=$L; L=; break;}
+		shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{ LO=$L; L=; break;};}
 	fi
 else	LO=\"\"
 fi
-
 unset IFS; eval set -- $LO
 for a;{
-D="-type d -printf \"$r/\n\""
-F="-type f -printf \"$r\n\""
-LN="-type l -printf \"$r\n\""
 if [[ $z = / ]] ;then Z=$D
 elif [[ $z = // ]] ;then Z=$F
 elif [[ $z = /// ]] ;then Z=$LN
@@ -203,13 +202,11 @@ else	Z="\( $D -o -printf \"$r\n\" \)"
 fi
 [ -z $a ] &&{  ((re)) ||d="-maxdepth 1"
 	eval "LC_ALL=C sudo find $po ~+ $d \! -ipath ~+ $opt $XC $Z" ;continue;}
-
 unset p n P Z
 a=$B$a
 if [[ $a =~ ^/ ]] ;then re=
 	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 		[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
-		a=${a%/}
 else
 	if [[ $a =~ ^(\.\.(/\.\.)*)(/.+)? ]] ;then
 		s=~+/${BASH_REMATCH[1]}
@@ -220,33 +217,32 @@ else
 		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
 		if((re)) ;then
 			[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}} # clear remaining leading /..
-			a=$s/
+			a=$s$p
 		else
 			a=$s$p
 			while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
-			a=${a%/}
 		fi
 	else
 		s=~+;	p=${a:+/$a}
 		if((re)) ;then
 			while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
 			[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}}
-			a=$s/
+			a=$s$p
 		else
 			a=$s$p
 			while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
-			a=${a%/}
 		fi
 	fi
 fi
-((l)) &&{ [ -z $lx ] &&l=-prune
-	D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$r\n\" \) \;"
+a=${a%/}
+
+((l)) &&{ [ -z $lx ] &&l=-prune;D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$r\n\" \) \;"
 }
 
 b=${a%/*}/
-eval set -- $L
+eval set -- ${L:-${a##*/}}
 for f
 {
 f=$b$f
@@ -281,7 +277,6 @@ elif [[ $f =~ [^\\][*?] ]] ;then
 	else
 		p=$p$n
 		n=
-		#n=${n//\?/[^/]}; n=${n//\*/[^/]*}
 	fi
 	while [[ $p =~ ([^\\])\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 	while [[ $p =~ ([^\\])([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
