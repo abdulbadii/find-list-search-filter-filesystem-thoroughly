@@ -127,8 +127,8 @@ case $e in
 	d=${e#-}
 	z=${d#*-}
 	d="-mindepth ${d%-*}${z:+ -maxdepth $z}";;
--sep=??) se=${e:5};;
--sep=*) echo Separator must consist of 2 characters;;
+-sep=?|-sep=??) se=${e:5};;
+-sep=*) echo Separator must be 1 or 2 characters;;
 -de) de=1;;
 -in) if=1;;
 -cs) I=;;
@@ -165,30 +165,32 @@ a=${a//\\/\\\\}
 unset IFS;eval set -- ${a:-\"\"}
 for e
 {
-unset B In LO L O z
-# Get suffix / or // as dir, file search filter
+unset B In LO L z
+# Get suffix /, // for dir, file search filter
 [[ $e =~ ^(.*[^/])?(/+)$ ]] &&{
 	e=${BASH_REMATCH[1]}
 	z=${BASH_REMATCH[2]}
 	[[ $e =~ ^\\\\? ]] &&{	e=/;	z=${z#/}; }
 }
-# Get multiple items separated by \\ or -sep, in same dir. only if any, and if none has ** or exact .. pattern in the last /, ie file name
+# Get multiple items separated by \\ or -sep, in same dir. only if any, and if none has ** or exact .. pattern
 if [ $e ] ;then
 	: ${se='\\\\'}
 	while [[ $e =~ ([^\\])($se)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
+	while [[ $e =~ ([^\\]|^)(\\[*?]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\\\${BASH_REMATCH[2]}"} ;done 
 	IFS=$'\037';set -- $e
-	fs=${1##*/}
-	if [ $# = 1 ] ;then	LO=$fs;L=$fs
-	else
-		for a;{	[[ $a =~ ^(\.\.|.*\*\*.*)$ ]] &&{ LO="$fs ${@:2}";L=$fs;break;};}
-	fi
-	#if any explicit dir. path, get it (to join with PWD), else just PWD
+	#if any explicit dir. path, get it (B) to join with PWD, else just PWD
 	[[ $1 =~ / ]] && B=${1%/*}/
-	: ${LO=$fs}		${L=$fs ${@:2}}
+	fs=${1##*/}
+	LO=$fs
+	L="$fs ${@:2}"
+	if [ $# = 1 ] ;then	L=$fs
+	else
+		[[ $fs =~ ^(\.\.|.*\*\*.*)$ ]] &&{ LO=$L; L=$fs; break;}
+		shift;for a;{	[[ $a =~ (/|^)\.\.(/|$)|\*\* ]] &&{ LO=$L; L=$fs; break;};}
+	fi
 else	LO=\"\"
 fi
 
-while [[ $LO =~ ([^\\]|^)(\\[?]) ]] ;do LO=${LO/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}"} ;done 
 unset IFS; eval set -- $LO
 for a;{
 D="-type d -printf \"$r/\n\""
@@ -218,25 +220,26 @@ else
 		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
 		if((re)) ;then
 			[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}} # clear remaining leading /..
-			a=$s$p
+			a=$s/
 		else
 			a=$s$p
 			while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
+			a=${a%/}
 		fi
 	else
 		s=~+;	p=${a:+/$a}
 		if((re)) ;then
 			while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
 			[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}}
-			a=$s$p
+			a=$s/
 		else
 			a=$s$p
 			while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
+			a=${a%/}
 		fi
 	fi
-	a=${a%/}
 fi
 ((l)) &&{ [ -z $lx ] &&l=-prune
 	D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$r\n\" \) \;"
@@ -252,11 +255,11 @@ if [ $E ] ;then
 	s=${BASH_REMATCH[1]}
 	p=${BASH_REMATCH[3]}
 	P="-regextype posix-extended -${I}regex ^$s$p$"
-elif [[ $f =~ [*?] ]] ;then
+elif [[ $f =~ [^\\][*?] ]] ;then
 	if [[ $f =~ (/.*[^/]*\*\*[^/]*)$ ]] ;then
-		n=
 		p=${BASH_REMATCH[1]}
 		[[ $p =~ \.\*$ ]] && p=${p/BASH_REMATCH[0]/\\\\.[^/]+}
+		n=
 	elif [[ $f =~ ^(.*/)?(.+)$ ]] ;then
 		p=${BASH_REMATCH[1]}
 		n=${BASH_REMATCH[2]}
@@ -276,14 +279,15 @@ elif [[ $f =~ [*?] ]] ;then
 		fi
 	elif	[[ $n =~ ^\.\*$ ]] ;then n=/\\\\.[^/]+
 	else
-		n=${n//\?/[^/]}; n=${n//\*/[^/]*}		
+		p=$p$n
+		n=
+		#n=${n//\?/[^/]}; n=${n//\*/[^/]*}
 	fi
-	p=${p//\*\*/~\}\{}
-	p=${p//\*/[^/]*}
-	p=${p//~\}\{/.*}
-	p=${p//\?/[^/]}$n
+	while [[ $p =~ ([^\\])\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 	while [[ $p =~ ([^\\])([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
-	P="-regextype posix-extended -${I}regex ^$s$p$"
+	while [[ $p =~ ([^\\*])\*([^*]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]\*${BASH_REMATCH[2]}"} ;done
+	p=${p//\*\*/.*}
+	P="-regextype posix-extended -${I}regex ^$s$p$n$"
 else
 	if((re)) ;then
 		P="-${I}path $f \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}path $s/*${f#$s} -printf \"$r\n\""

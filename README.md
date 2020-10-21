@@ -106,7 +106,7 @@ can even by multiple object name of the same directory paths e.g. search for h, 
 $ cd /qt
 $ l src/dev/*.h\\\\\*.c\\\\\*.cpp   
 
-To change separator other than \\\\ use -sep= option, e.g. -sep=;;   
+To change separator other than \\\\ use option -sep={any 2 characters not treated special by Bash}, e.g. -sep=,,   
 
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
