@@ -178,15 +178,10 @@ if [ $e ] ;then
 	while [[ $e =~ ([^\\])($se)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
 	while [[ $e =~ ([^\\]|^)(\\[*?]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\\\${BASH_REMATCH[2]}"} ;done 
 	IFS=$'\037';set -- $e
-	[[ $1 =~ ^(.*[^/]+)(/*)$ ]]
-	a=${BASH_REMATCH[1]}
-	z=${BASH_REMATCH[2]}
-	#if any explicit dir. path, get it (B) to join with PWD, else just PWD
-	[[ $a =~ / ]]&&
-		B=${a%/*}/
-	fs=${a##*/}
-	LO=$fs
-	L="$fs ${@:2}"
+	[[ $1 =~ ^(.+/)?([^/]+/*)$ ]] #if any explicit dir. path, get it (B) to join with PWD, else just PWD
+	B=${BASH_REMATCH[1]}
+	LO=${BASH_REMATCH[2]}
+	L="$LO ${@:2}"
 	if [ $# = 1 ] ;then	L=
 	else
 		[[ $fs =~ ^\.\.$ ]] &&{ LO=$L; L=; break;}
@@ -196,10 +191,11 @@ else	LO=\"\"
 fi
 unset IFS; eval set -- $LO
 for a;{
-a=$B$a
+[[ $a =~ ^(.*[^/])(/*)$ ]]
+z=${BASH_REMATCH[2]}
+a=$B${BASH_REMATCH[1]}
 [ -z $a ] &&{
 	((re))||d="-maxdepth 1"; eval "LC_ALL=C find $po ~+ $d \! -ipath ~+ $opt $XC $Z" ;continue;}
-
 unset p n P Z
 if [[ $a =~ ^/ ]] ;then re=
 	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
@@ -243,7 +239,7 @@ eval set -- ${L:-${a##*/}}
 for f
 {
 f=$b$f
-[ "$L" ]&&{ [[ $f =~ ^(.*[^/]+)(/*)$ ]];f=${BASH_REMATCH[1]};z=${BASH_REMATCH[2]};}
+[ "$L" ]&&{ [[ $f =~ ^(.*[^/])(/*)$ ]];f=${BASH_REMATCH[1]};z=${BASH_REMATCH[2]};}
 if [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	P="-regextype posix-extended -${I}regex ^${BASH_REMATCH[1]}${BASH_REMATCH[3]}$"
