@@ -148,6 +148,9 @@ case $e in
 esac
 o=\ $o$e
 }
+D="-type d -printf \"$r/\n\""
+F="-type f -printf \"$r\n\""
+LN="-type l -printf \"$r\n\""
 
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 IFS=\;
@@ -155,9 +158,6 @@ set -- ${BASH_REMATCH[1]}
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
 }
-D="-type d -printf \"$r/\n\""
-F="-type f -printf \"$r\n\""
-LN="-type l -printf \"$r\n\""
 shopt -s extglob
 a=\ ${a//  / };a=${a//   / }
 a=${a#$o};a=${a##+( )}
@@ -168,7 +168,6 @@ unset IFS;eval set -- ${a:-\"\"}
 for e
 {
 unset B In LO L z
-# Get suffix /, // for dir, file search filter
 [[ ${e:0:2} = \\\\ ]] &&{	z=${##*/}; e=/ ;}
 
 # Get multiple items separated by \\ or -sep, in same dir. only if any, and if none has ** or exact .. pattern
@@ -177,10 +176,11 @@ if [ $e ] ;then
 	while [[ $e =~ ([^\\])($se)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
 	while [[ $e =~ ([^\\]|^)(\\[*?]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\\\${BASH_REMATCH[2]}"} ;done 
 	IFS=$'\037';set -- $e
-	[[ $1 =~ ^(.+/)?(([^/]+)/*)$ ]] #if any explicit dir. path, get it (B) to join with PWD, else just PWD
+	[[ $1 =~ ^(([^/]+/)*)(([^/]*)(/*))$ ]] #get any explicit dir. path (B) to join with PWD, else just PWD
 	B=${BASH_REMATCH[1]}
-	LO=${BASH_REMATCH[2]}
-	[[ ${BASH_REMATCH[3]} = .. ]] &&{	B=$B../;	z=${LO#..}; LO=*$z\ .*$z ;}
+	LO=${BASH_REMATCH[3]}
+	z=${BASH_REMATCH[5]}
+	[[ ${BASH_REMATCH[4]} = .. ]] &&{	B=$B../;LO=*$z\ .*$z ;}
 	if [ $# = 1 ];then L=$LO
 	else
 		L="$LO ${@:2}"
@@ -191,8 +191,6 @@ fi
 unset IFS; eval set -- $LO
 for a;{
 a=$B${a%%+(/)}
-[ -z $a ] &&{
-	((re))||d="-maxdepth 1"; eval "find $po ~+ $d \! -ipath ~+ $opt $XC $Z" ;continue;}
 unset p n P Z
 if [[ $a =~ ^/ ]] ;then re=
 	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
@@ -213,7 +211,7 @@ else
 			while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 			[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid actual path: $a >&2;continue;}
 		fi
-	else
+	elif [ $a ] ;then
 		s=~+;	p=${a:+/$a}
 		if((re)) ;then
 			while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
@@ -227,15 +225,25 @@ else
 	fi
 fi
 a=${a%/}
+
 ((l)) &&{ [ -z $lx ] &&l=-prune;D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$r\n\" \) \;"
 }
-b=${a%/*}/
+b=${a%/*}
 eval set -- $L
 for f
 {
-f=$b$f
-[[ $f =~ ^(.*[^/])(/*)$ ]];f=${BASH_REMATCH[1]};z=${BASH_REMATCH[2]}
-if [ $E ] ;then
+[[ $f =~ ^(.*[^/])?(/*)$ ]]
+f=${BASH_REMATCH[1]}
+f=$b${f:+/$f}
+z=${BASH_REMATCH[2]}
+if [[ $z = / ]] ;then Z=$D
+elif [[ $z = // ]] ;then Z=$F
+elif [[ $z = /// ]] ;then Z=$LN
+else	Z="\( $D -o -printf \"$r\n\" \)"
+fi
+if [ -z $b ] ;then
+	s=~+
+elif [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	P="-regextype posix-extended -${I}regex ^${BASH_REMATCH[1]}${BASH_REMATCH[3]}$"
 elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
@@ -280,11 +288,6 @@ else
 		s=${f%/*}
 		P="-${I}path $f"
 	fi
-fi
-if [[ $z = / ]] ;then Z=$D
-elif [[ $z = // ]] ;then Z=$F
-elif [[ $z = /// ]] ;then Z=$LN
-else	Z="\( $D -o -printf \"$r\n\" \)"
 fi
 
 if((de+if)) &&[ $F$LN ] ;then
