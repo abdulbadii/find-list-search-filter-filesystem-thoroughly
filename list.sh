@@ -177,7 +177,7 @@ if [ $e ] ;then
 	while [[ $e =~ ([^\\]|^)(\\[*?]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\\\${BASH_REMATCH[2]}"} ;done 
 	IFS=$'\037';set -- $e
 	#get any common dir. path (B) to join with PWD if any, if not, just PWD
-	[[ $1 =~ ^(.*[^/])(/*)$ ]]
+	[[ $1 =~ ^(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[2]}
 	[[ ${BASH_REMATCH[1]} =~ ^(/?([^/]+/)*)([^/]+)$ ]] 
 	B=${BASH_REMATCH[1]}
