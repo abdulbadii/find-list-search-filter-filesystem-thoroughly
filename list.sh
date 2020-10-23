@@ -176,7 +176,7 @@ if [ $e ] ;then
 	while [[ $e =~ ([^\\])($se)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
 	while [[ $e =~ ([^\\]|^)(\\[*?]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\\\${BASH_REMATCH[2]}"} ;done 
 	IFS=$'\037';set -- $e
-	[[ $1 =~ ^(([^/]+/)*)(([^/]*)(/*))$ ]] #get any explicit dir. path (B) to join with PWD, else just PWD
+	[[ $1 =~ ^(/?([^/]+/)*)(([^/]*)(/*))$ ]] #get any explicit dir. path (B) to join with PWD, else just PWD
 	B=${BASH_REMATCH[1]}
 	LO=${BASH_REMATCH[3]}
 	z=${BASH_REMATCH[5]}
