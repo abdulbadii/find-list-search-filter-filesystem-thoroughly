@@ -91,7 +91,8 @@ for l
 l(){
 unset IFS a o po opt se de if E s X XC d l lx cp cpe
 I=i;r=%p
-set -f;trap 'set +f;unset IFS' 1 2
+LC_ALL=C;set -f
+trap 'set +f;unset IFS' 1 2
 for e
 {
 case $e in
@@ -154,15 +155,13 @@ set -- ${BASH_REMATCH[1]}
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
 }
-shopt -s extglob
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
 LN="-type l -printf \"$r\n\""
+shopt -s extglob
 a=\ ${a//  / };a=${a//   / }
-a=${a#$o}
-a=${a##+( )}
-# if no prefix ./ it's recursively at any depth of PWD
-[[ $a =~ ^\./ ]];re=$?
+a=${a#$o};a=${a##+( )}
+[[ $a =~ ^\./ ]];re=$?	# if no prefix ./ it's recursively at any depth of PWD
 a=${a#./}
 a=${a//\\/\\\\}
 unset IFS;eval set -- ${a:-\"\"}
@@ -184,18 +183,16 @@ if [ $e ] ;then
 	L="$LO ${@:2}"
 	if [ $# = 1 ] ;then	L=
 	else
-		[[ $fs =~ ^\.\.$ ]] &&{ LO=$L; L=; break;}
-		shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{ LO=$L; L=; break;};}
+		[[ $1 =~ ^\.\./*$ ]] &&{ LO=$L; L=${BASH_REMATCH[2]}; break;}
+		shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{ LO=$L; L=${BASH_REMATCH[2]}; break;};}
 	fi
 else	LO=\"\"
 fi
 unset IFS; eval set -- $LO
 for a;{
-[[ $a =~ ^(.*[^/])(/*)$ ]]
-z=${BASH_REMATCH[2]}
-a=$B${BASH_REMATCH[1]}
+a=$B${a%%+(/)}
 [ -z $a ] &&{
-	((re))||d="-maxdepth 1"; eval "LC_ALL=C sudo find $po ~+ $d \! -ipath ~+ $opt $XC $Z" ;continue;}
+	((re))||d="-maxdepth 1"; eval "sudo find $po ~+ $d \! -ipath ~+ $opt $XC $Z" ;continue;}
 unset p n P Z
 if [[ $a =~ ^/ ]] ;then re=
 	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
@@ -235,11 +232,11 @@ a=${a%/}
 }
 
 b=${a%/*}/
-eval set -- ${L:-${a##*/}}
+eval set -- $L
 for f
 {
 f=$b$f
-[ "$L" ]&&{ [[ $f =~ ^(.*[^/])(/*)$ ]];f=${BASH_REMATCH[1]};z=${BASH_REMATCH[2]};}
+[[ $f =~ ^(.*[^/])(/*)$ ]];f=${BASH_REMATCH[1]};z=${BASH_REMATCH[2]}
 if [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	P="-regextype posix-extended -${I}regex ^${BASH_REMATCH[1]}${BASH_REMATCH[3]}$"
@@ -295,17 +292,17 @@ fi
 if((de+if)) &&[ $F$LN ] ;then
 	export -f di
 	F="$F ${LN+-o $LN}"
-	eval "LC_ALL=C find $po $s $d \! -ipath $s $XC $P $opt $X \( \( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o $D -o -printf \"$r\n\" \)"
+	eval "find $po $s $d \! -ipath $s $XC $P $opt $X \( \( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o $D -o -printf \"$r\n\" \)"
 
 #elif [ $cp ] ;then
 	#sudo mkdir -pv $cp
-	#eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -r '{}' ${cp[0]}/\{\} \;"
+	#eval "sudo find $po $s $d \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -r '{}' ${cp[0]}/\{\} \;"
 #elif [ $cpe ] ;then
 	#sudo mkdir -pv $cpe
-	#eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $XC -exec cp -r '{}' $cpe \;"
+	#eval "sudo find $po $s $d \! -ipath $s $P $opt $XC -exec cp -r '{}' $cpe \;"
 	
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "LC_ALL=C sudo find $po $s $d \! -ipath $s $P $opt $XC $Z"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "sudo find $po $s $d \! -ipath $s $P $opt $XC $Z"
 fi
 }
 }
