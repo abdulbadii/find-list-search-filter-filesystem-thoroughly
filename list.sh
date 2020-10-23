@@ -170,21 +170,23 @@ for e
 unset B In LO L z
 [[ ${e:0:2} = \\\\ ]] &&{	z=${##*/}; e=/ ;}
 
-# Get multiple items separated by \\ or -sep, in same dir. only if any, and if none has ** or exact .. pattern
 if [ $e ] ;then
+	# Get multiple items separated by \\ or -sep, in same dir. only if any, and if none has ** or exact .. pattern
 	: ${se='\\\\'}
 	while [[ $e =~ ([^\\])($se)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
 	while [[ $e =~ ([^\\]|^)(\\[*?]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\\\${BASH_REMATCH[2]}"} ;done 
 	IFS=$'\037';set -- $e
-	[[ $1 =~ ^(/?([^/]+/)*)(([^/]*)(/*))$ ]] #get any explicit dir. path (B) to join with PWD, else just PWD
+	#get any common dir. path (B) to join with PWD if any, if not, just PWD
+	[[ $1 =~ ^(.*[^/])(/*)$ ]]
+	z=${BASH_REMATCH[2]}
+	[[ ${BASH_REMATCH[1]} =~ ^(/?([^/]+/)*)([^/]+)$ ]] 
 	B=${BASH_REMATCH[1]}
-	LO=${BASH_REMATCH[3]}
-	z=${BASH_REMATCH[5]}
-	[[ ${BASH_REMATCH[4]} = .. ]] &&{	B=$B../;LO=*$z\ .*$z ;}
+	LO=${BASH_REMATCH[3]}$z
+	[[ ${BASH_REMATCH[3]} = .. ]] &&{	B=$B../;LO=*$z\ .*$z ;}
 	if [ $# = 1 ];then L=$LO
 	else
 		L="$LO ${@:2}"
-		shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{ LO=$L; L=${BASH_REMATCH[2]}; break;};}
+		shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{ z=$L;L=$LO; LO=$z; break;};}
 	fi
 else	LO=\"\"
 fi
@@ -247,17 +249,16 @@ elif [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
 	P="-regextype posix-extended -${I}regex ^${BASH_REMATCH[1]}${BASH_REMATCH[3]}$"
 elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
-	if [[ $f =~ (/.*[^/]*\*\*[^/]*)$ ]] ;then
-		p=${BASH_REMATCH[1]}
+	if [[ $f =~ /.*[^/]*\*\*[^/]*$ ]] ;then
+		p=${BASH_REMATCH[0]}
 		[[ $p =~ \.\*$ ]] && p=${p/BASH_REMATCH[0]/\\\\.[^/]+}
 		n=
 	elif [[ $f =~ ^(.*/)?(.+)$ ]] ;then
 		p=${BASH_REMATCH[1]}
-		: ${p:=/}
 		n=${BASH_REMATCH[2]}
 	fi
 	if((re)) ;then
-		p=**${p#$s}
+		p=**/${p#$s/}
 	else
 		[[ $p =~ ^((/[^/*?]*)*)(/.*)?$ ]]
 		s=${BASH_REMATCH[1]}
@@ -285,8 +286,7 @@ else
 	elif [ -d "$f" ] ;then
 		s=$f
 	else
-		s=${f%/*}
-		P="-${I}path $f"
+		s=${f%/*};P="-${I}path $f"
 	fi
 fi
 
