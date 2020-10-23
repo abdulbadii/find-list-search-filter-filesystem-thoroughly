@@ -177,13 +177,13 @@ if [ $e ] ;then
 	while [[ $e =~ ([^\\])($se)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
 	while [[ $e =~ ([^\\]|^)(\\[*?]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\\\${BASH_REMATCH[2]}"} ;done 
 	IFS=$'\037';set -- $e
-	[[ $1 =~ ^(.+/)?([^/]+/*)$ ]] #if any explicit dir. path, get it (B) to join with PWD, else just PWD
+	[[ $1 =~ ^(.+/)?(([^/]+)/*)$ ]] #if any explicit dir. path, get it (B) to join with PWD, else just PWD
 	B=${BASH_REMATCH[1]}
 	LO=${BASH_REMATCH[2]}
-	L="$LO ${@:2}"
-	if [ $# = 1 ] ;then	L=
+	[[ ${BASH_REMATCH[3]} = .. ]] &&{	B=$B../;	z=${LO#..}; LO=*$z\ .*$z ;}
+	if [ $# = 1 ];then L=$LO
 	else
-		[[ $1 =~ ^\.\./*$ ]] &&{ LO=$L; L=${BASH_REMATCH[2]}; break;}
+		L="$LO ${@:2}"
 		shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{ LO=$L; L=${BASH_REMATCH[2]}; break;};}
 	fi
 else	LO=\"\"
@@ -204,8 +204,8 @@ else
 		while [[ $s =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do s=${s/"${BASH_REMATCH[0]}"/\/};done
 		[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid actual path: $s\\nfrom ~+/$a>&2;continue;}
 		s=${s%/}
-		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
 		if((re)) ;then
+			while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
 			[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}} # clear remaining leading /..
 			a=$s$p
 		else
@@ -227,10 +227,8 @@ else
 	fi
 fi
 a=${a%/}
-
 ((l)) &&{ [ -z $lx ] &&l=-prune;D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$r\n\" \) \;"
 }
-
 b=${a%/*}/
 eval set -- $L
 for f
