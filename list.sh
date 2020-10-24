@@ -153,10 +153,12 @@ F="-type f -printf \"$r\n\""
 LN="-type l -printf \"$r\n\""
 
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
-IFS=\;
-set -- ${BASH_REMATCH[1]}
-for c;{
-	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
+c=${BASH_REMATCH[1]}
+while [[ $c =~ ([^\\])[\;|\>\<] ]] ;do c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'037'} ;done
+IFS=$'037'
+set -- $c
+for e;{
+	[[ $e =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
 }
 shopt -s extglob
 a=\ ${a//  / };a=${a//   / }
