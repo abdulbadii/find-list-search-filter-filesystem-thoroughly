@@ -163,17 +163,16 @@ for e;{
 shopt -s extglob
 a=\ ${a//  / };a=${a//   / }
 a=${a#$o};a=${a##+( )}
-[[ $a =~ ^\./ ]];re=$?	# if no prefix ./ it's recursively at any depth of PWD
+[[ $a =~ ^\./ ]]||re=1	# if no prefix ./ it's recursively at any depth of PWD
 a=${a#./}
 a=${a//\\/\\\\}
 unset IFS;eval set -- ${a:-\"\"}
 for e
 {
-unset B In LO L z
+unset b B In LO L z
 [[ ${e:0:2} = \\\\ ]] &&{	z=${##*/}; e=/ ;}
-
 if [ $e ] ;then
-	# Get multiple items separated by \\ or -sep, in same dir. only if any, and if none has ** or exact .. pattern
+	# Get multiple items separated by \\ or -sep, in same dir. only if any, and none has exact .. pattern
 	: ${se='\\\\'}
 	while [[ $e =~ ([^\\])($se)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'"${BASH_REMATCH[3]}"} ;done 
 	while [[ $e =~ ([^\\]|^)(\\[*?]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\\\${BASH_REMATCH[2]}"} ;done 
@@ -232,8 +231,10 @@ a=${a%/}
 
 ((l)) &&{ [ -z $lx ] &&l=-prune;D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$r\n\" \) \;"
 }
+
+
 b=${a%/*}
-eval set -- $L
+eval set -- ${L-\"\"}
 for f
 {
 [[ $f =~ ^(.*[^/])?(/*)$ ]]
@@ -245,7 +246,7 @@ elif [[ $z = // ]] ;then Z=$F
 elif [[ $z = /// ]] ;then Z=$LN
 else	Z="\( $D -o -printf \"$r\n\" \)"
 fi
-if [ -z $b ] ;then
+if [ -z $a ] ;then
 	s=~+
 elif [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
@@ -282,6 +283,7 @@ elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
 	while [[ $p =~ ([^\\*])\*([^*]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]\*${BASH_REMATCH[2]}"} ;done
 	p=${p//\*\*/.*}
 	P="-regextype posix-extended -${I}regex ^$s$p$n$"
+	: ${s:=/}
 else
 	if((re)) ;then
 		P="-${I}path $f \( -type d -exec find '{}' $Z \; -o -print \) -o -${I}path $s/*${f#$s} -printf \"$r\n\""
