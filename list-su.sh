@@ -111,18 +111,7 @@ case $e in
 			break
 		}
 	};;
--ex=?*|-exc=?*)
-	[[ `history 1` =~ ^\ *[0-9]+\ +.+\ \$\(\ *$FUNCNAME\ +(.*)\) ]] || [[ `history 1` =~ ^\ *[0-9]+\ +.+\ \`\ *$FUNCNAME\ +(.*)\` ]] || [[ `history 1` =~ ^\ *[0-9]+\ +.*$FUNCNAME\ +(.*) ]] &&\
-	IFS=$';';eval set -- ${BASH_REMATCH[1]}
-
-	[[ $1 =~ (-[[:alnum:]]+(=.+)?\ +)*-exc?=(.+)$ ]]
-	eval set -- ${BASH_REMATCH[3]}
-	eval set -- $1
-	for x;{
-		fc $x $I
-		XC=$XC$X' '
-	}
-	I=i;;
+-ex=?*|-exc=?*) X=1;;
 -[1-9]|-[1-9][0-9]) d=-maxdepth\ ${e:1};;
 -[1-9]-*|[1-9][0-9]-*)
 	d=${e#-}
@@ -146,7 +135,7 @@ case $e in
 -[!-]*) echo \'$e\' : unrecognized option, ignoring it. If it\'s meant a full path name, put it after - or --;;
 *) break;;
 esac
-o=\ $o$e
+[[ ! $e =~ ^-exc?= ]] &&o=\ $o$e
 }
 D="-type d -printf \"$r/\n\""
 F="-type f -printf \"$r\n\""
@@ -154,19 +143,32 @@ LN="-type l -printf \"$r\n\""
 
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 c=${BASH_REMATCH[1]}
-while [[ $c =~ ([^\\])[\;|\>\<] ]] ;do c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'037'} ;done
-IFS=$'037'
+while [[ $c =~ ([^\\])[\;|\>\<] ]] ;do c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\037'} ;done
+IFS=$'\037'
 set -- $c
 for e;{
 	[[ $e =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
 }
 shopt -s extglob
 a=\ ${a//  / };a=${a//   / }
-a=${a#$o};a=${a##+( )}
+a=${a#$o};
+a=${a##+( )}
+unset IFS
+((X)) &&{
+	eval set -- $a
+	for a;{
+	[[ $a =~ ^-exc?=(.+)$ ]] &&{
+		eval set -- ${BASH_REMATCH[1]}
+		for x;{
+			fc $x $I
+			XC=$XC$X' ';}
+		I=i;break
+	};}
+}
 [[ $a =~ ^\./ ]]||re=1	# if no prefix ./ it's recursively at any depth of PWD
 a=${a#./}
 a=${a//\\/\\\\}
-unset IFS;eval set -- ${a:-\"\"}
+eval set -- ${a:-\"\"}
 for e
 {
 unset b B In LO L z
