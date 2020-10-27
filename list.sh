@@ -135,7 +135,7 @@ for l
 }
 }
 l(){
-unset IFS a o po opt se de if E s X XC d l lh lx cp cpe re ;I=i;ft=%p
+unset IFS a o po opt se de if E s x XC d l lh lx cp cpe re ;I=i;ft=%p
 LC_ALL=C;set -f
 trap 'set +f;unset IFS' 1 2
 for e
@@ -171,7 +171,6 @@ esac
 [[ $e =~ ^-exc?=|^cpu?= ]] || o=\ $o$e
 }
 D="-type d -printf \"$ft/\n\""
-F="-type f -printf \"$ft\n\""
 F="-type f -printf \"$ft\n\""
 X="-executable -printf \"$ft\n\""
 LN="-type l -printf \"$ft\n\""
@@ -227,7 +226,7 @@ if [ "$e" ] ;then
 	[[ ${BASH_REMATCH[1]} =~ ^(/?([^/]+/)*)([^/]+)$ ]] 
 	B=${BASH_REMATCH[1]}
 	LO=${BASH_REMATCH[3]}$z		# LO Loop outer part
-	[[ ${BASH_REMATCH[3]} = .. ]] &&{	B=$B../;LO=*$z\ .*$z ;}
+	[[ ${BASH_REMATCH[3]} = .. ]] &&{	B=$B../;LO=*$z; L=*$z\ .*$z ;}
 	if [ $# = 1 ];then L=$LO
 	else
 		L=$LO\ ${@:2}		# L Loop inner part
@@ -298,32 +297,27 @@ elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
 		[[ $p =~ \.\*$ ]] && p=${p/BASH_REMATCH[0]/\\\\.[^/]+}
 		n=
 	elif [[ $f =~ ^(.*/)?(.+)$ ]] ;then
-		p=${BASH_REMATCH[1]}
-		n=${BASH_REMATCH[2]}
+		p=${BASH_REMATCH[1]%/}
+		n=/${BASH_REMATCH[2]}
 	fi
 	if((re)) ;then
-		p=**/${p#$s/}
+		p=**${p#$s}
 	else
 		[[ $p =~ ^((/[^/*?]*)*)(/.*)?$ ]]
 		s=${BASH_REMATCH[1]}
 		p=${BASH_REMATCH[3]}
 	fi
-	if [[ $n =~ ^/(\*)(\.\*)?$ ]] ;then
-		if [ ${BASH_REMATCH[2]} ] ;then
-			n=/[^/.][^/]*\\\\.[^/]+
-		else
-			n='/[^/.][^/]*\(\\\\.[^/]+\)?'
-		fi
-	elif	[[ $n =~ ^\.\*$ ]] ;then n=/\\\\.[^/]+
+	if [[ $n =~ ^/\*(\.\*)?$|^/\.\*$ ]] ;then
+		n=${n//\*/[^/]+}
 	else
 		p=$p$n
 		n=
 	fi
 	while [[ $p =~ ([^\\])\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 	while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
-	while [[ $p =~ ([^\\*])\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]\*${BASH_REMATCH[2]}"} ;done
+	while [[ $p =~ ([^\]\\*])\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
 	p=${p//\*\*/.*}
-	R=^\"$s$p$n\"$
+	R=^$s$p$n$
 	: ${s:=/}
 else
 	while [[ $f =~ ([^\\]|^)([{}().]) ]] ;do f=${f/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
@@ -350,7 +344,7 @@ if((de+if)) &&[ $F$LN ] ;then
 	#eval "find $po $s $d \! -ipath $s $P $opt $XC -exec cp -ft '{}' $cpu \;"
 	
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "find $po $s -regextype posix-extended $d \! -ipath $s -${I}regex $R $opt $XC $Z"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "find $po $s -regextype posix-extended $d \! -ipath $s -${I}regex \"$R\" $opt $XC $Z"
 fi
 }
 }
