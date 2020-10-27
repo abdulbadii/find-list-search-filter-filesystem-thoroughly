@@ -11,7 +11,7 @@ Would print its  <pre>
 
 Would narrow down search   
 - To find only directory, file or link type, suffix it with /, // or ///    
-- To certain depth :		-1..99[-1..99] or ./ prefix to be on current dir.
+- To certain depth :		-1..99[-1..99] or ./ prefix to be tied on current dir.
 - To have greater control by regular expression					-E   
 - To search in case sensitive		-cs (Defaults to insensitive -ci option)   
 - The Exclusion from the main search found   
@@ -23,20 +23,23 @@ $ l
 list every file, directory, and other kind of filesystem under current directory entirely   
 
 $ l /   
-list every directory only under current directory entirely   
+list every directory under current directory entirely   
 
 $ l //   
-list every files only under current directory   
+list every file only under current directory   
 
 $ l ///   
+list every executable binary only under current directory   
+
+$ l ////   
 list every links only under current directory   
 
-It indicates that just put suffix / to search for directory only,   
+It suggest that just put suffix / to search for directory only,   
 or put suffix // to search for file only,   
 or put suffix /// to search for link only   
 
 $ l \\/   
-list every filesystem type under "/" (root) directory entirely, the preceding \\ (or may be put as \\\\) is to differentiate it with second use above: list every directory only under current directory   
+list every filesystem type under "/" (root) directory entirely, the preceding \\ (may be put as \\\\ too) is to differentiate it with second use above: list every directory under current directory   
 
 $ l -s -i *.bin//   
 query any file only (excluding other type) having 'bin' suffix then list it with the size and file information under current directory entirely    

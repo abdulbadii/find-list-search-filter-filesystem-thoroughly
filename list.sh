@@ -135,7 +135,7 @@ for l
 }
 }
 l(){
-unset IFS a o po opt se de if E s X XC d l lx cp cpe re ;I=i;ft=%p
+unset IFS a o po opt se de if E s X XC d l lh lx cp cpe re ;I=i;ft=%p
 LC_ALL=C;set -f
 trap 'set +f;unset IFS' 1 2
 for e
@@ -144,7 +144,7 @@ case $e in
 -[HDLPO]) po=$e;;
 -h|--help) find --help | sed -E "1,3s/find/$FUNCNAME/";return;;
 -cp=?*|-cpu=?*) C=1;;
--ex=?*|-exc=?*) X=1;;
+-ex=?*|-exc=?*) x=1;;
 -[1-9]|-[1-9][0-9]) d=-maxdepth\ ${e:1};;
 -[1-9]-*|[1-9][0-9]-*)
 	d=${e#-}
@@ -172,8 +172,13 @@ esac
 }
 D="-type d -printf \"$ft/\n\""
 F="-type f -printf \"$ft\n\""
+F="-type f -printf \"$ft\n\""
+X="-executable -printf \"$ft\n\""
 LN="-type l -printf \"$ft\n\""
-
+((l)) &&{
+ [ -z $lx ] &&lh=-prune
+ D="-type d $lh -exec find \{\} $lx $opt \( $D -o -printf \"$ft\n\" \) \;"
+}
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 c=${BASH_REMATCH[1]}
 while [[ $c =~ ([^\\])[\;|\>\<] ]] ;do c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\013'} ;done
@@ -187,14 +192,14 @@ a=\ ${a//  / };a=${a//   / }
 a=${a#$o};
 a=${a##+( )}
 unset IFS
-((X+C))&&{
+((x+C))&&{
 	eval set -- $a
 	for a;{
 		if [[ $a =~ ^-exc?=(.+)$ ]];then
 			eval set -- ${BASH_REMATCH[1]}
-			for x;{
-				fx $x
-				XC=$XC$X' ';}
+			for e;{
+				fx $e
+				XC=$XC$xc' ';}
 			a=${a#${BASH_REMATCH[0]}}
 			I=i
 		#elif [[ $a =~ ^-cpu?=(.+)$ ]];then
@@ -221,11 +226,11 @@ if [ "$e" ] ;then
 	z=${BASH_REMATCH[2]}
 	[[ ${BASH_REMATCH[1]} =~ ^(/?([^/]+/)*)([^/]+)$ ]] 
 	B=${BASH_REMATCH[1]}
-	LO=${BASH_REMATCH[3]}$z
+	LO=${BASH_REMATCH[3]}$z		# LO Loop outer part
 	[[ ${BASH_REMATCH[3]} = .. ]] &&{	B=$B../;LO=*$z\ .*$z ;}
 	if [ $# = 1 ];then L=$LO
 	else
-		L=$LO\ ${@:2}
+		L=$LO\ ${@:2}		# L Loop inner part
 		shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{ z=$L;L=$LO; LO=$z; break;};}
 	fi
 else	LO=\"\"
@@ -280,12 +285,13 @@ f=$b${f:+/$f}
 z=${BASH_REMATCH[2]}
 if [[ $z = / ]] ;then Z=$D
 elif [[ $z = // ]] ;then Z=$F
-elif [[ $z = /// ]] ;then Z=$LN
+elif [[ $z = /// ]] ;then Z=$X
+elif [[ $z = //// ]] ;then Z=$LN
 else	Z="\( $D -o -printf \"$ft\n\" \)"
 fi
 if [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
-	P="-regextype posix-extended -${I}regex ^${BASH_REMATCH[1]}${BASH_REMATCH[3]}$"
+	R="^${BASH_REMATCH[1]}${BASH_REMATCH[3]}$"
 elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
 	if [[ $f =~ /.*[^/]*\*\*[^/]*$ ]] ;then
 		p=${BASH_REMATCH[0]}
@@ -320,35 +326,31 @@ elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
 	R=^\"$s$p$n\"$
 	: ${s:=/}
 else
+	while [[ $f =~ ([^\\]|^)([{}().]) ]] ;do f=${f/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 	if((re)) ;then
-	if [ "$f" ]	;then
-		P="\"$f\" \( -type d -exec find '{}' $Z \; -o -printf \"$ft\n\" \) -o -${I}path \"$s/*${f#$s}\" -printf \"$ft\n\""
-	else
-		P=*
-	fi
-	elif [ -d "$f" ] ;then	s=$f;P=*
-	else	s=${f%/*};P="$f"
+		if [ "$f" ]	;then
+			R="\"$f\" \( -type d -exec find '{}' $Z \; -o -printf \"$ft\n\" \) -o -${I}path \"$s/*${f#$s}\" -printf \"$ft\n\""
+		else	R=.*
+		fi
+	elif [ -d "$f" ] ;then	s=$f;R=.*
+	else	s=${f%/*};R=\"$f\"
 	fi
 fi
 
-((l)) &&{ [ -z $lx ] &&l=-prune;D="-type d $l -exec find \{\} $lx $opt \( $D -o -printf \"$ft\n\" \) \;"
-}
 if((de+if)) &&[ $F$LN ] ;then
 	export -f di
 	F="$F ${LN:-o $LN}"
-	eval "find $po $s $d \! -ipath $s $XC $P $opt $X \( \( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o $D -o -printf \"$ft\n\" \)"
+	eval "find $po $s $d \! -ipath $s $XC $R $opt $X \( \( -type f -o -type l \) -exec /usr/bin/bash -c 'di $de \$0 \$@' '{}' + -o $D -o -printf \"$ft\n\" \)"
 
 #elif [ $cp ] ;then
 	#mkdir -pv $cp
 	#eval "find $po $s $d \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -ft '{}' ${cp[0]}/\{\} \;"
 #elif [ $cpu ] ;then
-	#mkdir -pv $cpe
-	#eval "find $po $s $d \! -ipath $s $P $opt $XC -exec cp -ft '{}' $cpe \;"
+	#mkdir -pv $cpu
+	#eval "find $po $s $d \! -ipath $s $P $opt $XC -exec cp -ft '{}' $cpu \;"
 	
-elif [ "$R" ];then
+else
 	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "find $po $s -regextype posix-extended $d \! -ipath $s -${I}regex $R $opt $XC $Z"
-elif [ "$P" ];then
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "find $po $s -regextype posix-extended $d \! -ipath $s -${I}path $P $opt $XC $Z"
 fi
 }
 }
