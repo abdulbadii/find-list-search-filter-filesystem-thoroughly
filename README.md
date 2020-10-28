@@ -8,13 +8,14 @@ Would print its  <pre>
 - Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
 - Dependencies of file found in one level depth		-de   
+- Output string in quote pair enclosure		-qp   
 
 Would narrow down search   
 - To find only directory, file or link type, suffix it with /, // or ///    
 - To certain depth :		-1..99[-1..99] or ./ prefix to be tied on current dir.
 - To have greater control by regular expression					-E   
 - To search in case sensitive		-cs (Defaults to insensitive -ci option)   
-- The Exclusion from the main search found   
+- To filter out or get exclusion from the main search found   
 </pre>
 Most of 'find' 'test' options may also be passed here, below are some excerpt of its manual on options   
 Simply type l   
@@ -36,7 +37,8 @@ list every links only under current directory
 
 It suggest that just put suffix / to search for directory only,   
 or put suffix // to search for file only,   
-or put suffix /// to search for link only   
+or put suffix /// to search for executable binary only 
+or put suffix //// to search for link only   
 
 $ l \\/   
 list every filesystem type under "/" (root) directory entirely, the preceding \\ (may be put as \\\\ too) is to differentiate it with second use above: list every directory under current directory   

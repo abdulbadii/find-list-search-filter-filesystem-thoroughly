@@ -135,7 +135,7 @@ for l
 }
 }
 l(){
-unset IFS a o po opt se de if E s x XC d l lh lx cp cpe re ;I=i;ft=%p
+unset IFS a o po opt se de if E Q s x XC d l lh lx cp cpe re ;I=i;ft=%p
 LC_ALL=C;set -f
 trap 'set +f;unset IFS' 1 2
 for e
@@ -160,6 +160,7 @@ case $e in
 -l[0-9]|-l[1-9][0-9])
 	((${e:2})) &&lx=-maxdepth\ ${e:2};l=1;;
 -E) E=1;;
+-qo|-qp) Q=\';;
 -s) ft=%s\ $ft;;
 -t) ft="$ft %Tr %Tx";;
 -st) ft='%s %p %Tr %Tx';;
@@ -170,10 +171,10 @@ case $e in
 esac
 [[ $e =~ ^-exc?=|^cpu?= ]] || o=\ $o$e
 }
-D="-type d -printf \"$ft/\n\""
-F="-type f -printf \"$ft\n\""
-X="-executable -printf \"$ft\n\""
-LN="-type l -printf \"$ft\n\""
+D="-type d -printf \"$Q$ft/$Q\n\""
+F="-type f -printf \"$Q$ft$Q\n\""
+X="-executable -printf \"$Q$ft$Q\n\""
+LN="-type l -printf \"$Q$ft$Q\n\""
 ((l)) &&{
  [ -z $lx ] &&lh=-prune
  D="-type d $lh -exec find \{\} $lx $opt \( $D -o -printf \"$ft\n\" \) \;"
@@ -286,7 +287,7 @@ if [[ $z = / ]] ;then Z=$D
 elif [[ $z = // ]] ;then Z=$F
 elif [[ $z = /// ]] ;then Z=$X
 elif [[ $z = //// ]] ;then Z=$LN
-else	Z="\( $D -o -printf \"$ft\n\" \)"
+else	Z="\( $D -o -printf \"$Q$ft$Q\n\" \)"
 fi
 if [ $E ] ;then
 	[[ $f =~ ^((/[^/*?]+)*)(/.+)?$ ]]
@@ -307,7 +308,6 @@ elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
 		s=${BASH_REMATCH[1]}
 		p=${BASH_REMATCH[3]}
 	fi
-	p=$s$p
 	if [[ $n =~ ^/\*(\.\*)?$|^/\.\*$ ]] ;then
 		n=${n//\*/[^/]+}
 	else
@@ -318,7 +318,7 @@ elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
 	while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 	while [[ $p =~ ([^\]\\*])\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
 	p=${p//\*\*/.*}
-	R=^$p$n$
+	R=^.\{${#s}\}$p$n$
 	: ${s:=/}
 else
 	while [[ $f =~ ([^\\]|^)([{}().]) ]] ;do f=${f/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
@@ -345,7 +345,7 @@ if((de+if)) &&[ $F$LN ] ;then
 	#eval "sudo find $po $s $d \! -ipath $s $P $opt $XC -exec cp -ft '{}' $cpu \;"
 	
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "sudo find $po \"$s\" -regextype posix-extended $d \! -ipath \"$s\" -${I}regex \"$R\" $opt $XC $Z" |sed -E "/\s/ s/.*/'&'/"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "sudo find $po \"$s\" -regextype posix-extended $d \! -ipath \"$s\" -${I}regex \"$R\" $opt $XC $Z" #|sed -E "/\s/ s/.*/'&'/"
 fi
 }
 }
