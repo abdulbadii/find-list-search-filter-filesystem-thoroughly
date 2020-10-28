@@ -307,6 +307,7 @@ elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
 		s=${BASH_REMATCH[1]}
 		p=${BASH_REMATCH[3]}
 	fi
+	p=$s$p
 	if [[ $n =~ ^/\*(\.\*)?$|^/\.\*$ ]] ;then
 		n=${n//\*/[^/]+}
 	else
@@ -317,7 +318,7 @@ elif [[ $f =~ ([^\\]|^)[*?] ]] ;then
 	while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 	while [[ $p =~ ([^\]\\*])\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
 	p=${p//\*\*/.*}
-	R=^$s$p$n$
+	R=^$p$n$
 	: ${s:=/}
 else
 	while [[ $f =~ ([^\\]|^)([{}().]) ]] ;do f=${f/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
@@ -344,7 +345,7 @@ if((de+if)) &&[ $F$LN ] ;then
 	#eval "sudo find $po $s $d \! -ipath $s $P $opt $XC -exec cp -ft '{}' $cpu \;"
 	
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "sudo find $po $s -regextype posix-extended $d \! -ipath $s -${I}regex \"$R\" $opt $XC $Z"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "sudo find $po \"$s\" -regextype posix-extended $d \! -ipath \"$s\" -${I}regex \"$R\" $opt $XC $Z" |sed -E "/\s/ s/.*/'&'/"
 fi
 }
 }
