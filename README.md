@@ -8,7 +8,6 @@ Would print its  <pre>
 - Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
 - Dependencies of file found in one level depth		-de   
-- Output string in quote pair enclosure		-qp   
 
 Would narrow down search   
 - To find only directory, file or link type, suffix it with /, // or ///    
@@ -44,12 +43,12 @@ $ l \\/
 list every filesystem type under "/" (root) directory entirely, the preceding \\ (may be put as \\\\ too) is to differentiate it with second use above: list every directory under current directory   
 
 $ l -s -i *.bin//   
-query any file only (excluding other type) having 'bin' suffix then list it with the size and file information under current directory entirely    
+query file only (excluding other type) having 'bin' suffix then list it with the size and file information under current directory entirely    
 
-As absolute path, it always searchs up to directories of depths explicitly specified, either with or without wildcard, such as:   
+As absolute path, it always searchs in directories depths explicitly specified, either with or without wildcard such as:   
 
 /qt/build/core/meta   
-means searching for any file type namedly "meta" under "core under "build" on "qt" directory
+means searching for any object type namedly "meta" under "core under "build" in "qt" directory   
 
 /qt/\*/\*/core/meta   
 search for any file type "meta" under "core" dir. being under any directory being under any directory under "qt" directory on top/root of filesystem.   
