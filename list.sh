@@ -171,7 +171,7 @@ for e;{
 	[[ $e =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
 }
 shopt -s extglob
-a=\ ${a//  / };a=${a//   / }a=${a#$o};a=${a##+( )}
+a=\ ${a//  / };a=${a//   / };a=${a#$o};a=${a##+( )}
 
 unset IFS;eval set -- ${a:-\"\"}
 if [[ $a =~ ^--?$ ]] ;then shift
@@ -204,12 +204,11 @@ while [[ $e =~ ([^\\])($se)([^\\]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REM
 while [[ $e =~ ([^\\]|^)(\\[*?]) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}"} ;done 
 IFS=$'\015';set -- $e
 #get any common dir. path (B) if any, to join with PWD
-[[ $1 =~ ^(.*[^/])?(/*)$ ]]
-z=${BASH_REMATCH[2]}
-[[ ${BASH_REMATCH[1]} =~ ^(/?([^/]+/)*)([^/]+)$ ]] 
-B=${BASH_REMATCH[1]}
-LO=\"${BASH_REMATCH[3]}\"$z		# LO Loop of outer part
-[[ ${BASH_REMATCH[3]} = .. ]] &&{	B=$B../;LO=*$z; L=*$z ;}
+[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
+z=${BASH_REMATCH[5]}
+B=${BASH_REMATCH[2]}
+LO=\"${BASH_REMATCH[4]}\"$z		# LO Loop of outer part
+[[ ${BASH_REMATCH[4]} = .. ]] &&{	B=$B../;LO=*$z; L=*$z ;}
 if [ $# = 1 ];then L=$LO
 else
 	L=$LO\ ${@:2}		# L Loop inner part
