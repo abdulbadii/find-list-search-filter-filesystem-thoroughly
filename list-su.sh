@@ -107,13 +107,12 @@ fi
 }
 }
 }
-di(){
+fd(){
 for i
 {
-	[[ `file "$i"` =~ ^[^:]+:[[:space:]]*([^,]+$|[^,]+[[:space:]]([^,]+)) ]]
-	echo -e "$i"\\n${BASH_REMATCH[1]}
-	[[ $de${BASH_REMATCH[2]} =~ ^1execut ]] &&{
-		ldd "$i" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/ \2/;s/^.*\blinux-vdso\.s.+/DEP:/';}
+	[[ `file "$i"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]]
+	echo -e "$i\n ${BASH_REMATCH[1]}\n DEPs"
+	ldd "$i" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 }
 l(){
@@ -255,16 +254,15 @@ for f
 f=${BASH_REMATCH[1]}
 f=$b${f:+/$f}
 z=${BASH_REMATCH[2]}
+((l)) &&{
+ [ -z $lx ] &&lh=-prune
+ PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
+}
 if [[ $z = / ]] ;then Z="$PD"
 elif [[ $z = // ]] ;then Z="-type f $P"
 elif [[ $z = /// ]] ;then Z="-executable $P"
 elif [[ $z = //// ]] ;then Z="-type l $P"
-else
-	((l)) &&{
-	 [ -z $lx ] &&lh=-prune
-	 PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
-	}
-	Z="\( $PD -o $P \)"
+else	Z="\( $PD -o $P \)"
 fi
 if [ $E ] ;then
 	R="${f//\\/\\\\}"
@@ -309,9 +307,15 @@ elif((re)) ;then
 elif [ -d "$f" ] ;then	s=$f;R=.*
 else	s=${f%/*};R=".* -${I}path \"$f\""
 fi
-if((de+if)) &&[[ $z != / ]] ;then
-	export de;export -f di
-	eval "find $po \"$s\" -regextype posix-extended $d \! -iregex \"${XC-$s}\" -${I}regex $R $opt \( \( -type f -o -type l -o -executable \) -exec /bin/bash -c 'di \"\$0\" \"\$@\"' '{}' + -o $P \)"
+if((de)) &&[[ $z != / ]] ;then
+	export -f fd
+	eval "find $po \"$s\" -regextype posix-extended $d \! -iregex \"${XC-$s}\" -${I}regex $R $opt \( -executable -exec /bin/bash -c 'fd \"\$0\" \"\$@\"' '{}' + -o $P \)"
+elif((if)) &&[[ $z != / ]] ;then
+	eval "find $po \"$s\" -regextype posix-extended $d \! -iregex \"${XC-$s}\" -${I}regex $R $opt \( ! -type d -exec /bin/bash -c 'for i
+	{
+		[[ \`file \"\$i\"\` =~ ^[^:]+:[[:space:]]*([^,]+$|[^,]+[[:space:]]([^,]+)) ]]
+		echo \"\$i\";echo \  \${BASH_REMATCH[1]}
+	}' dm '{}' + \)"
 
 #elif [ $cp ] ;then
 	#sudo mkdir -pv $cp
