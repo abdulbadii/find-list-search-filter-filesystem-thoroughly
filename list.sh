@@ -117,8 +117,7 @@ for i
 }
 l(){
 unset IFS a po opt se E s t Fx XC d l lh lx cp cpe re i j if;de=0 ;I=i
-LC_ALL=C;set -f
-trap 'set +f;unset IFS' 1 2
+set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 case $e in
 -[HDLPO]) po=$e;;
@@ -197,13 +196,14 @@ IFS=$'\n';set -- $e
 #get any common dir. path (B) if any, to join with PWD
 [[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
 B=${BASH_REMATCH[2]}
-LO=\"${BASH_REMATCH[4]}\"${BASH_REMATCH[5]}
-[[ ${BASH_REMATCH[4]} = .. ]] &&{	B=$B../;LO=*${BASH_REMATCH[5]} ;}
+z=${BASH_REMATCH[5]}
+LO=\"${BASH_REMATCH[4]}\"
+[[ ${BASH_REMATCH[4]} = .. ]] &&{	B=$B../;LO=*$z ;}
 F=1
 shift;for a;{
 	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	LO=$LO\ ${@:2};F=;break;}
 }
-((F))&&[ $# -ge 1 ] &&{	[[ $e =~ ^/?([^/]*/)*[^/]+($'\n'.*)?$ ]];M=${BASH_REMATCH[2]};}
+((F))&&[ $# -ge 1 ] &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
 
 unset IFS
 eval set -- ${LO-\"\"}
@@ -240,7 +240,7 @@ else
 	fi
 fi
 p=${p%/}$M
-
+p=${p//\//$'\v'}
 while [[ $p =~ ([^\\]\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^\\])\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
@@ -249,14 +249,15 @@ p=${p//\*\*/.*}
 
 M=${M+$'\n'${p#*$'\n'}}
 b=${p%%$'\n'*}
-p=${b##*/}$M
-b=${b%/*}
-IFS=$'\n';eval set -- $p
+p=${b##*$'\v'}
+b=${b%$'\v'*}
+p=$p$z$M
+p=${p//$'\v'/\/};b=${b//$'\v'/\/}
 
+IFS=$'\n';eval set -- ${p:-\"\"}
 for f;{
 unset n R
 [[ $f =~ ^(.*[^/])?(/*)$ ]]
-f=${BASH_REMATCH[1]}
 case ${BASH_REMATCH[2]} in
 /)	Z="$PD";;
 //)	Z="-type f $P";;
@@ -264,6 +265,7 @@ case ${BASH_REMATCH[2]} in
 ////)	Z="-type l $P";;
 *)	Z="\( $PD -o $P \)";;
 esac
+f=${BASH_REMATCH[1]}
 if [ "$f" ] ;then
 f=$b/$f
 if((E)) ;then
@@ -271,13 +273,13 @@ if((E)) ;then
 	((re))&&R=.*$R
 elif [[ $f =~ ([^\\]|^)[[*?] ]] ;then
 	if((re)) ;then
-		p=**${f#$s}
+		p=.*$f
 	else
 		[[ $f =~ ^((/[^/*?]*)*)(/.*)?$ ]]
-		s=${BASH_REMATCH[1]}
+		s=$s${BASH_REMATCH[1]}
 		p=${BASH_REMATCH[3]}
 	fi
-	if [[ $p =~ \*\*[^/]*$ ]] ;then
+	if [[ $p =~ \.\*[^/]*$ ]] ;then
 		[[ $p =~ \.\*$ ]] && p=${p%\*}[^/]+
 	elif [[ $p =~ ^(.*/)?(.+)$ ]] ;then
 		p=${BASH_REMATCH[1]%/}
@@ -303,7 +305,7 @@ fi
 else
 	R=.*
 fi
-
+LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then
 	export -f fd
 	eval "find $po \"$s\" -regextype posix-extended $d \! -iregex \"${XC-$s}\" -${I}regex $R $opt \( -executable -exec /bin/bash -c 'fd \"\$0\" \"\$@\"' '{}' + -o $P \)"
@@ -313,7 +315,6 @@ elif((if)) &&[[ $z != / ]] ;then
 		[[ \`file \"\$i\"\` =~ ^[^:]+:[[:space:]]*([^,]+$|[^,]+[[:space:]]([^,]+)) ]]
 		echo \"\$i\";echo \  \${BASH_REMATCH[1]}
 	}' dm '{}' + \)"
-
 #elif [ $cp ] ;then
 	#mkdir -pv $cp
 	#eval "find $po $s $d \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -ft '{}' ${cp[0]}/\{\} \;"
