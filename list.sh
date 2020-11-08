@@ -196,7 +196,7 @@ IFS=$'\n';set -- $e
 #get any common dir. path (B) if any
 [[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
 B=${BASH_REMATCH[2]}
-z=${BASH_REMATCH[5]}
+z=${BASH_REMATCH[5]//\//$'\v'}
 LO=\"${BASH_REMATCH[4]}\"
 while [[ ${BASH_REMATCH[4]} =~ (^|/)..$ ]] ;do B=$B../;LO=*$z;done
 F=1
@@ -240,7 +240,7 @@ else
 	fi
 fi
 p=${p%/}$M
-eval set -- $p; r=("$@")
+IFS=$'\n';eval set -- $p; r=("$@")
 #if((E)) ;then
 	#R="${p//\\/\\\\}"
 	#((re))&&R=.*$R
@@ -257,21 +257,21 @@ b=${p%%$'\n'*}
 p=${b##*$'\v'}
 b=${b%$'\v'*}
 p=$p$z$M
-i=0;IFS=$'\n';eval set -- ${p:-\"\"}
+i=0;eval set -- ${p:-\"\"}
 for f;{
 unset n R
-[[ $f =~ ^(.*[^/])?(/*)$ ]]
+[[ $f =~ ^(.*[^$'\v'])?($'\v'*)$ ]]
 case ${BASH_REMATCH[2]} in
-/)	Z="$PD";;
-//)	Z="-type f $P";;
-///)	Z="-executable $P";;
-////)	Z="-type l $P";;
+$'\v')	Z="$PD";;
+$'\v'$'\v')	Z="-type f $P";;
+$'\v'$'\v'$'\v')	Z="-executable $P";;
+$'\v'$'\v'$'\v'$'\v')	Z="-type l $P";;
 *)	Z="\( $PD -o $P \)";;
 esac
 f=${BASH_REMATCH[1]}
 if [ "$f" ] ;then
+	f=$b$'\v'$f
 	if [[ $f =~ ([^\\]|^)[[*?] ]] ;then
-		f=$b$'\v'$f
 		if((re)) ;then	p=.*$f
 		else
 			[[ $f =~ ^([^[*?]*)($'\v'.+)$ ]]
