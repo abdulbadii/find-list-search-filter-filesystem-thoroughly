@@ -130,7 +130,7 @@ case $e in
 	z=${dt#*-}
 	dt="-mindepth ${dt%-*}${z:+ -maxdepth $z}";;
 -sep=?|-sep=??) se=${e:5};;
--sep=*) echo Separator must be 1 or 2 characters, ignoring.;;
+-sep=*) echo Separator must be 1 or 2 characters, ignoring;;
 -de) de=1;;
 -in) if=1;;
 -cs) I=;;
@@ -141,7 +141,7 @@ case $e in
 -E|-re) E=1;;
 -s)	s=%s\ ;;
 -t)	t="%Tr %Tx ";;
--[ac-il-x]) echo \'$e\' : inadequate more specific sub-option, ignoring;;
+-[ac-il-x]) echo \'$e\' : inadequate more specific option, ignoring;;
 -[ac-il-x]?*) opt=$opt$e\ ;;
 -[!-]*) echo \'$e\' : unknown option, ignoring. If it\'s meant a path name, put it after - or -- and space;;
 *) break;;
@@ -150,12 +150,10 @@ esac
 shopt -s extglob
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 c=${BASH_REMATCH[1]}
-while [[ $c =~ ([^\\])[\;|\>\<] ]] ;do c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\013'} ;done
-IFS=$'\013'
-set -- $c
+while [[ $c =~ ([^\\])[\;|\>\<] ]] ;do c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done
+IFS=$'\n';set -- $c
 for c;{
-	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;}
-}
+	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{ a=${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]};break;};}
 a=${a//\\/\\\\}
 unset IFS;eval set -- ${a:-\"\"}
 for a;{
@@ -169,17 +167,13 @@ case $a in
 	-cp=?*|-cpu=?*)
 		
 		;;
-	-[!-]*)
-		shift;;
-	-|--)
-		shift;break;;
-	*)
-		break;;
+	-[!-]*)	shift;;
+	-|--)	shift;break;;
+	*)	break;;
 esac
 }
 P="\( -path '* *' -printf \"$s$t'%p'\n\" -o -printf \"$s$t%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$s$t'%p/'\n\" -o -printf \"$s$t%p/\n\" \)"
-
 ((l)) &&{
  [ -z $lx ]&&lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
 }
@@ -310,8 +304,7 @@ elif((if)) &&[[ $z != / ]] ;then
 	#mkdir -pv $cpu
 	#eval "find $po $s $dt \! -ipath $s $P $opt $XC -exec cp -ft '{}' $cpu \;"
 else
-	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) 
-	eval "find $po \"$s\" -regextype posix-extended $dt \! -iregex \"${XC-$s}\" $opt -${I}regex $R $Z"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "find $po \"$s\" -regextype posix-extended $dt \! -iregex \"${XC-$s}\" $opt -${I}regex $R $Z"
 fi
 ((i++));}
 }
