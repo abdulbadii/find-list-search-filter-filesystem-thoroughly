@@ -116,7 +116,7 @@ for i
 }
 }
 l(){
-unset IFS a po opt se E s t Fx XC d l lh lx cp cpe re i j if;de=0 ;I=i
+unset IFS a po opt se E s t Fx XC dt l lh lx cp cpe re i j if;de=0 ;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 case $e in
@@ -171,6 +171,7 @@ case $a in
 	-|--)	shift;break;;
 	*)	break;;
 esac
+(($1)) || set -- ''
 }
 P="\( -path '* *' -printf \"$s$t'%p'\n\" -o -printf \"$s$t%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$s$t'%p/'\n\" -o -printf \"$s$t%p/\n\" \)"
@@ -186,8 +187,7 @@ e=${e#./}
 while [[ $e =~ ([^\\])($se) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
 while [[ $e =~ ([^\\]|^)(\\[^\\]|\\$) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}"} ;done 
 
-IFS=$'\n';set -- $e
-#get any common dir. path (B) if any
+IFS=$'\n';set -- $e		#get any common dir. path (B) if any
 [[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
 B=${BASH_REMATCH[2]}
 z=${BASH_REMATCH[5]}
@@ -247,7 +247,7 @@ b=${p%%$'\n'*}
 p=${b##*$'\v'}${z//\//$'\v'}$M
 b=${b%$'\v'*}
 
-i=0;eval set -- ${p:-\"\"}
+i=;eval set -- ${p:-\"\"}
 for f;{
 unset z Z F;R=.*
 [ "$f" ] &&{
