@@ -116,7 +116,7 @@ for i
 }
 }
 l(){
-unset IFS a po opt se E s t Fx XC dt l lh lx cp cpe re i j if;de=0 ;I=i
+unset IFS a po opt se E sz t Fx XC dt l lh lx cp cpe re i j if;de=0 ;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 case $e in
@@ -139,7 +139,7 @@ case $e in
 -l[0-9]|-l[1-9][0-9])
 	((${e:2})) &&lx=-maxdepth\ ${e:2};l=1;;
 -E|-re) E=1;;
--s)	s=%s\ ;;
+-s)	sz=%s\ ;;
 -t)	t="%Tr %Tx ";;
 -[ac-il-x]) echo \'$e\' : inadequate more specific option, ignoring;;
 -[ac-il-x]?*) opt=$opt$e\ ;;
@@ -173,8 +173,8 @@ case $a in
 esac
 (($1)) || set -- ''
 }
-P="\( -path '* *' -printf \"$s$t'%p'\n\" -o -printf \"$s$t%p\n\" \)"
-PD="-type d \( -path '* *' -printf \"$s$t'%p/'\n\" -o -printf \"$s$t%p/\n\" \)"
+P="\( -path '* *' -printf \"$sz$t'%p'\n\" -o -printf \"$sz$t%p\n\" \)"
+PD="-type d \( -path '* *' -printf \"$sz$t'%p/'\n\" -o -printf \"$sz$t%p/\n\" \)"
 ((l)) &&{
  [ -z $lx ]&&lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
 }
@@ -187,7 +187,8 @@ e=${e#./}
 while [[ $e =~ ([^\\])($se) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
 while [[ $e =~ ([^\\]|^)(\\[^\\]|\\$) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}"} ;done 
 
-IFS=$'\n';set -- $e		#get any common dir. path (B) if any
+IFS=$'\n';set -- ${e//\\/\\\\}
+#get common base dir. path (B) if any
 [[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
 B=${BASH_REMATCH[2]}
 z=${BASH_REMATCH[5]}
@@ -232,9 +233,9 @@ else
 	fi
 fi
 p=${p%/}
-p=${p//\\/\\\\};M=${M//\\/\\\\}
 d=${p%/*};
 IFS=$'\n';eval set -- ${p##*/}$z$M; r=("$@")
+#echo ${r[@]};return
 p=$p$M
 p=${p//\//$'\v'}
 while [[ $p =~ ([^\\]\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
@@ -246,7 +247,6 @@ M=${M:+$'\n'${p#*$'\n'}}
 b=${p%%$'\n'*}
 p=${b##*$'\v'}${z//\//$'\v'}$M
 b=${b%$'\v'*}
-
 i=;eval set -- ${p:-\"\"}
 for f;{
 unset z Z F;R=.*
@@ -263,14 +263,14 @@ if((!E)) &&[[ $f =~ ([^\\]|^)[[*?] ]] ;then
 	fi
 	R=\".{${#s}}${p//$'\v'/\/}\"
 else
-	[[ $d/${r[$i]} =~ ^(.*[^/])?(/*)$ ]]
-	z=${BASH_REMATCH[2]}
+	[[ ${r[$i]} =~ ^(.*[^/])?(/*)$ ]]
 	f=${BASH_REMATCH[1]}
+	z=${BASH_REMATCH[2]}
+	f=$d${f:+/$f}
 	if((E)) ;then
 		if((re)) ;then R=\"{${#s}}.*$f\"
 		else	R=\"$s$f\" ;fi
-	elif((re)) ;then
-		R="\".{${#s}}$f\"";F=1;opt=
+	elif((re)) ;then	F=1;opt=
 	else
 		s=$s$f
 		[ ! -d "$s" ] && R="\"$s\"";s=\"${s%/*}\"
@@ -285,7 +285,10 @@ case $z in
 ////)	Z="-type l $P";;
 *)	Z="\( $PD -o $P \)";;
 esac
-((F))&&Z="\( -type d -exec find '{}' $dt $opt $Z \; -o $P \) -o -${I}regex \".{${#s}}/.+$f\" \( $PD -o $P \)"
+((F))&&{
+R="\".{${#s}}$f\" \( -type d -exec find '{}' $dt $opt $Z \; -o $P \)"${f:+" -o -${I}regex \".{${#s}}.+$f\" \( $PD -o $P \)"}
+Z=
+}
 LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then
 	export -f fd
@@ -300,7 +303,8 @@ elif((if)) &&[[ $z != / ]] ;then
 	#mkdir -pv $cpu
 	#eval "find $po $s $dt \! -ipath $s $P $opt $XC -exec cp -ft '{}' $cpu \;"
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "find $po \"$s\" -regextype posix-extended $dt \! -${I}regex \"${XC-$s}\" $opt -${I}regex $R $Z"
+	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) 
+	eval "find $po \"$s\" -regextype posix-extended $dt $opt -${I}regex $R \! -${I}regex \"${XC-$s}\" $Z"
 fi
 ((i++));}
 }
