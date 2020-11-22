@@ -54,10 +54,9 @@ b=${p%/*}
 p=${p##*/}$z$M
 i=;IFS=$'\n';eval set -- $p
 for f;{
-f=$b/$f
 [[ $f =~ ^(.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
-p=${BASH_REMATCH[1]}
+p=$b${BASH_REMATCH[1]}
 if((E)) ;then
 	while [[ $s =~ ([^\\]|^)([.*?{}().]) ]] ;do s=${s/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 else
