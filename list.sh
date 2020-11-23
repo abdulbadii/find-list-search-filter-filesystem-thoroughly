@@ -1,6 +1,6 @@
 fx(){
 for e;{
-unset local b B LO M s a p re z
+unset local a b B LO M p re z
 [[ $e =~ ^\.?/[^/] ]]||re=1
 e=${e#./}
 : ${se='\\\\'}
@@ -13,10 +13,10 @@ LO=\"${BASH_REMATCH[4]}\"
 z=${BASH_REMATCH[5]}
 while [[ $LO =~ ^"\.\."$ ]] ;do B=$B../;LO=*$z;done
 F=1
-shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	LO=$LO\ $@;F=;break;};}
+shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	LO=$LO\ \"$@\";F=;break;};}
 [ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
 
-unset IFS;eval set -- $LO
+unset IFS s;eval set -- $LO
 for a;{
 a=$B${a%%+(/)}
 if [[ $a =~ ^/ ]] ;then
@@ -139,7 +139,7 @@ for c;{
 for a;{
 case $a in
 	-x=?*|-xs=?*|-xcs=?*|-x-s=?*|-x-cs=?*)
-		[[ $a =~ ^-x-?c?s=(.+)$ ]]
+		[[ $a =~ [^=]+=(.+)$ ]]
 		shift;c=("$@")					# Preserve array to c
 		eval set -- ${BASH_REMATCH[1]}
 		fx "$@"
@@ -173,7 +173,7 @@ z=${BASH_REMATCH[5]}
 LO=\"${BASH_REMATCH[4]}\"
 while [[ $LO =~ ^"\.\."$ ]] ;do B=$B../;LO=*$z;done
 F=1
-shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	LO=$LO\ $@;F=;break;};}
+shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	LO=$LO\ \"$@\";F=;break;};}
 
 [ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
 unset IFS s
@@ -264,20 +264,21 @@ case $z in
 *)	Z="\( $PD -o $P \)";;
 esac
 ((F))&&{
-	R="\".{${#s}}$f\" \( -type d -exec find '{}' $dt $opt $Z \; -o $P \)"${f:+" -o -${I}regex \".{${#s}}.+$f\" \( $PD -o $P \)"}; Z=
+	R="\".{${#s}}$f\" \( -type d -exec find '{}' \! -path '{}' $dt $opt $Z \; -o $P \)"${f:+" -o -${I}regex \".{${#s}}.+$f\" \( $PD -o $P \)"}; Z=
 }
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then
 	export -f fd
-	eval "find $po \"$s\" $dt \! -path \"$s\" -regextype posix-extended \! -{I}regex \"$X\" $opt -${I}regex $R $P ! -type d -executable -exec /bin/bash -c 'fd \"\$0\" \"\$@\"' '{}' \;"
+	eval "find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" \! \( -${J}regex $X \) $P ! -type d -executable -exec /bin/bash -c 'fd \"\$0\" \"\$@\"' '{}' \;"
 elif((if)) &&[[ $z != / ]] ;then
-	eval "find $po \"$s\" $dt \! -path \"$s\" -regextype posix-extended \! -{I}regex \"$X\" $opt -${I}regex $R $P ! -type d -exec /bin/bash -c '
+	eval "find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" \! \( -${J}regex $X \) $P ! -type d -exec /bin/bash -c '
 		[[ \`file \"{}\"\` =~ ^[^:]+:[[:space:]]*([^,]+$|[^,]+[[:space:]]([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
 #elif((Fc)) ;then
 	#mkdir -pv $cp
 	#eval "find $po $s $dt \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -ft '{}' ${cp[0]}/\{\} \;"
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" \! \( -${J}regex $X \) $Z"
+	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) 
+	eval "find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" \! \( -${J}regex $X \) $Z"
 fi
 ((i++));}
 }
