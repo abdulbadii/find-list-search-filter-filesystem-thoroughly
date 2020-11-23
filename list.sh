@@ -114,9 +114,9 @@ case $e in
 -E|-re) E=1;;
 -s)	sz=%s\ ;;
 -t)	t="%Tr %Tx ";;
--[ac-il-w]) echo \'$e\' : inadequate more specific option, ignoring;;
 -[ac-il-x]?*) opt=$opt$e\ ;;
--h|--help) find --help;return;;
+-[ac-il-w]) echo \'$e\' : inadequate more specific option, ignoring;;
+-h|--help) man find;return;;
 -sep=?|-sep=??) se=${e:5};;
 -sep=*) echo Separator must be 1 or 2 characters, ignoring;;
 -[!-]*) echo \'$e\' : unknown option, ignoring. If it\'s meant a path name, put it after - or -- and space;;
@@ -131,8 +131,10 @@ IFS=$'\n';set -- $c
 unset IFS
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
-	eval set -- "${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+	c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+	eval set -- $c
 	break;}
+	set --
 }
 for a;{
 case $a in
@@ -149,10 +151,8 @@ case $a in
 	-*)	shift;;
 	*)	break;;
 esac
-[ "$1" ] || set -- ''
 }
-#echo ==${a}==
-#return
+[ "$1" ] || set -- ''
 P="\( -path '* *' -printf \"$sz$t'%p'\n\" -o -printf \"$sz$t%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$sz$t'%p/'\n\" -o -printf \"$sz$t%p/\n\" \)"
 ((l)) &&{
@@ -176,7 +176,7 @@ F=1
 shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	LO=$LO\ $@;F=;break;};}
 
 [ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
-unset IFS
+unset IFS s
 eval set -- ${LO-\"\"}
 for a;{
 a=$B${a%%+(/)}
@@ -212,7 +212,7 @@ else
 fi
 p=${p%/}
 
-d=\"${p%/*}\";IFS=$'\n';eval set -- \"${p##*/}\"$z$M; r=("$@")
+d=${p%/*};IFS=$'\n';eval set -- \"${p##*/}\"$z$M; r=("$@")
 p=$p$M
 p=${p//\//$'\v'}
 while [[ $p =~ ([^\\]\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
@@ -250,7 +250,8 @@ else
 	elif((re)) ;then	F=1
 	else
 		s=$s$f
-		[ -d "$s" ] ||{ R="\"$s\"";s=\"${s%/*}\" ;}
+		[ -d $s ] ||{ R=\"$s\";s=${s%/*};}
+		
 	fi
 fi
 : ${s:=/}
@@ -276,8 +277,7 @@ elif((if)) &&[[ $z != / ]] ;then
 	#mkdir -pv $cp
 	#eval "find $po $s $dt \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -ft '{}' ${cp[0]}/\{\} \;"
 else
-	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) 
-	eval "find $po \"$s\" $dt \! -path \"$s\" -regextype posix-extended $opt -${I}regex $R \! \( -${J}regex $X \) $Z"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done) eval "find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" \! \( -${J}regex $X \) $Z"
 fi
 ((i++));}
 }
