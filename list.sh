@@ -94,8 +94,20 @@ shopt -s extglob
 for e;{
 ((F)) &&{	opt=$opt$e\ ;F=;continue;}
 case $e in
--[cam]min|-[cam]time|-newer|-newer[aBcmt]?|-anewer|-type|-xtype|-size|-use[dr]|-group|-uid|-perm|-links|-fstype|-context|-samefile )
-	opt=$opt$e\ ;F=1;;
+-[cam][mdh][1-9]*)
+	d=${e#-[cam][mdh]}
+	f=${e:2:1}
+	U=${d#*-}
+	L=${d%-*}
+	[ $f = h ] &&{ let U*=60;let L*=60;}
+	f=${f/[mh]/min};
+	f=${f/d/time}
+	f=-${e:1:1}${f/d/time}
+	if((U==L)) ;then	opt="$opt$f -$U "
+	elif((!U)) ;then	opt="$opt$f +$L "
+	else			opt="$opt$f +$L $f -$U "
+	fi;;
+-[cam]min|-[cam]time)	opt=$opt$e\ ;o=$e;F=1;;
 -[1-9]|-[1-9][0-9]) dt=-maxdepth\ ${e:1};;
 -[1-9]-*|[1-9][0-9]-*)
 	dt=${e#-}
@@ -114,13 +126,18 @@ case $e in
 -E|-re) E=1;;
 -s)	sz=%s\ ;;
 -t)	t="%Tr %Tx ";;
--[ac-il-x]?*) opt=$opt$e\ ;;
--[ac-il-w]) echo \'$e\' : inadequate more specific option, ignoring;;
 -h|--help) man find;return;;
+-[ac-il-w]) echo \'$e\' : need more specific option, ignoring;;
 -sep=?|-sep=??) se=${e:5};;
 -sep=*) echo Separator must be 1 or 2 characters, ignoring;;
--[!-]*) echo \'$e\' : unknown option, ignoring. If it\'s meant a path name, put it after - or -- and space;;
 -[HDLPO]) po=$e;;
+-[ac-il-x]?*)
+	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint.|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e\ 
+	else	echo \'$e\' : most likely unknown option, ignoring. If it\'s meant a path name, put
+	fi
+	;;
+-size|-perm|-inum|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-use[dr]|-group|-uid|-perm|-links|-fstype|-context|-samefile|-D|-O|-ok|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-m[ai][xn]depth)	opt=$opt$e\ ;F=1;;
+-[!-]*) echo \'$e\' : unknown option, ignoring. If it\'s meant a path name, put it after - or -- and space;;
 *) break;;
 esac
 }
