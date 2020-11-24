@@ -297,8 +297,7 @@ elif((if)) &&[[ $z != / ]] ;then
 	#sudo mkdir -pv $cp
 	#eval "sudo find $po $s $dt \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -ft '{}' ${cp[0]}/\{\} \;"
 else
-	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)
-		eval "sudo find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" $X $Z"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "sudo find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" $X $Z"
 fi
 ((i++));}
 }

@@ -1,7 +1,7 @@
-Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file
-Should do also running the script InstallUpdate2.bashrc.sh file    
+Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file   
+Should do well too is running the InstallUpdate2.bashrc.sh script file    
 
-"list-su.sh" differs only in having superuser request (sudo-prefixed command), however cannot get sudo when using -de, -in option   
+"list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be run when using -de, -in option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 
@@ -18,11 +18,11 @@ Would narrow down search
 - To have greater control by regular expression					-E   
 - To search in case sensitive		-cs (Defaults to insensitive -ci) option   
 - To filter out i.e. exclude certain path from the main find search result  
-- to filter by creation, acces or, modification time, use -c, -a, -m of the easier syntax than find's   
-   e.g. -cm7 exactly equal to 7 minute   
-    -cm-7 less than or equal to 7 minute   
-    -cm7- more than or equal to 7 minute   
-    -cm7-10 between 7 to 10 minute inclusively 
+- to filter by creation, acces or, modification pass time, use -c, -a, -m as easier syntax than find's   
+		-cm7 last creation exactly equals to 7 minute   
+    -am-7 last access is less than or equal to 7 minute   
+    -md7- last modification is more than or equals to 7 days   
+    -mh7-10 last modification is between 7 to 10 hours inclusively 
 </pre>
 
 Most of 'find' 'test' options may also be passed here, below are some excerpt of its manual on options   
@@ -91,10 +91,9 @@ will not find it since there is no /qt/core/meta
 
 In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard, while a directory being searched and found, then the entire directory content will automatically be shown   
 
-If this purpose is needed in another way of path described above, put -l option in order to show content of directory found by some wildcard pattern or specific depth   
-To have it shown up to certain depth add the number e.g. -l3 option will show to 3 directory plies.   
-To have the found directory's content shown  entirely the number meant for it is 0.   
-So be prepared if to put -l0 option, it will list entirely  the content of every found directory which could be a bit overwhelming.   
+If this purpose is needed in another way of path described above, put -l option in order to show first depth content of directory found in wildcard pattern or some depth searches   
+To have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. -l0   
+So be prepared if to put -l0 option, it would list so many content of every directory found which causes a bit messy.   
 
 Can be limited with depth by option -1..99[-1..99] options,  e.g:   
 search for only on current directory and one below it put -2   
