@@ -1,17 +1,17 @@
 fx(){ ##### BEGINNING OF l, find wrap script ##### 
 for e;{
 unset local a b B LO M p re z
+X=()
 [[ $e =~ ^\.?/[^/] ]]||re=1
 e=${e#./}
 : ${se='\\\\'}
 while [[ $e =~ ([^\\])($se) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
-while [[ $e =~ ([^\\]|^)(\\[^\\]|\\$) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\${BASH_REMATCH[2]}"} ;done 
 IFS=$'\n';set -- ${e//\\/\\\\}
 [[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
 B=${BASH_REMATCH[2]}
 LO=\"${BASH_REMATCH[4]}\"
 z=${BASH_REMATCH[5]}
-while [[ $LO =~ ^"\.\."$ ]] ;do B=$B../;LO=*$z;done
+while [[ $LO =~ \"\.\.\" ]] ;do B=$B../;LO=*$z;done
 F=1
 shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	LO=$LO\ \"$@\";F=;break;};}
 [ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
@@ -52,7 +52,7 @@ fi
 p=${p%/}
 b=${p%/*}
 p=${p##*/}$z$M
-i=;IFS=$'\n';eval set -- $p
+IFS=$'\n';eval set -- $p
 for f;{
 [[ $f =~ ^(.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
@@ -62,7 +62,7 @@ if((E)) ;then
 else
 	while [[ $p =~ ([^\\]\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 	while [[ $p =~ ([^\\])\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
-	while [[ $p =~ ([^\]\\*])\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
+	while [[ $p =~ ([^\]\\*]|^)\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
 	while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 	p=${p//\*\*/.*}
 fi
@@ -72,8 +72,8 @@ case $z in
 ///)	z=\ -executable;;
 ////)	z=" -type l";;
 esac
-if((re)) ;then	X=\"$s.*$p\"\ $z
-else	X=\"$s$p\"\ $z
+if((re)) ;then	X=("${X[@]} \! -${J}regex \"$s.*$p\" $z")
+else	X=("${X[@]} \! -${J}regex \"$s$p\" $z")
 fi
 }
 }
@@ -152,7 +152,7 @@ unset IFS
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
 	c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
-	eval set -- $c
+	eval set -- ${c//\\/\\\\}
 	break;}
 	set --
 }
@@ -161,7 +161,7 @@ case $a in
 	-x=?*|-xs=?*|-xcs=?*|-x-s=?*|-x-cs=?*)
 		[[ $a =~ [^=]+=(.+)$ ]]
 		shift;c=("$@")					# Preserve array to c
-		eval set -- ${BASH_REMATCH[1]}
+		eval set -- ${BASH_REMATCH[1]//\\/\\\\}
 		fx "$@"
 		eval set -- "${c[@]}";;
 	-cp=?*|-cpu=?*)
@@ -232,7 +232,7 @@ p=$p$M
 p=${p//\//$'\v'}
 while [[ $p =~ ([^\\]\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^\\])\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
-while [[ $p =~ ([^\]\\*])\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
+while [[ $p =~ ([^\]\\*]|^)\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
 while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 p=${p//\*\*/.*}
 M=${M:+$'\n'${p#*$'\n'}}
@@ -298,7 +298,7 @@ elif((if)) &&[[ $z != / ]] ;then
 	#eval "sudo find $po $s $dt \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -ft '{}' ${cp[0]}/\{\} \;"
 else
 	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)
-		eval "sudo find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" \! \( -${J}regex $X \) $Z"
+		eval "sudo find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" $X $Z"
 fi
 ((i++));}
 }
