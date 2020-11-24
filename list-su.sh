@@ -123,9 +123,9 @@ case $e in
 -in) if=1;;
 -cs) I=;;
 -ci) I=i;;
--l) lx=-maxdepth\ 1; l=1;;
+-l) lx='-maxdepth 1'; l=1;;
 -l[0-9]|-l[1-9][0-9])
-	((${e:2})) &&lx=-maxdepth\ ${e:2};l=1;;
+	((${e:2})) &&lx="-maxdepth\ ${e:2}";l=1;;
 -E|-re) E=1;;
 -s)	sz=%s\ ;;
 -t)	t="%Tr %Tx ";;
@@ -136,7 +136,7 @@ case $e in
 -[HDLPO]) po=$e;;
 -[ac-il-x]?*)
 	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint.|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e\ 
-	else	echo \'$e\' is likely unknown option; read -n1 -p 'go on ignorig it?' k; [ $k = y ]||return
+	else	read -n1 -p "'$e' is a likely unknown option, ignoring it to continue? " k; [ "$k" = y ]||return
 	fi
 	;;
 -size|-perm|-inum|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-use[dr]|-group|-uid|-perm|-links|-fstype|-context|-samefile|-D|-O|-ok|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-m[ai][xn]depth)	opt=$opt$e\ ;F=1;;
@@ -173,11 +173,6 @@ case $a in
 esac
 }
 [ "$1" ] || set -- ''
-P="\( -path '* *' -printf \"$sz$t'%p'\n\" -o -printf \"$sz$t%p\n\" \)"
-PD="-type d \( -path '* *' -printf \"$sz$t'%p/'\n\" -o -printf \"$sz$t%p/\n\" \)"
-((l)) &&{
- [ -z $lx ]&&lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
-}
 for e;{
 unset b B LO M s re
 [[ ${e:0:2} = \\ ]] &&{	z=${e##+(\\)};z=${z#/}; e=/;}
@@ -276,6 +271,8 @@ else
 fi
 : ${s:=/}
 }
+P="\( -path '* *' -printf \"$sz$t'%p'\n\" -o -printf \"$sz$t%p\n\" \)"
+PD="-type d \( -path '* *' -printf \"$sz$t'%p/'\n\" -o -printf \"$sz$t%p/\n\" \)"
 case $z in
 /)	Z="$PD";;
 //)	Z="-type f $P";;
@@ -283,9 +280,12 @@ case $z in
 ////)	Z="-type l $P";;
 *)	Z="\( $PD -o $P \)";;
 esac
-((F))&&{
-	R="\".{${#s}}$f\" \( -type d -exec find '{}' \! -path '{}' $dt $Z \; -o $P \)"${f:+" -o -${I}regex \".{${#s}}.+$f\" \( $PD -o $P \)"}; Z=
-}
+if((l)) ;then
+ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
+fi
+if((F)) ;then
+	R="\".{${#s}}$f\" \( -type d -exec find '{}' \! -path '{}' $dt $opt $Z \; -o $P \)"${f:+" -o -${I}regex \".{${#s}}.+$f\" \( $PD -o $P \)"}; Z=
+fi
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then
 	export -f fd
@@ -297,7 +297,8 @@ elif((if)) &&[[ $z != / ]] ;then
 	#sudo mkdir -pv $cp
 	#eval "sudo find $po $s $dt \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -ft '{}' ${cp[0]}/\{\} \;"
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "sudo find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" \! \( -${J}regex $X \) $Z"
+	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)
+		eval "sudo find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" \! \( -${J}regex $X \) $Z"
 fi
 ((i++));}
 }
