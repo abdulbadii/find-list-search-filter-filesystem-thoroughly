@@ -1,5 +1,7 @@
-Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file   
-the "list-su.sh" differs only in having superuser request (sudo prefixed command) but not if using -d, -i option   
+Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file
+Should do also running the script InstallUpdate2.bashrc.sh file    
+
+"list-su.sh" differs only in having superuser request (sudo-prefixed command), however cannot get sudo when using -de, -in option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 
@@ -10,12 +12,19 @@ Would print its  <pre>
 - Dependencies of file found in one level depth		-de   
 
 Would narrow down search   
-- To find only directory, file or link type, suffix it with /, // or ///    
-- To certain depth :		-1..99[-1..99] or ./ prefix to be tied on current dir.
+- To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
+- To certain depth :		-1..99[-1..99]   
+   or ./ prefix for only current dir. search   
 - To have greater control by regular expression					-E   
-- To search in case sensitive		-cs (Defaults to insensitive -ci option)   
-- To filter out or get exclusion from the main search found   
+- To search in case sensitive		-cs (Defaults to insensitive -ci) option   
+- To filter out i.e. exclude certain path from the main find search result  
+- to filter by creation, acces or, modification time, use -c, -a, -m of the easier syntax than find's   
+   e.g. -cm7 exactly equal to 7 minute   
+    -cm-7 less than or equal to 7 minute   
+    -cm7- more than or equal to 7 minute   
+    -cm7-10 between 7 to 10 minute inclusively 
 </pre>
+
 Most of 'find' 'test' options may also be passed here, below are some excerpt of its manual on options   
 Simply type l   
 
@@ -106,16 +115,19 @@ can be navigated by way of one-line multiple paths such as absolute followed by 
 
 $ l /qt/\*/\*/core/\*\*/meta  src/\*.c   
 
-can even by multiple object name of the same directory paths e.g. search for h, c and cpp files in one directory path relative to current working directory, separated by separator \\\\\\\\ in a single line. E.g this will search for /qt/src/dev/\*.h and /qt/src/dev/\*.c and /qt/src/dev/\*.cp    
+can even invoked as multiple object name of the same previous directory paths   
+e.g. search for h, c and cpp files in one directory path relative to current working directory, separate it by separator \\\\\\\\ in a single line.   
+E.g this will search for /qt/src/dev/\*.h and /qt/src/dev/\*.c and /qt/src/dev/\*.cp    
 $ cd /qt
 $ l src/dev/*.h\\\\\*.c\\\\\*.cpp   
 
-To change separator other than \\\\ use option -sep={any 2 characters not treated special by Bash}, e.g. -sep=,,   
+To change separator other than \\\\ use option:   
+-sep={any 1 or 2 characters not regarded as special by Bash}. E.g. -sep=,,   
 
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
-The most usefull and powerful features of this tool are its "recognized format" of input and output which could be used/piped as input of another tool, and the -exc (or just -ex) exclusion option for excluding some certain files or paths from the original result paths  
+The most usefull and powerful features of this tool are its "recognized" format of input and output which could be used/piped as input of another tool, and the -x (or-xcs for case-sensitive) exclusion option for excluding some certain files or paths from the original result paths  
 
 e.g. 1st, the below will search under "lib" being under "dev" instead of "core", all of "c" file :   
 
@@ -126,7 +138,7 @@ $ l /qt/src/dev/core/../lib/*.c
 /qt/src/dev/lib/add.c   
 /qt/src/dev/lib/open.c   
 
-And the result is recognizable as absolute path which is ready to be piped correctly    
+And the result is recognizable as absolute path which is ready to be piped correctly by \|xargs ...    
 
 e.g. 2nd, the below will search such above with additional stricter filter that is the one without letter "e" in all "c" files found:   
 
@@ -134,10 +146,15 @@ $ l -exc= /qt/src/dev/core/../lib/\*e\*.c   /qt/src/dev/core/../lib/\*.c
 /qt/src/dev/lib/main.c   
 /qt/src/dev/lib/add.c   
 
+$ l -ch5-   
+   find object created more than or equal to 5 hours   
+$ l -ah5-7   
+   find object accesed betwwen 5 and 7 hours inclusively  
+$ l -md1-5   
+   find object modified between 1 and 5 days inclusively  
 
-to better narrow down the search use Linux "find" options to test or filter the search   
 
-$ l -cmin -7 -E '/a/**m\w{1,2}\\.[c-h]   
+to better narrow down the search use Linux "find" options to test and filter the search   
 
 will give as above which has been modified less than 7 minutes ago   
 
