@@ -284,7 +284,7 @@ case $z in
 *)	Z="\( $PD -o $P \)";;
 esac
 ((F))&&{
-	R="\".{${#s}}$f\" \( -type d -exec find '{}' \! -path '{}' $dt $opt $Z \; -o $P \)"${f:+" -o -${I}regex \".{${#s}}.+$f\" \( $PD -o $P \)"}; Z=
+	R="\".{${#s}}$f\" \( -type d -exec find '{}' \! -path '{}' $dt $Z \; -o $P \)"${f:+" -o -${I}regex \".{${#s}}.+$f\" \( $PD -o $P \)"}; Z=
 }
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then
