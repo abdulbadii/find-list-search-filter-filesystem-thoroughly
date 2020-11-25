@@ -87,7 +87,7 @@ for i
 }
 }
 l(){
-unset IFS a po opt se E sz t dt l lh lx cp cpe i j if F X;I=i;J=i ;de=0
+unset IFS a po opt se E sz t dt l lh lx cp cpu if Fc F X;I=i;J=i ;de=0
 set -f;trap 'set +f;unset IFS' 1 2
 shopt -s extglob
 for e;{
@@ -115,9 +115,9 @@ case $e in
 	dt=${e#-}
 	z=${dt#*-}
 	dt="-mindepth ${dt%-*}${z:+ -maxdepth $z}";;
+-x=?*) ;;
+-xs=?*|-xcs=?*) J=;;
 -cp=?*|-cpu=?*) Fc=1;;
--x=?*) Fx=1;;
--xs=?*|-x-s=?*|-xcs=?*|-x-cs=?*) Fx=1;J=;;
 -de) de=1;;
 -in) if=1;;
 -cs) I=;;
@@ -135,8 +135,7 @@ case $e in
 -[ac-il-x]?*)
 	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint.|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e\ 
 	else	read -n1 -p "'$e' is a likely unknown option, ignoring it to continue? " k; [ "$k" = y ]||return
-	fi
-	;;
+	fi;;
 -size|-perm|-inum|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-use[dr]|-group|-uid|-perm|-links|-fstype|-context|-samefile|-D|-O|-ok|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-m[ai][xn]depth)	opt=$opt$e\ ;F=1;;
 -[!-]*) echo \'$e\' : unknown option, ignoring. If it\'s meant a path name, put it after - or -- and space;;
 *) break;;
@@ -157,14 +156,14 @@ for c;{
 for a;{
 case $a in
 	-x=?*|-xs=?*|-xcs=?*|-x-s=?*|-x-cs=?*)
-		[[ $a =~ [^=]+=(.+)$ ]]
+		[[ $a =~ ^[^=]+=(.+)$ ]]
 		shift;c=("$@")					# Preserve array to c
 		eval set -- ${BASH_REMATCH[1]//\\/\\\\}
 		fx "$@"
 		eval set -- "${c[@]}";;
 	-cp=?*|-cpu=?*)
-		
-		;;
+		[[ $a =~ ^[^=]+=(.+)$ ]]
+		shift;C=("$@");;
 	-|--)	shift;break;;
 	-*)	shift;;
 	*)	break;;
@@ -234,8 +233,8 @@ while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMAT
 p=${p//\*\*/.*}
 M=${M:+$'\n'${p#*$'\n'}}
 b=${p%%$'\n'*}
-p=\"${b##*$'\v'}${z//\//$'\v'}$M\"
-b=\"${b%$'\v'*}\"
+p=${b##*$'\v'}${z//\//$'\v'}$M
+b=${b%$'\v'*}
 i=;eval set -- ${p:-\"\"}
 for f;{
 unset F;R=.*
@@ -252,7 +251,7 @@ if((!E)) &&[[ $f =~ ([^\\]|^)[[*?] ]] ;then
 	fi
 	R=\".{${#s}}${p//$'\v'/\/}\"
 else
-	[[ ${r[$i]} =~ ^(.*[^/])?(/*)$ ]]
+	[[ ${r[$((i++))]} =~ ^(.*[^/])?(/*)$ ]]
 	f=${BASH_REMATCH[1]}
 	z=${BASH_REMATCH[2]}
 	f=$d${f:+/$f}
@@ -289,12 +288,16 @@ if((de)) &&[[ $z != / ]] ;then
 elif((if)) &&[[ $z != / ]] ;then
 	eval "find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" $X $P ! -type d -exec /bin/bash -c '
 		[[ \`file \"{}\"\` =~ ^[^:]+:[[:space:]]*([^,]+$|[^,]+[[:space:]]([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
-#elif((Fc)) ;then
+elif((Fc)) ;then
+
 	#sudo mkdir -pv $cp
-	#eval "sudo find $po $s $dt \! -ipath $s $P $opt $XC -exec mkdir -p ${cp[0]}/\{\} &>/dev/null \; -exec cp -ft '{}' ${cp[0]}/\{\} \;"
+	for i in ${C[@]};{
+	eval "sudo find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" $X -exec cp '{}' $i \;"
+	
+	}
+	
 else
-	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)
-		eval "sudo find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" $X $Z"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "sudo find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$s\" $X $Z"
 fi
 ((i++));}
 }

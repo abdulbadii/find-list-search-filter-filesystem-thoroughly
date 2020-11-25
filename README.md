@@ -1,5 +1,5 @@
 Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file   
-Should do well too is running the InstallUpdate2.bashrc.sh script file    
+Should copy too is installing it by running the InstallUpdate2.bashrc.sh script     
 
 "list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be run when using -de, -in option   
 
