@@ -94,23 +94,39 @@ shopt -s extglob
 for e;{
 ((F)) &&{	opt=$opt$e\ ;F=;continue;}
 case $e in
--[cam][mdh][1-9]*|-[cam][mdh]-[1-9]*)
-	d=${e#-[cam][mdh]}
-	a=${d%-*};z=${d#*-}
-	f=${e:2:1}
-	[ $f = h ] &&{ let a*=60;let z*=60;}
-	f=${f/[mh]/min};
-	f=-${e:1:1}${f/d/time}
+-[cam][0-9]*|-[cam]-[0-9]*)
+	d=${e:2}
+	f=-${e:1:1}
+	a=${d%-*};e=${a##*[0-9]}
+	: ${e:=m};a=${a%[mhd]}
+	[ $e = h ] && let a*=60
+	e=${e/[mh]/min};e="${e/d/time} "
 	if [[ $d = *-* ]] ;then
-		if((!a)) ;then	opt="$opt\( $f -$z -o $f $z \) "
-		elif((!z)) ;then	opt="$opt\( $f +$a -o $f $a \) "
-		else	opt="$opt\( $f +$a $f -$z -o $f $a -o $f $z \) ";fi
-	else	opt="$opt$f $a ";fi;;
--[cam]min|-[cam]time)	opt=$opt$e\ ;o=$e;F=1;;
+		z=${d#*-};x=${z##*[0-9]}
+		: ${x:=m};z=${z%[mhd]}
+		[ $x = h ] && let z*=60
+		x=${x/[mh]/min};x="${x/d/time} "
+		if((!a)) ;then	opt="$opt\( $f$x-$z -o $f$x$z \) "
+		elif((!z)) ;then	opt="$opt\( $f$e+$a -o $f$e$a \) "
+		else	opt="$opt\( $f$e+$a $f$x-$z -o $f$e$a -o $f$x$z \) ";fi
+	else	opt="$opt$f$e$a ";fi;;
+-[cam]min|-[cam]time)	opt=$opt$e\ ;F=1;;
 -[1-9]|-[1-9][0-9]) dt=-maxdepth\ ${e:1};;
 -[1-9]-*|[1-9][0-9]-*)
 	dt=${e#-};z=${dt#*-}
 	dt="-mindepth ${dt%-*}${z:+ -maxdepth $z}";;
+-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)
+	d=${e:2}
+	a=${d%-*};e=${a##*[0-9]}
+	: ${e:=k};a=${a%[cwbkMG]}
+	f='-size '
+	if [[ $d = *-* ]] ;then
+		z=${d#*-};x=${z##*[0-9]}
+		: ${x:=k};z=${z%[cwbkMG]}
+		if((!a)) ;then	opt="$opt\( $f-$z$x -o $f$z$x \) "
+		elif((!z)) ;then	opt="$opt\( $f+$a$e -o $f$a$e \) "
+		else	opt="$opt\( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x \) ";fi
+	else	opt="$opt$f$a$e ";fi;;
 -cp=?*) Fc=1;;
 -cpp=?*) Fp=1;;
 -x=?*) X=$dt;;
@@ -123,7 +139,7 @@ case $e in
 -l[0-9]|-l[1-9][0-9])
 	((${e:2})) &&lx="-maxdepth\ ${e:2}";l=1;;
 -E|-re) E=1;;
--sz)	sz=%s\ ;;
+-z)	sz=%s\ ;;
 -t)	tm="%Tr %Tx ";;
 -h|--help) man find;return;;
 -sep=?|-sep=??) se=${e:5};;
@@ -132,7 +148,7 @@ case $e in
 -size|-perm|-inum|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-use[dr]|-group|-uid|-perm|-links|-fstype|-context|-samefile|-D|-O|-ok|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-m[ai][xn]depth)	opt=$opt$e\ ;F=1;;
 -[ac-il-x]?*)
 	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint.|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e\ 
-	else	read -n1 -p "'$e' seems an unknown option, ignoring it and continue? " k; [ "$k" = y ]||return
+	else	read -n1 -p "Option '$e' seems ambiguous, ignoring it and continue? " k; [ "$k" = y ]||return
 	fi;;
 -|--)	L=1; break;;
 -*)
@@ -142,13 +158,13 @@ esac
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 c=${BASH_REMATCH[1]}
 IFS=';&|><';set -- $c
+unset IFS
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
-		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
-		unset IFS;eval set -- ${c//\\/\\\\};break;}
+		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}";eval set -- ${c//\\/\\\\};break;}
 	set --
 }
-[ "$1" ] || set -- ''
+[ "$1" ]&&{
 for a;{
 case $a in
 	-x=?*|-xs=?*|-xcs=?*)	shift
@@ -162,10 +178,12 @@ case $a in
 	-*)	shift;;
 	*)
 		((L))&&break
-		m="$m$a "	# Preserve main args
+		m=$m$a\ # Preserve main args
 		shift
 esac
 }
+}
+: ${m=\"\"}
 eval set -- ${m//\\/\\\\}
 for e;{
 unset b B LO M s re
@@ -277,7 +295,7 @@ esac
  [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
 }
 ((F)) &&{
-	R="\".{${#s}}$f\" \( -type d -exec find '{}' \! -path '{}' $dt $opt $Z \; -o $P \)"${f:+" -o -${I}regex \".{${#s}}.+$f\" \( $PD -o $P \)"}; Z=
+	R="\".{${#s}}$f\" \( -type d -exec find '{}' $dt \! -path '{}' $opt $Z \; -o $P \)"${f:+" -o $dt -${I}regex \".{${#s}}.+$f\" -$opt \( $PD -o $P \)"}; dt=;opt=;Z=
 }
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then

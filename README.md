@@ -1,12 +1,12 @@
 Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file   
-Should copy too is installing it by running the InstallUpdate2.bashrc.sh script     
+Should copy too is running the InstallUpdate2.bashrc.sh script     
 
-"list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be run when using -de, -in option   
+"list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be applied with in, de option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 
 Would print its  <pre> 
-- Size									-s   
+- Size								-z   
 - Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
 - Dependencies of file found in one level depth		-de   
@@ -15,17 +15,23 @@ Would narrow down search
 - To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
 - To certain depth :		-1..99[-1..99]   
    or ./ prefix for only current dir. search   
-- To have greater control by regular expression					-E   
+- To have better control by regular expression				-E or -re   
 - To search in case sensitive		-cs (Defaults to insensitive -ci) option   
 - To filter out i.e. exclude certain path from the main find search result  
-- to filter by creation, acces or, modification pass time, use -c, -a, -m as easier syntax than find's   
-		-cm7 last creation exactly equals to 7 minute   
-    -am-7 last access is less than or equal to 7 minute   
-    -md7- last modification is more than or equals to 7 days   
-    -mh7-10 last modification is between 7 to 10 hours inclusively 
+- to filter by creation, acces or, modification pass time, use -c, -a, -m as easier use than find's   
+		-c7m last creation exactly equals to 7 minute   
+    -a-7m last access is less than or equal to 7 minute   
+    -m7d- last modification is more than or equals to 7 days   
+    -ch7-10 last creation is between 7 to 10 minutes inclusively. Watch: no unit means in minute 
+- to filter by size in byte, kibi-, mebi- and gibi- byte unit which has simpler command than find's   
+		-s7M size is exactly equals to 7 mebibiytes   
+    -s-7G size is less than or equal to 7 gibibytes   
+    -s7b- size is more than or equals to 7 blocks (7 times 512-bytes)   
+    -s7-10 size is between 7 to 10 kibibyte inclusively. Watch: no unit means in kibibyte 
+    -s70c-90c size is between 70 to 90 byte inclusively 
 </pre>
 
-Most of 'find' 'test' options may also be passed here, below are some excerpt of its manual on options   
+Most of 'find' 'test' options may also be passed here, below is its manual excerpt of the options   
 Simply type l   
 
 $ l   
@@ -43,7 +49,8 @@ list every executable binary only under current directory
 $ l ////   
 list every links only under current directory   
 
-It suggest that just put suffix / to search for directory only,   
+It suggest that:
+just put suffix / to search for directory only,   
 or put suffix // to search for file only,   
 or put suffix /// to search for executable binary only 
 or put suffix //// to search for link only   
@@ -51,10 +58,10 @@ or put suffix //// to search for link only
 $ l \\/   
 list every filesystem type under "/" (root) directory entirely, the preceding \\ (may be put as \\\\ too) is to differentiate it with second use above: list every directory under current directory   
 
-$ l -s -i *.bin//   
+$ l -z -in *.bin//   
 query file only (excluding other type) having 'bin' suffix then list it with the size and file information under current directory entirely    
 
-As absolute path, it always searchs in directories depths explicitly specified, either with or without wildcard such as:   
+As absolute path, it always searchs in directories depths as explicitly specified, either with or without wildcard such as:   
 
 /qt/build/core/meta   
 means searching for any object type namedly "meta" under "core under "build" in "qt" directory   
