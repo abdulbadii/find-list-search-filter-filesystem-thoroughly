@@ -74,8 +74,7 @@ else	Rt=-${J}regex\ \"$s$p\"$z;fi
 }
 }
 ftm(){	local d f a e z x;Rt=
-	d=${1:2}
-	f=-${1:1:1}
+	d=${1:2};f=-${1:1:1}
 	a=${d%-*};e=${a##*[0-9]}
 	: ${e:=m};a=${a%[mhdM]}
 	[ $e = h ] && let a*=60
@@ -140,19 +139,17 @@ fid(){
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS F L G po opt se E sz t dt if l lh lx cp x Fc Fp Xd X;I=i;J=i ;de=0
-set -f;trap 'set +f;unset IFS' 1 2
-shopt -s extglob
+unset IFS F L po opt se E sz t dt if l lh lx cp x Fc Fp Xd X;I=i;J=i ;de=0
+shopt -s extglob;set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	opt=$opt$e\ ;F=;continue;}
 case $e in
 -[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;opt=$opt$Rt\ ;;
--[cam]min|-[cam]time|-size)	opt=$opt$e\ ;F=1;;
 -[1-9]|-[1-9][0-9]) dt=-maxdepth\ ${e:1};;
 -[1-9]*[-.]*)	d=${e:1};z=${d#*-};	dt="-mindepth ${d%-*}${z:+ -maxdepth ${z%.}}";;
 -s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
 -x=?*|-xs=?*|-xcs=?*)	J=
-	[ ${e:1:2} = x= ] &&J=i	#[[ ${e:3} =~ -[1-9](-[1-9][0-9]|.)? ]] &&G=1
+	[ ${e:1:2} = x= ] &&J=i
 	((L)) && break;L=1;;
 -de) de=1;;
 -in) if=1;;
@@ -168,7 +165,8 @@ case $e in
 -sep=*) echo Separator must be 1 or 2 characters, ignoring;;
 -h|--help) man find;return;;
 -[HDLPO]) po=$e;;
--samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-context|-D|-O|-ok|-exec|-execdir|-executable|-inum|-ipath|-name|-[il]name|-ilname|-iregex|-path|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
+\!)	opt=$opt$e\ ;;
+-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
 -[ac-il-x]?*)
 	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e\ 
 	else	read -pn1 "Option '$e' seems unrecognized, ignoring it and continue? " k; [ "$k" = y ]||return;fi;;
@@ -205,10 +203,10 @@ for a;{
 		break;;
 	-c=?*|-cp=?*)	shift
 		if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi
-		if [ $1 ] ;then	echo -c or -cp option must be at the latest
+		if [ $1 ] ;then	echo -c or -cp option must be the last one
 		else	echo no main path pattern to search for;fi;return;;
-	-|--)	L=1;shift;;
-	-*)	shift;;
+	-|--)	L=1;shift;;	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	shift 2;;
+	-*|\\!)	shift;;
 	*)	((L)) &&break
 		i=1;for c ;{
 			let ++i
