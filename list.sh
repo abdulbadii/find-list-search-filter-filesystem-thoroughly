@@ -98,23 +98,22 @@ fsz(){	local d f a e z x;Rt=
 	if [[ $d = *-* ]] ;then
 		z=${d#*-};x=${z##*[0-9]}
 		: ${x:=k};z=${z%[cwbkMG]}
-		if((!a)) ;then	Rt="$Rt\( $f-$z$x -o $f$z$x \) "
-		elif((!z)) ;then	Rt="$Rt\( $f+$a$e -o $f$a$e \) "
-		else	Rt="$Rt\( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x \) ";fi
+		if((!a)) ;then	Rt="\( $f-$z$x -o $f$z$x \)"
+		elif((!z)) ;then	Rt="\( $f+$a$e -o $f$a$e \)"
+		else	Rt="\( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x \)";fi
 	else	Rt=$Rt$f$a$e\ ;fi
 }
 fxd(){	local d l u
 	d=${1:1}
 	case $1 in
 	-[1-9]|-[1-9][0-9])
-		i=\ $(eval echo {1..$d})
-		Rt="-path $s${i// ?/\/*}/*";;
-	-[1-9]-*|-[1-9][0-9]-*)
+		l=\ $(eval echo {1..$d})
+		Rt="-path $s${l// ?/\/*}/*";;
+	-[1-9]*[-.]*)
 		a=${d%-*};z=${d#*-}
 		l=\ $(eval echo {1..$a})
-		l="\! -path $s${l// ?/\/*}"
-		u=\ $(eval echo {1..$z})
-		Rt="$l -o -path $s${u// ?/\/*}/*"
+		u=\ $(eval echo {1..${z%.}})
+		Rt="-path $s${l// ?/\/*} ${z:+\! -path $s${u// ?/\/*}/*}"
 	esac
 }
 fx(){
@@ -146,7 +145,8 @@ for e;{
 case $e in
 -[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;opt=$opt$Rt\ ;;
 -[1-9]|-[1-9][0-9]) dt=-maxdepth\ ${e:1};;
--[1-9]*[-.]*)	d=${e:1};z=${d#*-};	dt="-mindepth ${d%-*}${z:+ -maxdepth ${z%.}}";;
+-[1-9]*[-.]*)	d=${e:1}
+	z=${d#*-};	dt="-mindepth ${d%[-.]*}${z:+ -maxdepth ${z%.}}";;
 -s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
 -x=?*|-xs=?*|-xcs=?*)	J=
 	[ ${e:1:2} = x= ] &&J=i
@@ -205,8 +205,9 @@ for a;{
 		if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi
 		if [ $1 ] ;then	echo -c or -cp option must be the last one
 		else	echo no main path pattern to search for;fi;return;;
-	-|--)	L=1;shift;;	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	shift 2;;
+	-|--)	L=1;shift;;
 	-*|\\!)	shift;;
+	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	shift 2;;
 	*)	((L)) &&break
 		i=1;for c ;{
 			let ++i
@@ -320,7 +321,7 @@ else
 		else	R=\"$S$f\" ;fi
 	elif((!re)) ;then
 		S=$s$f;R=.*
-		[ -d $s ] ||{ R=\"$S\";S=${s%/*};}
+		[ -d $S ] ||{ R=\"$S\";S=${s%/*};}
 	fi
 fi
 }
@@ -333,12 +334,10 @@ case $z in
 ////)	Z="-type l $P";;
 *)	Z="\( $PD -o $P \)";;
 esac
-((l)) &&{
- [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
+((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
 }
-[ "$R" ] ||{
-	R="\".{${#s}}$f\" \( -type d -exec find '{}' $dt \! -path '{}' $opt $Z \; -o $P \)"${f:+" -o $dt -${I}regex \".{${#s}}.+$f\" -$opt \( $PD -o $P \)"}; dt=;opt=;Z=
-}
+[ "$R" ]||{
+	R="\".{${#S}}$f\" \( -type d -exec find '{}' $dt \! -path '{}' $opt $Z \; -o $P \)"${f:+" -o -${I}regex \".{${#S}}.+$f\" $opt \( $PD -o $P \)"}; unset dt opt Z;}
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then
 	#export -f fid
