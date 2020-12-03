@@ -120,7 +120,7 @@ for e;{
 case $e in
 	-[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;;
 	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;;
-	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)	fxd $e;dtx=" and '$e' in exclusion option";;
+	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)	fxd $e;dtx="'$e' in exclusion";;
 	*)	[[ $e = -* ]] &&echo \'$e\': unrecognized exclusion option, it\'ll be regarded as excluded path>&2
 		fxr "$e";	while [[ $Rt =~ $'\f'([*?]) ]];do Rt=${Rt/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
 esac
@@ -134,7 +134,7 @@ fid(){
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS U V F L de po opt se REX sz tm dt dtx dz if l lh lx c cp Fc Fp X;I=i;J=i
+unset IFS AN U V F L de po opt se REX sz tm dt dtx dz if l lh lx c cp Fc Fp X;I=i;J=i
 shopt -s extglob;set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	opt=$opt$e\ ;F=;continue;}
@@ -169,7 +169,7 @@ case $e in
 	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e\ 
 	else	read -n1 -p "Option '$e' seems unrecognized, ignoring it and continue? " k>&2;echo;[ "$k" = y ]||return;fi;;
 -*)	echo \'$e\' : unknown option, ignoring. To mean it as a path string, put it after - or -- then space>&2;;
-*)	((L)) && break;L=1
+*)	((L)) && break
 esac
 }
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
@@ -310,7 +310,8 @@ case $z in
 *)	Z="\( $PD -o $P \)";;
 esac
 [ "$x_a" ]&&	fx "$x_a"
-[ "$dt$dtx" ] &&echo "Depth specified by '$dt'$dtx is from dir. '$S'">&2
+[ "$dt$dtx" ] &&
+	echo "Depth specified by ${dt+'$dt'}${dt+${dtx+, and option }}${dtx+$dtx} is from dir. '$S'">&2
 [ "$R" ] ||{
 	d=${p//[!\/]};d=${#d}
 	dt="${U:+-mindepth $((U-d))}${V:+ -maxdepth $((V-d))}"
