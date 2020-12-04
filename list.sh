@@ -68,7 +68,7 @@ case $z in
 ///)	z=\ -executable;;
 ////)	z=" -type l";;
 esac
-((re))&&s=$s.*;	Rt=-${J}regex\ \"$s$p\"$z
+Rt="-${J}regex \"$s${re+.*}$p\"$z -type d -prune"
 }
 }
 }
@@ -108,10 +108,10 @@ fxd(){	local d l u a z;Rt=
 	l=\ $(eval echo {1..$a})
 	[[ $d =~ [-.] ]] &&{
 		z=${d#*-}
-		Rt="-path $S${l// ?/\/*}"
+		Rt="-path \"$S${l// ?/\/*}\""
 		l=\ $(eval echo {1..${z%.}})
 	}
-	Rt="$Rt \! -path $S${l// ?/\/*}/*"
+	Rt="$Rt${z:+ \! -path \"$S${l// ?/\/*}/*\"}"
 }
 fx(){	local a e
 for a;{
@@ -120,12 +120,12 @@ for e;{
 case $e in
 	-[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;;
 	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;;
-	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)	fxd $e;dtx="'$e' in exclusion";;
+	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)	fxd $e;dtx="depth '$e' on exclusion";;
 	*)	[[ $e = -* ]] &&echo \'$e\': unrecognized exclusion option, it\'ll be regarded as excluded path>&2
 		fxr "$e";	while [[ $Rt =~ $'\f'([*?]) ]];do Rt=${Rt/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
 esac
 xn=$xn$Rt\ ;}
-X=("${X[@]} \! \( $xn\)")
+X=(${X[@]} \\! "\( $xn \)")
 }
 }
 fid(){
@@ -145,7 +145,7 @@ case $e in
 	if [[ $d =~ ^[0-9]+-[0-9]*$ ]];then	a=${d%-*}
 	elif [[ $d = *. ]];then	z=${d%.};a=$z
 	fi
-	dt="${a+-mindepth $a}${z:+ -maxdepth $z}";;
+	dt="${a+-mindepth $a}${z:+${a+ }-maxdepth $z}";;
 -s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
 -x=?*|-xs=?*|-xcs=?*)	J=
 	[ ${e:1:2} = x= ] &&J=i
@@ -215,7 +215,7 @@ unset b B s re M G
 [[ ${e:0:2} = \\ ]] &&{	z=${e##+(\\)};z=${z#/}; e=/;}
 [[ $e =~ ^\.?/[^/] ]]||re=1	# if no prefix ./ nor /, it's recursive at any depth of PWD
 e=${e#./}
-: ${se='\\\\'} # Get multi items separated by \\ or $sep in same dir, if any and...
+: ${se='\\\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
 while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
 IFS=$'\n';set -- ${e//\\/\\\\}
 #get common base dir. path (B)
@@ -224,7 +224,7 @@ B=${BASH_REMATCH[2]}
 z=${BASH_REMATCH[5]}
 L=\"${BASH_REMATCH[4]}\"
 while [[ $L =~ ^"\.\."$ ]] ;do B=$B../;L=*$z;done
-F=1			# ...none has exact .. pattern, otherwise L is these as the outer loop
+F=1			# ...none has exact .. pattern to be as M, otherwise as L to be the outer loop
 shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
 [ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
 unset IFS s R
@@ -303,7 +303,7 @@ else
 		G=1
 	else
 		S=$s$p;R=.*
-		[ -d $S ] ||{ R=\"$S\";S=${s%/*};x_a=;}
+		[ -d "$S" ] ||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
 fi
 P="\( -path '* *' -printf \"$sz$tm'%p'\n\" -o -printf \"$sz$tm%p\n\" \)"
@@ -318,30 +318,31 @@ esac
 if((G)) ;then
 	S=$s$p
 	[ "$x_a" ]&&fx "$x_a"
-	R="\"$S\" \( -type d -exec find '{}' $dt $opt \! -path '{}' $X $Z \; -o $P \)"${p:+" -o -${I}regex \".{${#S}}.+$p\" $opt \( $PD -o $P \)"}
-	[ "$dt$dtx" ] &&echo "Depth specified by ${dt+'$dt'}${dt+${dtx+, and option }}${dtx+$dtx} is from '$S'">&2
+	R="\"$S\" \( -type d -exec find '{}' $dt $opt \! -path '{}' ${X[@]} $Z \; -o $P \)"${p:+" -o -${I}regex \".{${#S}}.+$p\" $opt \( $PD -o $P \)"}
+	[ "$dt$dtx" ] &&echo "${dt+Depth specified by '$dt'}${dt+${dtx+, and }}${dtx+$dtx} is from '$S'">&2
 	unset dt opt X Z
 else
 	[ "$x_a" ]&&fx "$x_a"
-	[ "$dt$dtx" ] &&echo "Depth specified by ${dt+'$dt'}${dt+${dtx+, and option }}${dtx+$dtx} is from '$S'">&2
+	[ "$dt$dtx" ] &&echo "${dt+Depth specified by '$dt'}${dt+${dtx+, and }}${dtx+$dtx} is from '$S'">&2
 fi
 ((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
 }
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then
 	#export -f fid
-	eval "find $po \"$S\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$S\" $X $P ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
+	eval "find $po \"$S\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$S\" ${X[@]} $P ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 elif((if)) &&[[ $z != / ]] ;then
-	eval "find $po \"$S\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$S\" $X $P ! -type d -exec /bin/bash -c '
+	eval "find $po \"$S\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$S\" ${X[@]} $P ! -type d -exec /bin/bash -c '
 		[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
 elif((Fc+Fp)) ;then
 	#mkdir -pv $cp
 	for i in ${c[@]};{
-		eval "find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$S\" $X -exec cp '{}' $i \;"
+		eval "find $po \"$s\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$S\" ${X[@]} -exec cp '{}' $i \;"
 	}
 	
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "find $po \"$S\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$S\" $X $Z"
+	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)
+		eval "find $po \"$S\" $dt -regextype posix-extended $opt -${I}regex $R \! -path \"$S\" ${X[@]} $Z"
 fi
 }
 }
