@@ -13,25 +13,34 @@ Would print its  <pre>
 
 Would narrow down search   
 - To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
-- To certain depth :		-1..99[-1..99]   
-   or ./ prefix for only current dir. search   
 - To have better control by regular expression				-E or -re   
 - To search in case sensitive		-cs (Defaults to insensitive -ci) option   
 - To filter out i.e. exclude certain path from the main find search result  
-- to filter by creation, acces or, modification pass time, use -c, -a, -m as easier use than find's   
-		-c7m last creation exactly equals to 7 minute   
+- to filter by creation, acces or, modification pass time, use -c, -a, -m as easier use than find's, e.g.   
+		-c7m last creation equals to 7 minute being rounded up     
     -a-7m last access is less than or equal to 7 minute   
     -m7d- last modification is more than or equals to 7 days   
-    -ch7-10 last creation is between 7 to 10 minutes inclusively. Watch: no unit means in minute 
-- to filter by size in byte, kibi-, mebi- and gibi- byte unit which has simpler command than find's   
-		-s7M size is exactly equals to 7 mebibiytes   
+    -c7-10 last creation is between 7 to 10 minutes inclusively. No unit means in minute   
+- to filter by size in byte, kibi-, mebi- and gibi- byte unit which has simpler command than find's, e.g.   
+		-s7M size equals to 7 mebibiytes being rounded up  
     -s-7G size is less than or equal to 7 gibibytes   
     -s7b- size is more than or equals to 7 blocks (7 times 512-bytes)   
-    -s7-10 size is between 7 to 10 kibibyte inclusively. Watch: no unit means in kibibyte 
-    -s70c-90c size is between 70 to 90 byte inclusively 
+    -s7-10 size is between 7 to 10 kibibyte inclusively. No unit means in kibibyte 
+    -s70c-50 size is between 70 byte to 50 kibibyte inclusively 
+- To certain depths :		-1..99[-1..99], e.g.   
+	l /usr -5  : search only up to 5th depths counted from /usr dir.
+	l -5-7  : search only within the 5th to 7th depths counted from current dir.
+	l -7.  : search only for the 7th depths counted from current dir.
+	l -5-  : search for in the 5th depths and deeper counted from current dir.
+	Prefixing a relative path put in with ./ characters will search for it at current dir., i.e. as if the CLI put in is concatenated directly to current dir. Defaults to have recursive in between. So e.g. if current dir. is /usr     
+	l lib     
+	would mean, as in shell global star, search for:
+	/usr/lib
+	or /usr/*/lib or /usr/*/*/lib or simply /usr/**/lib
+	So prefixing relative path with ./ will ensure the search for the first only 
 </pre>
 
-Most of 'find' 'test' options may also be passed here, below is its manual excerpt of the options   
+Most of 'find' 'test' options may also be passed here, below is its manual excerpt for options   
 Simply type l   
 
 $ l   
