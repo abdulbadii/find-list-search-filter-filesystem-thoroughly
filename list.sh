@@ -1,6 +1,7 @@
 fxr(){ ##### BEGINNING OF l, find wrap script ##### 
-local a b B M p re s z SD
-[[ $1 =~ ^\.?/[^/] ]]||re=1;e=${1#./}
+for e;{
+local a b B M p re s z
+[[ $e =~ ^\.?/[^/] ]]||re=1;e=${e#./}
 : ${se='\\\\'}
 while [[ $e =~ ([^\\])($se) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
 IFS=$'\n';set -- ${e//\\/\\\\}
@@ -62,16 +63,17 @@ else
 	p=${p//\*\*/.*}
 fi
 case $z in
-/)	z=" -type d";;
-//)	z=" -type f";;
-///)	z=\ -executable;;
-////)	z=" -type l";;
+/)	z=-type\ d;;
+//)	z=-type\ f;;
+///)	z=-executable;;
+////)	z=-type\ l;;
 esac
-Rt="-${J}regex \"$s${re+.*}$p\"$z -type d -prune";SD=$s
+Sd=$s${re+.*}$p;Rt="-${J}regex \"$Sd\" $z -type d -prune"
 }
 }
 }
-ftm(){	local d f a e z x;REX=;Rt=
+}
+ftm(){	local d f a e z x
 	d=${1:2};f=-${1:1:1}
 	a=${d%-*};e=${a##*[0-9]}
 	: ${e:=m};a=${a%[mhdM]}
@@ -84,12 +86,12 @@ ftm(){	local d f a e z x;REX=;Rt=
 		[ $x = h ] && let z*=60
 		[ $x = M ] && let z*=30
 		x=${x/[mh]/min};x="${x/[dM]/time} "
-		if((!a)) ;then	Rt="$Rt\( $f$x-$z -o $f$x$z \) "
-		elif((!z)) ;then	Rt="$Rt\( $f$e+$a -o $f$e$a \) "
-		else	Rt="$Rt\( $f$e+$a $f$x-$z -o $f$e$a -o $f$x$z \) ";fi
-	else	Rt=$Rt$f$e$a\ ;fi
+		if((!a)) ;then	Rt="\( $f$x-$z -o $f$x$z \) "
+		elif((!z)) ;then	Rt="\( $f$e+$a -o $f$e$a \) "
+		else	Rt="\( $f$e+$a $f$x-$z -o $f$e$a -o $f$x$z \) ";fi
+	else	Rt=$f$e$a\ ;fi
 }
-fsz(){	local d f a e z x;Rt=
+fsz(){	local d f a e z x
 	d=${1:2};f='-size '
 	a=${d%-*};e=${a##*[0-9]}
 	: ${e:=k};a=${a%[cwbkMG]}
@@ -99,32 +101,36 @@ fsz(){	local d f a e z x;Rt=
 		if((!a)) ;then	Rt="\( $f-$z$x -o $f$z$x \)"
 		elif((!z)) ;then	Rt="\( $f+$a$e -o $f$a$e \)"
 		else	Rt="\( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x \)";fi
-	else	Rt=$Rt$f$a$e\ ;fi
+	else	Rt=$f$a$e\ ;fi
 }
-fxd(){	local d l u a z;Rt=
-	d=${1:1}
-	a=${d%[-.]*}
+fxd(){	local d l m a z
+	d=${1:1};a=${d%[-.]*}
 	l=\ $(eval echo {1..$a})
-	[[ $d =~ [-.] ]] &&{
+	if [[ $d =~ [-.] ]] ;then
 		z=${d#*-}
-		Rt="-path \"$S${l// ?/\/*}\""
+		m="-path \"$Sd${l// ?/\/*}\""
 		l=\ $(eval echo {1..${z%.}})
-	}
-	Rt="$Rt${z:+ \! -path \"$S${l// ?/\/*}/*\"}"
+	else
+		z=1
+	fi
+	Rt="$m${z:+ \! -path \"$Sd${l// ?/\/*}/*\"}"
 }
-fx(){	local F a e REX
+fx(){	local F REX
 for a;{
-unset IFS xn;eval set -- $a
-F=;for e;{
+unset IFS F xn;eval set -- $a
+for e;{
 case $e in
 	-[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;;
 	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;;
-	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*) F=1;;
+	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)
+		: ${Sd=$s}
+		(($#==1)) && fxd $e;
+		dtx="depth \"$e\" on exclusion";F=1;;
 	-E|-re)	REX=1;;
-	*)	[[ $e = -* ]] &&echo \'$e\': unrecognized exclusion option, it\'ll be regarded as excluded path>&2
-		fxr "$e";	while [[ $Rt =~ $'\f'([*?]) ]];do Rt=${Rt/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
-		((F))&&{	S=$SD;fxd $e;dtx="depth '$e' on exclusion"
-		};;
+	*)	[[ $e = -* ]] &&echo \'$e\': unrecognized exclusion option, it\'s regarded as an excluded path>&2
+		fxr "$e"
+		((F)) &&fxd $e
+		while [[ $Rt =~ $'\f'([*?]) ]];do Rt=${Rt/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done;;
 esac
 xn=$xn$Rt\ ;}
 X=(${X[@]} \\! "\( $xn\)")
@@ -170,7 +176,7 @@ case $e in
 \!)	opt=$opt$e\ ;;
 -[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
 -[ac-il-x]?*)
-	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e\ 
+	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e' '
 	else	read -n1 -p "Option '$e' seems unrecognized, ignoring it and continue? " k>&2;echo;[ "$k" = y ]||return;fi;;
 -*)	echo \'$e\' : unknown option, ignoring. To mean it as a path string, put it after - or -- then space>&2;;
 *)	((L)) && break
@@ -198,11 +204,9 @@ for a;{
 		 if((F));then x_a=$x_a$a' '
 		 elif((G));then C=$C$c' '
 		 else M=$M$a\ ;fi
-		}
-		shift;;
+		};shift;;
 	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	shift 2;;
-	*)
-		if((F)) ;then	x_a=$x_a$a' '
+	*)	if((F)) ;then	x_a=$x_a$a' '
 		elif((G)) ;then	C=$C$c' '
 		else	M=$M$a\ ;fi
 		shift;;
@@ -229,7 +233,7 @@ while [[ $L =~ ^"\.\."$ ]] ;do B=$B../;L=*$z;done
 F=1			# ...none has exact .. pattern to be as M, otherwise as L to be the outer loop
 shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
 [ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
-unset IFS s R
+unset IFS R s Sd
 eval set -- ${L:-\"\"}
 for a;{
 a=$B${a%%+(/)}
@@ -318,14 +322,14 @@ case $z in
 *)	Z="\( $PD -o $P \)";;
 esac
 if((G)) ;then
-	S=$s$p
+	Sd=$s$p
 	[ "$x_a" ]&&fx "$x_a"
-	R="\"$S\" \( -type d -exec find '{}' $dt $opt \! -path '{}' ${X[@]} $Z \; -o $P \)"${p:+" -o -${I}regex \".{${#S}}.+$p\" $opt \( $PD -o $P \)"}
-	[ "$dt$dtx" ] &&echo "${dt+Depth specified by '$dt'}${dt+${dtx+, and }}${dtx+$dtx} is from '$S'">&2
+	R="\"$Sd\" \( -type d -exec find '{}' $dt $opt \! -path '{}' ${X[@]} $Z \; -o $P \)"${p:+" -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"}
+	[ "$dt$dtx" ] &&echo "${dt+Depth specified by \"$dt\"}${dt+${dtx+, and }}${dtx+$dtx} is from '$Sd'">&2
 	unset dt opt X Z
 else
 	[ "$x_a" ]&&fx "$x_a"
-	[ "$dt$dtx" ] &&echo "${dt+Depth specified by '$dt'}${dt+${dtx+, and }}${dtx+$dtx} is from '$S'">&2
+	[ "$dt$dtx" ] &&echo "${dt+Depth specified by \"$dt\"}${dt+${dtx+, and }}${dtx+$dtx} is from '$S'">&2
 fi
 ((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
 }
