@@ -7,14 +7,14 @@ Find and list specific file, directory, link or any filesystem type recursively 
 
 Would print its  <pre> 
 - Size								-z   
-- Last modification time					-t   
+- Last modification time				-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
-- Dependencies of file found in one level depth		-de   
+- Dependencies of file found in one level depth			-de   
 
 Would narrow down search   
 - To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
 - To have better control by regular expression				-E or -re   
-- To search in case sensitive		-cs (Defaults to insensitive -ci) option   
+- To search in case sensitive		-cs or -s .Defaults to insensitive ( -ci option)   
 - To filter out i.e. exclude certain path from the main find search result  
 - to filter by creation, acces or, modification pass time, use -c, -a, -m as easier use than find's, e.g.   
 		-c7m last creation equals to 7 minute being rounded up     
@@ -34,10 +34,13 @@ Would narrow down search
 	l -5-  : search for in the 5th depths and deeper counted from current dir.
 	Prefixing a relative path put in with ./ characters will search for it at current dir., i.e. as if the CLI put in is concatenated directly to current dir. Defaults to have recursive in between. So e.g. if current dir. is /usr     
 	l lib     
-	would mean, as in shell global star, search for:
-	/usr/lib
-	or /usr/*/lib or /usr/*/*/lib or simply /usr/**/lib
-	So prefixing relative path with ./ will ensure the search for the first only 
+	should mean, as in way of shell global star, search for:
+	/usr/lib   
+	/usr/\*/lib   
+	/usr/\*/\*/lib   
+	or simply   
+	/usr/\*\*/lib
+	So prefixing the relative path with ./ ensures only to search for the first  
 </pre>
 
 Most of 'find' 'test' options may also be passed here, below is its manual excerpt for options   
@@ -50,15 +53,9 @@ $ l /
 list every directory under current directory entirely   
 
 $ l //   
-list every file only under current directory   
+list every file only under current directory, so on.   
 
-$ l ///   
-list every executable binary only under current directory   
-
-$ l ////   
-list every links only under current directory   
-
-It suggest that:
+So it suggests:
 just put suffix / to search for directory only,   
 or put suffix // to search for file only,   
 or put suffix /// to search for executable binary only 
@@ -90,7 +87,7 @@ Will find
 ...so on   
 with 2 plies depth between "qt" and "core" directory, and indefinite number of ply depth between "core" and "meta" directory   
 
-If navigating in way of relative path i.e. not started with slash character (/), then the given relative path will always be searched for anywhere in any depth of under current directory, does not have to be directly on current directory.   
+If navigating in way of relative path i.e. not started with slash character (/), then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it with ./   
 
 Suppose previous explicit part of path exists only where it's specified i.e. "meta" exists only under "core" directory being under any directory being under any dir. under qt directory.   
@@ -111,10 +108,11 @@ If this purpose is needed in another way of path described above, put -l option 
 To have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. -l0   
 So be prepared if to put -l0 option, it would list so many content of every directory found which causes a bit messy.   
 
-Can be limited with depth by option -1..99[-1..99] options,  e.g:   
+Control the limited search depth by option -1..99[-1..99],  e.g:
+   
 search for only on current directory and one below it put -2   
 
-$ l -2 src/core   
+$ l -2   
 
 to search only on current and next 4 directories add -5 and so on   
 
@@ -142,7 +140,7 @@ To change separator other than \\\\ use option:
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
-The most usefull and powerful features of this tool are its "recognized" format of input and output which could be used/piped as input of another tool, and the -x (or-xcs for case-sensitive) exclusion option for excluding some certain files or paths from the original result paths  
+The most usefull and powerful feature of this tool are its "recognized" format of input and output which could be used/piped as input of another tool, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
 
 e.g. 1st, the below will search under "lib" being under "dev" instead of "core", all of "c" file :   
 
@@ -157,7 +155,7 @@ And the result is recognizable as absolute path which is ready to be piped corre
 
 e.g. 2nd, the below will search such above with additional stricter filter that is the one without letter "e" in all "c" files found:   
 
-$ l -exc= /qt/src/dev/core/../lib/\*e\*.c   /qt/src/dev/core/../lib/\*.c   
+$ l -x=/qt/src/dev/core/../lib/\*e\*.c   /qt/src/dev/core/../lib/\*.c   
 /qt/src/dev/lib/main.c   
 /qt/src/dev/lib/add.c   
 

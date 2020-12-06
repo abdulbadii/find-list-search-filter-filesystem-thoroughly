@@ -312,7 +312,7 @@ esac
 eval ${x_a+fx ${F-$S} "$x_a"}
 if [ $F ] ;then
 	Rt=;eval ${DT+fd $DT $F}
-	CL="find $po \"$S\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=
+	CL="find $po \"$S\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
 else
 	CL="find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]}"	
 fi
