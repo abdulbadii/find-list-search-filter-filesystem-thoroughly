@@ -102,7 +102,7 @@ fsz(){	local d f a e z x
 		else	Rt="\( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x \)";fi
 	else	Rt=$f$a$e\ ;fi
 }
-fxd(){	local d l m a z=1
+fd(){	local d l m a z=1
 	d=${1:1};a=${d%[-.]*}
 	l=\ $(eval echo {1..$a})
 	[[ $d =~ [-.] ]] &&{
@@ -120,12 +120,12 @@ case $e in
 	-[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;;
 	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;;
 	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)
-		(($#==1)) && fxd $e;
+		(($#==1)) && fd $e;
 		dtx="depth \"$e\" of exclusion";F=1;;
 	-E|-re)	REX=1;;
 	*)	[[ $e = -* ]] &&echo \'$e\': unrecognized exclusion option, it\'s regarded as an excluded path>&2
 		fxr "$e"
-		((F)) &&fxd $e $Sd
+		((F)) &&fd $e $Sd
 esac
 xn=$xn$Rt\ ;}
 X=(${X[@]} \\! "\( $xn\)")
@@ -307,30 +307,28 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
+((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;";}
+
 eval ${x_a+fx ${F-$S} "$x_a"}
-[ $F ] &&{
-	eval ${DT+fxd $DT $F}
-	R="${Rt-$F/.+} $opt ${X[@]} $Z -o -${I}path $F"${p:+" -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"}
-	unset dt opt X Z
-}
+if [ $F ] ;then
+	Rt=;eval ${DT+fd $DT $F}
+	CL="find $po \"$S\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=
+else
+	CL="find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]}"	
+fi
 [ "$DT$dtx" ] &&echo "${DT+Depth specified by \"$DT\"}${DT+${dtx+, and }}${dtx+$dtx} is from '$S'">&2
 
-((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;"
-}
 export LC_ALL=C
-if((de)) &&[[ $z != / ]] ;then
-	#export -f fid
-	eval "find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]} $P ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
+if((de)) &&[[ $z != / ]] ;then	#export -f fid
+	eval "$CL $P ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 elif((if)) &&[[ $z != / ]] ;then
-	eval "find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]} $P ! -type d -exec /bin/bash -c '
+	eval "$CL $P ! -type d -exec /bin/bash -c '
 		[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
 elif((Fc+Fp)) ;then
 	#sudo mkdir -pv $cp
-	for i in ${c[@]};{
-		eval "sudo find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]} -exec cp '{}' $i \;";}
+	for i in ${c[@]};{	eval "sudo $CL -exec cp '{}' $i \;";}
 else
-	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)
-		eval "sudo find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]} $Z"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "sudo $CL $Z"
 fi
 }
 }
