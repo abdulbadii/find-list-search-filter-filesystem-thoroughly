@@ -93,11 +93,11 @@ ftm(){	local d f a e z x
 fsz(){	local d f a e z x
 	d=${1:2};f='-size '
 	a=${d%-*};e=${a##*[0-9]}
-	: ${e:=k};${e//m/M};${e//g/G}
+	: ${e:=k};e=${e//m/M};e=${e//g/G}
 	a=${a%[cwbkmMgG]}
 	if [[ $d = *-* ]] ;then
 		z=${d#*-};x=${z##*[0-9]}
-		: ${x:=k};${x//m/M};${x//g/G}
+		: ${x:=k};x=${x//m/M};x=${x//g/G}
 		z=${z%[cwbkmMgG]}
 		if((!a)) ;then	Rt="\( $f-$z$x -o $f$z$x \)"
 		elif((!z)) ;then	Rt="\( $f+$a$e -o $f$a$e \)"
@@ -123,7 +123,7 @@ case $e in
 	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;;
 	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)
 		(($#==1)) && fd $e;
-		dtx="depth \"$e\" of exclusion";F=1;;
+		dtx="option \"$e\" of exclusion";F=1;;
 	-E|-re)	REX=1;;
 	*)	[[ $e = -* ]] &&echo \'$e\': unrecognized exclusion option, it\'s regarded as an excluded path>&2
 		fxr "$e"
@@ -145,7 +145,7 @@ for e;{
 case $e in
 -c|-cs) I=;;
 -[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;opt=$opt$Rt\ ;;
--[1-9]*)	DT=$e
+-[1-9]*)	Dt=$e
 	d=${e:1};z=${d#*-}
 	if [[ $d =~ ^[0-9]+-[0-9]*$ ]];then	a=${d%-*}
 	elif [[ $d = *. ]];then	z=${d%.};a=$z
@@ -295,7 +295,7 @@ else
 	if((RX)) ;then
 		if((re)) ;then R=\".{${#S}}.*$p\"
 		else	R=\"$S$p\" ;fi
-	elif((re)) ;then	F=$s$p
+	elif((re)) ;then	F=\"$s$p\"
 	else	S=$s$p;R=.*
 		[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
@@ -312,15 +312,15 @@ case $z in
 esac
 ((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;";}
 
-: ${S:=/}
+S=\"${S:-/}\"
 eval ${x_a+fx ${F-$S} "$x_a"}
 if [ $F ] ;then
-	Rt=;eval ${DT+fd $DT $F}
-	CL="find $po \"$S\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
+	Rt=;eval ${Dt+fd $Dt $F}
+	CL="find $po \"$S\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
 else
 	CL="find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]}"	
 fi
-[ "$DT$dtx" ] &&echo "${DT+Depth specified by \"$DT\"}${DT+${dtx+, and }}${dtx+$dtx} is from '$S'">&2
+[ "$Dt$dtx" ] &&echo "${Dt+Depth specified by \"$Dt\"}${Dt+${dtx+, and }}${dtx+$dtx} is from ${F-$S}">&2
 
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then	#export -f fid
