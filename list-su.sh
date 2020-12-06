@@ -150,10 +150,8 @@ case $e in
 	fi
 	dt="${a+-mindepth $a}${z:+${a+ }-maxdepth $z}";;
 -s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
--x=?*|-xs=?*|-xcs=?*)	J=
-	[ ${e:1:2} = x= ] &&J=i
-	((L))&&break;L=1;;
--ci) I=i;;
+-x=?*|-xs=?*|-xcs=?*)	;;
+-i|-ci) I=i;;
 -l) lx=-maxdepth\ 1;l=1;;
 -l[0-9]|-l[1-9][0-9])	((${e:2})) &&lx="-maxdepth\ ${e:2}";l=1;;
 -E|-re) RX=1;;
@@ -172,12 +170,11 @@ case $e in
 	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e' '
 	else	read -n1 -p "Option '$e' seems unrecognized, ignoring it and continue? " k>&2;echo;[ "$k" = y ]||return;fi;;
 -*)	echo \'$e\': unknown option, ignoring. To mean it as a path string, put it after - or -- then space>&2;;
-*)	((L)) && break
 esac
 }
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 IFS=';&|><';set -- ${BASH_REMATCH[1]}
-unset IFS F L G C x_a M
+unset IFS F L J G C x_a M
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
 		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}";eval set -- ${c//\\/\\\\};break;}
@@ -185,6 +182,7 @@ for c;{
 for a;{
 	case $a in
 	-x=?*|-xs=?*|-xcs=?*)
+		[ ${e:1:2} = x= ] &&J=i
 		x_a=${a#-x*=}\ ;shift;F=1;G=0;;
 	-c=?*|-cp=?*)
 		if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi
@@ -195,7 +193,8 @@ for a;{
 		 if((F));then x_a=$x_a$a' '
 		 elif((G));then C=$C$c' '
 		 else M=$M$a\ ;fi
-		};shift;;
+		}
+	shift;;
 	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	shift 2;;
 	*)	if((F)) ;then	x_a=$x_a$a' '
 		elif((G)) ;then	C=$C$c' '
@@ -207,24 +206,26 @@ while [[ $x_a =~ ([^\\])\\([*?]) ]] ;do x_a=${x_a/"${BASH_REMATCH[0]}"/"${BASH_R
 while [[ $M =~ ([^\\])\\([*?]) ]] ;do M=${M/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"} ;done
 eval set -- ${M:-\"\"}
 for e;{
-unset b B s re M
-[[ ${e:0:2} = \\ ]] &&{	z=${e##+(\\)};z=${z#/}; e=/;}
-[[ $e =~ ^\.?/[^/] ]]||re=1	# if no prefix ./ nor /, it's recursive at any depth of PWD
-e=${e#./}
-: ${se='\\\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
-while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
-IFS=$'\n';set -- ${e//\\/\\\\}
-#get common base dir. path (B)
-[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
-B=${BASH_REMATCH[2]}
-z=${BASH_REMATCH[5]}
-L=\"${BASH_REMATCH[4]}\"
-while [[ $L =~ ^"\.\."$ ]] ;do B=$B../;L=*$z;done
-F=1			# ...none has exact .. pattern to be as M, otherwise as L to be the outer loop
-shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
-[ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
+unset b B s re L M
+if [ "${e:0:1}" = \\ ];then	z=${e##+(\\)};z=${z#/};[[ $z =~ /* ]]||return; L=/$'\r'$z #insert \x0D to mark root dir search
+else
+	[[ $e =~ ^\.?/[^/] ]]||re=1	# if no prefix ./ nor /, search recursively any depth from PWD
+	e=${e#./}
+	: ${se='\\\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
+	while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
+	IFS=$'\n';set -- ${e//\\/\\\\}
+	#get common base dir. path (B)
+	[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
+	B=${BASH_REMATCH[2]}
+	z=${BASH_REMATCH[5]}
+	L=\"${BASH_REMATCH[4]}\"
+	while [[ $L =~ ^"\.\."$ ]] ;do B=$B../;L=*$z;done
+	F=1			# ...none has exact .. pattern to be as M, otherwise as L to be the outer loop
+	shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
+	[ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
+fi
 unset IFS R s F Rt
-eval set -- ${L:-\"\"}
+eval set -- ${L-\"\"}
 for a;{
 a=$B${a%%+(/)}
 if [[ $a =~ ^/ ]] ;then
@@ -257,6 +258,7 @@ else
 		[[ -z "$s" ]]&&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
 	fi
 fi
+s=${s%/}
 p=${p%/}
 d=${p%/*};IFS=$'\n';eval set -- \"${p##*/}\"$z$M; r=("$@")
 p=$p$M
@@ -281,14 +283,14 @@ if((!RX)) &&[[ $f =~ ([^\\]|^)[[*?] ]] ;then
 	else
 		[[ $f =~ ^([^[*]*)($'\v'.+)$ ]]
 		S=$s${BASH_REMATCH[1]//$'\v'/\/}
-		: ${S:=/}
 		p=${BASH_REMATCH[2]}
 	fi
 	R=\".{${#S}}${p//$'\v'/\/}\"
 else
 	[[ ${r[((i++))]} =~ ^(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[2]}
-	p=$d/${BASH_REMATCH[1]};p=${p%/}
+	p=$d/${BASH_REMATCH[1]}
+	p=${p%[/$'\r']}
 	if((RX)) ;then
 		if((re)) ;then R=\".{${#S}}.*$p\"
 		else	R=\"$S$p\" ;fi
@@ -297,6 +299,7 @@ else
 		[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
 fi
+
 while [[ $R =~ $'\f'([*?]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
 P="\( -path '* *' -printf \"$sz$tm'%p'\n\" -o -printf \"$sz$tm%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$sz$tm'%p/'\n\" -o -printf \"$sz$tm%p/\n\" \)"
@@ -312,9 +315,9 @@ esac
 eval ${x_a+fx ${F-$S} "$x_a"}
 if [ $F ] ;then
 	Rt=;eval ${DT+fd $DT $F}
-	CL="find $po \"$S\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
+	CL="find $po \"${S:-/}\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
 else
-	CL="find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]}"	
+	CL="find $po \"${S:-/}\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]}"	
 fi
 [ "$DT$dtx" ] &&echo "${DT+Depth specified by \"$DT\"}${DT+${dtx+, and }}${dtx+$dtx} is from '$S'">&2
 
