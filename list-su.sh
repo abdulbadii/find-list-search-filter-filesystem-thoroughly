@@ -93,10 +93,12 @@ ftm(){	local d f a e z x
 fsz(){	local d f a e z x
 	d=${1:2};f='-size '
 	a=${d%-*};e=${a##*[0-9]}
-	: ${e:=k};a=${a%[cwbkMG]}
+	: ${e:=k};${e//m/M};${e//g/G}
+	a=${a%[cwbkmMgG]}
 	if [[ $d = *-* ]] ;then
 		z=${d#*-};x=${z##*[0-9]}
-		: ${x:=k};z=${z%[cwbkMG]}
+		: ${x:=k};${x//m/M};${x//g/G}
+		z=${z%[cwbkmMgG]}
 		if((!a)) ;then	Rt="\( $f-$z$x -o $f$z$x \)"
 		elif((!z)) ;then	Rt="\( $f+$a$e -o $f$a$e \)"
 		else	Rt="\( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x \)";fi
@@ -107,10 +109,10 @@ fd(){	local d l m a z=1
 	l=\ $(eval echo {1..$a})
 	[[ $d =~ [-.] ]] &&{
 		z=${d#*-}
-		m="-path \"${2-S}${l// ?/\/*}\""
+		m="-path \"${2-$S}${l// ?/\/*}\""
 		l=\ $(eval echo {1..${z%.}})
 	}
-	Rt="$m${z:+ \! -path \"${2-S}${l// ?/\/*}/*\"}"
+	Rt="$m${z:+ \! -path \"${2-$S}${l// ?/\/*}/*\"}"
 }
 fx(){	local REX F xn Rt IFS S=$1;shift
 for a;{
@@ -258,8 +260,7 @@ else
 		[[ -z "$s" ]]&&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
 	fi
 fi
-s=${s%/}
-p=${p%/}
+s=${s%/};p=${p%/}
 d=${p%/*};IFS=$'\n';eval set -- \"${p##*/}\"$z$M; r=("$@")
 p=$p$M
 p=${p//\//$'\v'}
@@ -299,7 +300,6 @@ else
 		[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
 fi
-
 while [[ $R =~ $'\f'([*?]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
 P="\( -path '* *' -printf \"$sz$tm'%p'\n\" -o -printf \"$sz$tm%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$sz$tm'%p/'\n\" -o -printf \"$sz$tm%p/\n\" \)"
@@ -312,12 +312,13 @@ case $z in
 esac
 ((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;";}
 
+: ${S:=/}
 eval ${x_a+fx ${F-$S} "$x_a"}
 if [ $F ] ;then
 	Rt=;eval ${DT+fd $DT $F}
-	CL="find $po \"${S:-/}\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
+	CL="find $po \"$S\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
 else
-	CL="find $po \"${S:-/}\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]}"	
+	CL="find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]}"	
 fi
 [ "$DT$dtx" ] &&echo "${DT+Depth specified by \"$DT\"}${DT+${dtx+, and }}${dtx+$dtx} is from '$S'">&2
 

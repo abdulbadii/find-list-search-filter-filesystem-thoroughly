@@ -32,6 +32,7 @@ Would narrow down search
 	l -5-7  : search only within the 5th to 7th depths counted from current dir.
 	l -7.  : search only for the 7th depths counted from current dir.
 	l -5-  : search for in the 5th depths and deeper counted from current dir.
+</pre>
 	Prefixing a relative path put in with ./ characters will search for it at current dir., i.e. as if the CLI put in is concatenated directly to current dir. Defaults to have recursive in between. So e.g. if current dir. is /usr     
 	l lib     
 	should mean, as in way of shell global star, search for:
@@ -41,7 +42,6 @@ Would narrow down search
 	or simply   
 	/usr/\*\*/lib
 	So prefixing the relative path with ./ ensures only to search for the first  
-</pre>
 
 Most of 'find' 'test' options may also be passed here, below is its manual excerpt for options   
 Simply type l   
