@@ -11,7 +11,7 @@ Would print its  <pre>
 - Information on file found (whether 64/32 bit binary etc)	-in   
 - Dependencies of file found in one level depth			-de   
 
-Would narrow down search   
+To narrow down search   
 - To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
 - To have better control by regular expression				-E or -re   
 - To search in case sensitive		-cs or -s .Defaults to insensitive ( -ci option)   
@@ -22,36 +22,34 @@ Would narrow down search
     -m7d- last modification is more than or equals to 7 days   
     -c7-10 last creation is between 7 to 10 minutes inclusively. No unit means in minute   
 - to filter by size in byte, kibi-, mebi- and gibi- byte unit which has simpler command than find's, e.g.   
-		-s7M size equals to 7 mebibiytes being rounded up  
-    -s-7G size is less than or equal to 7 gibibytes   
+		-s7m (or M) size equals to 7 mebibiytes being rounded up  
+    -s-7g (or G) size is less than or equal to 7 gibibytes   
     -s7b- size is more than or equals to 7 blocks (7 times 512-bytes)   
     -s7-10 size is between 7 to 10 kibibyte inclusively. No unit means in kibibyte 
     -s70c-50 size is between 70 byte to 50 kibibyte inclusively 
-- To certain depths :		-1..99[-1..99], e.g.   
+- To filter certain depths :		-1..99[-1..99], e.g.   
 	l /usr -5  : search only up to 5th depths counted from /usr dir.
 	l -5-7  : search only within the 5th to 7th depths counted from current dir.
-	l -7.  : search only for the 7th depths counted from current dir.
+	l -7.  : search for exactly the 7th depths counted from current dir.
 	l -5-  : search for in the 5th depths and deeper counted from current dir.
 </pre>
-	Prefixing a relative path put in with ./ characters will search for it at current dir., i.e. as if the CLI put in is concatenated directly to current dir. Defaults to have recursive in between. So e.g. if current dir. is /usr     
-	l lib     
-	should mean, as in way of shell global star, search for:
+	Prefixing a relative path put in with ./ characters will search for it at current dir., i.e. as if the CLI put in is concatenated directly to current dir. Defaults to have recursive in between. E.g. if current working dir. is /usr,   
+	l lib   
+	should mean, in way of shell global star, search for:
 	/usr/lib   
 	/usr/\*/lib   
 	/usr/\*/\*/lib   
-	or simply   
-	/usr/\*\*/lib
-	So prefixing the relative path with ./ ensures only to search for the first  
-
+	or same as shell globstar:   
+	/usr/\*\*/lib   
+So prefixing the relative path with ./ ie. l ./lib ensures to only search as the first  
 Most of 'find' 'test' options may also be passed here, below is its manual excerpt for options   
+
 Simply type l   
 
 $ l   
 list every file, directory, and other kind of filesystem under current directory entirely   
-
 $ l /   
 list every directory under current directory entirely   
-
 $ l //   
 list every file only under current directory, so on.   
 
@@ -64,9 +62,6 @@ or put suffix //// to search for link only
 $ l \\/   
 list every filesystem type under "/" (root) directory entirely, the preceding \\ (may be put as \\\\ too) is to differentiate it with second use above: list every directory under current directory   
 
-$ l -z -in *.bin//   
-query file only (excluding other type) having 'bin' suffix then list it with the size and file information under current directory entirely    
-
 As absolute path, it always searchs in directories depths as explicitly specified, either with or without wildcard such as:   
 
 /qt/build/core/meta   
@@ -75,7 +70,7 @@ means searching for any object type namedly "meta" under "core under "build" in 
 /qt/\*/\*/core/meta   
 search for any file type "meta" under "core" dir. being under any directory being under any directory under "qt" directory on top/root of filesystem.   
 
-To search somewhere deeper than such up to maximum, add "\*\*", double wildcard asterisks, in the context of intended depth ply e.g.   
+To search somewhere deeper than such up to maximum, add "\*\*", double wildcard asterisks, in the context of intended depth, e.g.   
 $ l /qt/\*/\*/core/\*\*/meta   
 
 Will find   
@@ -84,8 +79,8 @@ Will find
 /qt/src/doc/core/build/meta   
 /qt/lib/so/core/c/obj/meta   
 /qt/lib/so/core/src/c/obj/met   
-...so on   
-with 2 plies depth between "qt" and "core" directory, and indefinite number of ply depth between "core" and "meta" directory   
+...   
+will search two plies depth between "qt" and "core" directory, and indefinite number of ply depth between "core" and "meta" directory   
 
 If navigating in way of relative path i.e. not started with slash character (/), then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it with ./   
@@ -102,69 +97,64 @@ while such
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
-In this way of having relative path preceded by ./, if it is explicit i.e. there is not any wildcard, while a directory being searched and found, then the entire directory content will automatically be shown   
-
-If this purpose is needed in another way of path described above, put -l option in order to show first depth content of directory found in wildcard pattern or some depth searches   
-To have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. -l0   
-So be prepared if to put -l0 option, it would list so many content of every directory found which causes a bit messy.   
+In this way of having relative path explicitly referred i.e. there's no any wildcard in the string, while searching and a directory is found in current working dir (exactly in this place), then the entire directory content will automatically be shown, on else deeper depth findings it will just list them as normally.      
+If this purpose is needed in another way of path mentioned above, put -l option in order to show first depth content of any directory found in wildcard pattern or some depth searches   
+To have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. l -l0 lib* 
 
 Control the limited search depth by option -1..99[-1..99],  e.g:
    
 search for only on current directory and one below it put -2   
-
 $ l -2   
 
-to search only on current and next 4 directories add -5 and so on   
-
 to search for only from 3rd ply from current up to 5th    
-
 $ l -3-5 src/dev   
 
-to search for only from 2nd ply of current directory up to the last   
+to search for only from 5th ply of current directory until the last, under src/dev dir. relative to PWD, of size between 40 and 50 kibibyte inclusively:   
 
-$ l -2- src/dev   
+$ l -5- -s40-50 src/dev   
 
 can be navigated by way of one-line multiple paths such as absolute followed by relative path      
 
-$ l /qt/\*/\*/core/\*\*/meta  src/\*.c   
+$ l /qt/\*/\*/core/\*\*/meta  usr/src/\*.c   tmp/\*.o var/\*.etc
 
-can even invoked as multiple object name of the same previous directory paths   
-e.g. search for h, c and cpp files in one directory path relative to current working directory, separate it by separator \\\\\\\\ in a single line.   
-E.g this will search for /qt/src/dev/\*.h and /qt/src/dev/\*.c and /qt/src/dev/\*.cp    
+can even invoked as multiple object name of the same first directory path   
+this will search for /qt/src/dev/\*.h and /qt/src/dev/\*.c and /qt/src/dev/\*.cp    
 $ cd /qt
 $ l src/dev/*.h\\\\\*.c\\\\\*.cpp   
 
-To change separator other than \\\\ use option:   
--sep={any 1 or 2 characters not regarded as special by Bash}. E.g. -sep=,,   
+Below is to search for o, c and so type files everywhere under usr directory path on root, separated by separator \\\\\\\\ in a single line   
+$ li /usr/**.o\\\\**.c\\\\**.so   
+
+To change separator other than \\\\ use -sep= option   
+-sep={any 1 or 2 characters not being regarded as special ones by Bash}. E.g. -sep=,,   
 
 Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
-The most usefull and powerful feature of this tool are its "recognized" format of input and output which could be used/piped as input of another tool, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
+The most usefull and powerful feature of this tool are its recognized standard format of input and output which could be used/piped as input of another tool, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
+E.g. search under "lib" being under "dev" being under "qt" dir. instead of in "src" or "core", any "c" file:   
 
-e.g. 1st, the below will search under "lib" being under "dev" instead of "core", all of "c" file :   
+$ l /qt/src/../dev/core/../lib/*.c   
+/qt/dev/lib/main.c   
+/qt/dev/lib/edit.c   
+/qt/dev/lib/clear.c   
 
-$ l /qt/src/dev/core/../lib/*.c   
-/qt/src/dev/lib/main.c   
-/qt/src/dev/lib/edit.c   
-/qt/src/dev/lib/clear.c   
-/qt/src/dev/lib/add.c   
-/qt/src/dev/lib/open.c   
+And the result is recognizable as absolute path surronded by '' if it contains space, which is ready to be piped correctly by \|xargs ...    
 
-And the result is recognizable as absolute path which is ready to be piped correctly by \|xargs ...    
+the below will search such above with additional stricter filter that is the one without letter "e" in all "c" files found:   
 
-e.g. 2nd, the below will search such above with additional stricter filter that is the one without letter "e" in all "c" files found:   
+$ l -c5h-   
+   find object created more than or equal to 5 hours ago  
+$ l -a5h-7h   
+   find object accesed between 5 and 7 hours ago inclusively  
+$ l -m-5   
+   find object modified between today and 5 days ago inclusively  
 
-$ l -x=/qt/src/dev/core/../lib/\*e\*.c   /qt/src/dev/core/../lib/\*.c   
-/qt/src/dev/lib/main.c   
-/qt/src/dev/lib/add.c   
+EXCLUSION
 
-$ l -ch5-   
-   find object created more than or equal to 5 hours   
-$ l -ah5-7   
-   find object accesed betwwen 5 and 7 hours inclusively  
-$ l -md1-5   
-   find object modified between 1 and 5 days inclusively  
+
+
+
 
 
 to better narrow down the search use Linux "find" options to test and filter the search   
