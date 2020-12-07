@@ -2,15 +2,15 @@
 unset s
 for o;{ [ $o = -s ] &&s=-su ;}
 
-n=`sed -En '/\s+#{5,}\s*BEGINNING OF l, find wrap script #{5,}/{=;q}' ~/.bashrc`
+n=`sed -En '/\s#{5,}\s*BEGINNING OF l, find wrap script #{5,}/{=;q}' ~/.bashrc`
 if((n));then
 	echo -e "Warning:\n\t\t##### BEGINNING OF l, find wrap script #####\n\npattern was found in ~.bashrc at line number $n\n"
 	echo -e "\nCommand to remove/uninstall it:   $0 -r)"
 	if [ "$1" = -r ] ;then
-		echo removing l function script from there
+		echo removing l function script from that header pattern
 		sed -i -Ee '/\s+#{5,}\s*BEGINNING OF l, find wrap script #{5,}/,/^\}\s+#{5,}\s*ENDING OF l, find /d' ~/.bashrc
 	else
-		echo copying list$s.sh, and pasting, replacing text starting  at line $n
+		echo copying list$s.sh, and writing it, replacing part of text starting at line $n
 		sed -i -Ee "$((--n))rlist$s.sh" -e "$n,/#{5,}\s+ENDING OF l, find/d" ~/.bashrc
 	fi 
 else

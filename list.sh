@@ -179,33 +179,31 @@ IFS=';&|><';set -- ${BASH_REMATCH[1]}
 unset IFS F L J G C x_a M
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
-		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}";eval set -- ${c//\\/\\\\};break;}
+		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}";eval set -- $c;break;}
 	set --;}
 for a;{
 	case $a in
 	-x=?*|-xs=?*|-xcs=?*)
 		[ ${e:1:2} = x= ] &&J=i
-		x_a=${a#-x*=}\ ;shift;F=1;G=0;;
+		x_a=${a#-x*=}\ ;F=1;G=0;;
 	-c=?*|-cp=?*)
 		if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi
 		C=${c#-c*=}
-		shift;F=0;G=1;;
+		F=0;G=1;;
 	-|--)	shift;	L=1;F=0;G=0;;
-	-*|\\!|!)	((L))&&{
-		 if((F));then x_a=$x_a$a' '
-		 elif((G));then C=$C$c' '
-		 else M=$M$a\ ;fi
-		}
-	shift;;
+	-*|\\!|!)	((L)) &&{
+		if((F));then x_a=$x_a$a' '
+		elif((G));then C=$C$c' '
+		else M=$M$a\ ;fi
+	};;
 	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	shift 2;;
-	*)	if((F)) ;then	x_a=$x_a$a' '
+	*)	a=\"$a\";if((F)) ;then	x_a=$x_a$a' '
 		elif((G)) ;then	C=$C$c' '
 		else	M=$M$a\ ;fi
 		shift;;
 	esac
 }
 while [[ $x_a =~ ([^\\])\\([*?]) ]] ;do x_a=${x_a/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"} ;done
-while [[ $M =~ ([^\\])\\([*?]) ]] ;do M=${M/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"} ;done
 eval set -- ${M:-\"\"}
 for e;{
 unset b B s re L M
@@ -215,6 +213,7 @@ else
 	e=${e#./}
 	: ${se='\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
 	while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
+	while [[ $M =~ ([^\\])\\([*?]) ]] ;do M=${M/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"} ;done
 	IFS=$'\n';set -- ${e//\\/\\\\}
 	#get common base dir. path (B)
 	[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
