@@ -48,7 +48,6 @@ fi
 p=${p%/};b=${p%/*}
 IFS=$'\n';eval set -- \"${p##*/}\"$z$M
 for f;{
-f=$b${f:+/$f}
 [[ $f =~ ^(.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
 p=$b${BASH_REMATCH[1]}
@@ -61,15 +60,15 @@ else
 	while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
 	p=${p//\*\*/.*}
 fi
-while [[ $p =~ $'\f'([*?]) ]];do p=${p/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
 case $z in
 /)	z=-type\ d;;
 //)	z=-type\ f;;
 ///)	z=-executable;;
 ////)	z=-type\ l;;
 esac
-Sd=\"$s$p\"
-Rt="-${J}regex \"$s${re+.*}$p(/.+)?\" $z"
+while [[ $p =~ $'\f'([*?]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
+while [[ $s =~ $'\f'([*?]) ]] ;do s=${s/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
+Sd=\"$s$p\";Rt="-${J}regex \"$s${re+.*}$p(/.+)?\" $z"
 }
 }
 }
@@ -151,7 +150,7 @@ case $e in
 	elif [[ $d = *. ]];then	z=${d%.};a=$z
 	fi
 	dt="${a+-mindepth $a}${z:+${a+ }-maxdepth $z}";;
--s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
+-s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
 -x=?*|-xs=?*|-xcs=?*)	;;
 -i|-ci) I=i;;
 -l) lx=-maxdepth\ 1;l=1;;
@@ -160,60 +159,71 @@ case $e in
 -z)	sz=%s\ ;;
 -t)	tm="%Tr %Tx ";;
 -|--)	break;;
-\!)	opt=$opt$e\ ;;
 -sep=?|-sep=??) se=${e:5};;
 -sep=*) echo Separator must be 1 or 2 characters, ignoring>&2;;
 -de) de=1;;
 -in) if=1;;
 -h|--help) man find;return;;
 -[HDLPO]) po=$e;;
--[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
--[ac-il-x]?*)
-	if [[ $e =~ ^-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e' '
+-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
+\!|-[ac-il-x]?*)
+	if [[ $e =~ ^!|-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e' '
 	else	read -n1 -p "Option '$e' seems unrecognized, ignoring it and continue? " k>&2;echo;[ "$k" = y ]||return;fi;;
 -*)	echo \'$e\': unknown option, ignoring. To mean it as a path string, put it after - or -- then space>&2;;
 esac
 }
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 IFS=';&|><';set -- ${BASH_REMATCH[1]}
-unset IFS F L J G C x_a M
+unset IFS F L G H K S J Ca x_a M
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
-		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}";eval set -- $c;break;}
+		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+		while [[ $c =~ ([^\\])\\([*?]) ]] ;do c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"} ;done
+		eval set -- $c;break;}
 	set --;}
 for a;{
-	case $a in
+((S))&&{	S=;continue;}
+if [[ $a =~ ^--?$ ]] ;then	L=1;H=1
+elif ((!L)) ;then
+case $a in
 	-x=?*|-xs=?*|-xcs=?*)
-		[ ${e:1:2} = x= ] &&J=i
-		x_a=${a#-x*=}\ ;F=1;G=0;;
+		((K))&&{	echo -c or -cp option must be as the last>&2;return;}
+		[ ${e:2:1} = = ]&&J=i
+		x_a=$x_a\"${a#-x*=}\"' ';G=1;;
 	-c=?*|-cp=?*)
+		Ca=\"${c#-c*=}\"
 		if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi
-		C=${c#-c*=}
-		F=0;G=1;;
-	-|--)	shift;	L=1;F=0;G=0;;
-	-*|\\!|!)	((L)) &&{
-		if((F));then x_a=$x_a$a' '
-		elif((G));then C=$C$c' '
-		else M=$M$a\ ;fi
-	};;
-	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-executable|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	shift 2;;
-	*)	a=\"$a\";if((F)) ;then	x_a=$x_a$a' '
-		elif((G)) ;then	C=$C$c' '
-		else	M=$M$a\ ;fi
-		shift;;
-	esac
+		K=1;;
+	-*|-\!);;	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
+	*)H=1
+esac
+fi
+((H))&&{	H=;a=\"$a\"		# k l m n -x=k i o --  -c=l m n
+if((G)) ;then
+	if((F)) ;then	x_a=$x_a$a' '
+	else					M=$M$a' '
+	fi
+elif((K)) ;then
+	((F))&&{	echo -c or -cp option must be as the last>&2;return;}
+	Ca=$Ca$c' '
+elif ((L)) ;then
+	if((F))	;then	M=$M$a
+	else		M=$a;	x_a=$x_a$M
+	fi;G=0
+else			M=$M$a' ';F=1
+fi
 }
-while [[ $x_a =~ ([^\\])\\([*?]) ]] ;do x_a=${x_a/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"} ;done
+}
+M=${M//\\/\\\\}
 eval set -- ${M:-\"\"}
 for e;{
-unset b B s re L M
+unset b B s re M
 if [ "${e:0:1}" = \\ ];then	z=${e##+(\\)};z=${z#/};[[ $z =~ /* ]]&&L=/$'\r'$z #insert \x0D to mark a root dir
 else
 	[[ $e =~ ^\.?/[^/] ]]||re=1	# if no prefix ./ nor /, search recursively any depth from PWD
 	e=${e#./}
 	: ${se='\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
 	while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
-	while [[ $M =~ ([^\\])\\([*?]) ]] ;do M=${M/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"} ;done
 	IFS=$'\n';set -- ${e//\\/\\\\}
 	#get common base dir. path (B)
 	[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
@@ -226,7 +236,7 @@ else
 	[ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
 fi
 unset IFS R s F Rt
-eval set -- ${L-\"\"}
+eval set -- $L
 for a;{
 a=$B${a%%+(/)}
 if [[ $a =~ ^/ ]] ;then
@@ -315,9 +325,9 @@ S=\"${S:-/}\"
 eval ${x_a+fx ${F-$S} "$x_a"}
 if [ $F ] ;then
 	Rt=;eval ${Dt+fd $Dt $F}
-	CL="find $po \"$S\" -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
+	CL="find $po $S -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]} $Z"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
 else
-	CL="find $po \"$S\" -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]}"	
+	CL="find $po $S -regextype posix-extended $dt $opt -${I}regex $R \! -path \"$S\" ${X[@]}"	
 fi
 [ "$Dt$dtx" ] &&echo "${Dt+Depth specified by \"$Dt\"}${Dt+${dtx+, and }}${dtx+$dtx} is from ${F-$S}">&2
 
