@@ -60,10 +60,10 @@ if((!REX)) &&[[ $f =~ ([^$'\f']|^)[]*?[] ]] ;then
 		p=${BASH_REMATCH[2]}
 	fi
 	while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
-	while [[ $p =~ ([^]$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
-	while [[ $p =~ ([^]*$'\f']|^)\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"};done
+	while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 	while [[ $p =~ ([^\\].|.[^\\])([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}"};done
-	p=${p//\*\*/.*}
+	p=${p//\*\*/.$'\r'}
+	while [[ $p =~ ([^$'\f']|^)\* ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'} ;done;p=${p//$'\r'/*}
 	R=\".{${#S}}$p\"
 else
 	if((REX)) ;then
@@ -77,8 +77,8 @@ case $z in
 ///)	z=-executable;;
 ////)	z=-type\ l;;
 esac
-while [[ $p =~ $'\f'([]*?[]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
-while [[ $s =~ $'\f'([]*?[]) ]] ;do s=${s/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
+while [[ $p =~ $'\f'([]*?[]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"} ;done
+while [[ $s =~ $'\f'([]*?[]) ]] ;do s=${s/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"} ;done
 
 Rt="$Rt|$R"
 
@@ -284,10 +284,10 @@ d=${p%/*};IFS=$'\n';eval set -- \"${p##*/}\"$z$M; r=("$@")
 p=$p$M
 p=${p//\//$'\v'}
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
-while [[ $p =~ ([^]$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
-while [[ $p =~ ([^]*$'\f']|^)\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
+while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 while [[ $p =~ ([^\\].|.[^\\])([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}"};done
-p=${p//\*\*/.*}
+p=${p//\*\*/.$'\r'}
+while [[ $p =~ ([^$'\f']|^)\* ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'} ;done;p=${p//$'\r'/*}
 M=${M:+$'\n'${p#*$'\n'}}
 b=${p%%$'\n'*}
 p=${b##*$'\v'}${z//\//$'\v'}$M
@@ -317,7 +317,7 @@ else
 		[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
 fi
-while [[ $R =~ $'\f'([]*?[]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
+while [[ $R =~ $'\f'([]*?[]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"} ;done
 P="\( -path '* *' -printf \"$sz$tm'%p'\n\" -o -printf \"$sz$tm%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$sz$tm'%p/'\n\" -o -printf \"$sz$tm%p/\n\" \)"
 case $z in
@@ -340,7 +340,7 @@ fi
 [ "$Dt$dtx" ] &&echo "${Dt+Depth specified by \"$Dt\"}${Dt+${dtx+, and }}${dtx+$dtx} is from ${F-$S}">&2
 
 export LC_ALL=C
-if((de)) &&[[ $z != / ]] ;then	#export -f fid
+if((de)) &&[[ $z != / ]] ;then	export -f fid
 	eval "$CL $P ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 elif((if)) &&[[ $z != / ]] ;then
 	eval "$CL $P ! -type d -exec /bin/bash -c '
