@@ -1,5 +1,5 @@
 fxr(){ ##### BEGINNING OF l, find wrap script #####
-local F L a b e B M p re s z
+local F L a b e B M p re s z R
 [[ $1 =~ ^\.?/[^/] ]]||re=1;e=${1#./}
 : ${se='\\\\'}
 while [[ $e =~ ([^\\])($se) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
@@ -21,17 +21,17 @@ if [[ $a =~ ^/ ]] ;then
 	p=$a
 elif [[ $a =~ ^(\.\.(/\.\.)*)(/.+)?$ ]] ;then
 	s=~+/${BASH_REMATCH[1]}
-	p=${BASH_REMATCH[3]}	# p is first explicit path
+	p=${BASH_REMATCH[3]}	# is first explicit path
 	while [[ $s =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do s=${s/"${BASH_REMATCH[0]}"/\/};done
 	[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid path: $a. It goes up beyond root>&2;continue;}
 	s=${s%/}
 	if((re)) ;then
 		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-		[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}}
+		[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}} # clear remaining leading /..
 	else
 		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-		while [[ $p =~ ^/..(/|$) ]];do p=${p#/..}; s=${s%/*}: ${s:=/} ;done
-		[[ -z "$s" ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+		while [[ $p =~ ^/..(/|$) ]];do	[ "$s" ] ||{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+			p=${p#/..}; s=${s%/*};done
 	fi
 else
 	s=~+
@@ -41,24 +41,35 @@ else
 		[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}}
 	else
 		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-		while [[ $p =~ ^/..(/|$) ]];do p=${p#/..}; s=${s%/*};: ${s:=/} ;done
-		[[ -z "$s" ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+		while [[ $p =~ ^/..(/|$) ]];do	[ "$s" ]||{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+			p=${p#/..}; s=${s%/*};done
 	fi
 fi
 p=${p%/};b=${p%/*}
 IFS=$'\n';eval set -- \"${p##*/}\"$z$M
-for f;{
+
+S=$s;Rt=;for f;{
 [[ $f =~ ^(.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
-p=$b${BASH_REMATCH[1]}
-if((RX+REX)) ;then
-	while [[ $s =~ ([^\\]|^)([.*?{}().]) ]] ;do s=${s/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
-else
-	while [[ $p =~ ([^\\]\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
-	while [[ $p =~ ([^]$'\f'])\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
-	while [[ $p =~ ([^]*$'\f'])\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
-	while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
+f=$b/${BASH_REMATCH[1]}
+if((!REX)) &&[[ $f =~ ([^$'\f']|^)[]*?[] ]] ;then
+	if((re)) ;then	p=**$f
+	else
+		[[ $f =~ ^([^]*?[]*)(/.+)$ ]]
+		S=$s${BASH_REMATCH[1]}
+		p=${BASH_REMATCH[2]}
+	fi
+	while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
+	while [[ $p =~ ([^]$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
+	while [[ $p =~ ([^]*$'\f']|^)\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"};done
+	while [[ $p =~ ([^\\].|.[^\\])([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}"};done
 	p=${p//\*\*/.*}
+	R=\".{${#S}}$p\"
+else
+	if((REX)) ;then
+		R=\".{${#S}}${re+.*}$f\"
+	else	R=$s${re+.*}/$f
+	fi
 fi
 case $z in
 /)	z=-type\ d;;
@@ -66,10 +77,13 @@ case $z in
 ///)	z=-executable;;
 ////)	z=-type\ l;;
 esac
-while [[ $p =~ $'\f'([*?]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
-while [[ $s =~ $'\f'([*?]) ]] ;do s=${s/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
-Sd=\"$s$p\";Rt="-${J}regex \"$s${re+.*}$p(/.+)?\" $z"
+while [[ $p =~ $'\f'([]*?[]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
+while [[ $s =~ $'\f'([]*?[]) ]] ;do s=${s/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
+
+Rt="$Rt|$R"
+
 }
+Sd=\"$s$p\";Rt="-${J}regex \"${Rt#|}\""
 }
 }
 ftm(){	local d f a e z x
@@ -174,51 +188,47 @@ esac
 }
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
 IFS=';&|><';set -- ${BASH_REMATCH[1]}
-unset IFS F L G H K S J Ca x_a M
+unset IFS F L G K S J Ca x_a M
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
 		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
-		while [[ $c =~ ([^\\])\\([*?]) ]] ;do c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"} ;done
+		while [[ $c =~ ([^\\])\\([]*?[]) ]] ;do c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"} ;done
 		eval set -- $c;break;}
 	set --;}
 for a;{
-((S))&&{	S=;continue;}
-if [[ $a =~ ^--?$ ]] ;then	L=1;H=1
-elif ((!L)) ;then
-case $a in
-	-x=?*|-xs=?*|-xcs=?*)
-		((K))&&{	echo -c or -cp option must be as the last>&2;return;}
-		[ ${e:2:1} = = ]&&J=i
-		x_a=$x_a\"${a#-x*=}\"' ';G=1;;
-	-c=?*|-cp=?*)
-		Ca=\"${c#-c*=}\"
-		if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi
-		K=1;;
-	-*|-\!);;	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
-	*)H=1
-esac
-fi
-((H))&&{	H=;a=\"$a\"		# k l m n -x=k i o --  -c=l m n
-if((G)) ;then
-	if((F)) ;then	x_a=$x_a$a' '
-	else					M=$M$a' '
+	((S))&&{	S=;continue;}
+	if ((!L)) ;then
+		case $a in
+		-x=?*|-xs=?*|-xcs=?*)
+			((K))&&{	echo -c or -cp option must be as the last>&2;return;}
+			[ ${e:2:1} = = ]&&J=i
+			x_a=$x_a\"${a#-x*=}\"' ';G=1;continue;;
+		-c=?*|-cp=?*)
+			Ca=\"${c#-c*=}\"
+			if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi;K=1;continue;;
+		-*|-\!)	continue;;	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
+		-|--)	L=1;continue;;
+		esac
 	fi
-elif((K)) ;then
-	((F))&&{	echo -c or -cp option must be as the last>&2;return;}
-	Ca=$Ca$c' '
-elif ((L)) ;then
-	if((F))	;then	M=$M$a
-	else		M=$a;	x_a=$x_a$M
-	fi;G=0
-else			M=$M$a' ';F=1
-fi
-}
+	a=\"$a\"		# k l m n -x=k i o --  -c=l m n
+	if((G)) ;then
+		if((F)) ;then	x_a=$x_a$a' '
+		else					M=$M$a' '
+		fi
+	elif((K)) ;then
+		((F))&&{	echo -c or -cp option must be as the last>&2;return;}
+		Ca=$Ca\"$c\"' '
+	elif ((L)) ;then
+		if((F))	;then	M=$M$a
+		else		M=$a;	x_a=$x_a$M
+		fi;G=0
+	else			M=$M$a' ';F=1;fi
 }
 M=${M//\\/\\\\}
 eval set -- ${M:-\"\"}
 for e;{
 unset b B s re M
-if [ "${e:0:1}" = \\ ];then	z=${e##+(\\)};z=${z#/};[[ $z =~ /* ]]&&L=/$'\r'$z #insert \x0D to mark a root dir
+if [ "${e:0:1}" = \\ ];then	z=${e##+(\\)};z=${z#/};[[ $z =~ /* ]]&&L=/$'\r'$z # put \x0D to mark a root dir
 else
 	[[ $e =~ ^\.?/[^/] ]]||re=1	# if no prefix ./ nor /, search recursively any depth from PWD
 	e=${e#./}
@@ -254,8 +264,8 @@ elif [[ $a =~ ^(\.\.(/\.\.)*)(/.+)?$ ]] ;then
 		[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}} # clear remaining leading /..
 	else
 		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-		while [[ $p =~ ^/..(/|$) ]];do p=${p#/..}; s=${s%/*}: ${s:=/}  ;done
-		[[ -z "$s" ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+		while [[ $p =~ ^/..(/|$) ]];do	[ "$s" ] ||{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+			p=${p#/..}; s=${s%/*};done
 	fi
 else
 	s=~+
@@ -265,18 +275,18 @@ else
 		[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}}
 	else
 		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-		while [[ $p =~ ^/..(/|$) ]];do p=${p#/..}; s=${s%/*};: ${s:=/} ;done
-		[[ -z "$s" ]]&&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+		while [[ $p =~ ^/..(/|$) ]];do	[ "$s" ]||{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+			p=${p#/..}; s=${s%/*};done
 	fi
 fi
-s=${s%/};p=${p%/}
+p=${p%/}
 d=${p%/*};IFS=$'\n';eval set -- \"${p##*/}\"$z$M; r=("$@")
 p=$p$M
 p=${p//\//$'\v'}
-while [[ $p =~ ([^\\]\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
-while [[ $p =~ ([^]$'\f'])\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
-while [[ $p =~ ([^]*$'\f'])\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
-while [[ $p =~ ([^\\]|^)([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}} ;done
+while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
+while [[ $p =~ ([^]$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
+while [[ $p =~ ([^]*$'\f']|^)\*([^*]|$) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]*${BASH_REMATCH[2]}"} ;done
+while [[ $p =~ ([^\\].|.[^\\])([{}().]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}"};done
 p=${p//\*\*/.*}
 M=${M:+$'\n'${p#*$'\n'}}
 b=${p%%$'\n'*}
@@ -285,13 +295,13 @@ b=${b%$'\v'*}
 S=$s
 i=;IFS=$'\n';set -- ${p:-\"\"}
 for f;{
-if((!RX)) &&[[ $f =~ ([^\\]|^)[[*?] ]] ;then
+if((!RX)) &&[[ $f =~ ([^$'\f']|^)[]*?[] ]] ;then
 	[[ $f =~ ^(.*[^$'\v'])?($'\v'*)$ ]]
 	z=${BASH_REMATCH[2]//$'\v'/\/}
 	f=$b$'\v'${BASH_REMATCH[1]}
 	if((re)) ;then	p=.*$f
 	else
-		[[ $f =~ ^([^[*]*)($'\v'.+)$ ]]
+		[[ $f =~ ^([^]*?[]*)($'\v'.+)$ ]]
 		S=$s${BASH_REMATCH[1]//$'\v'/\/}
 		p=${BASH_REMATCH[2]}
 	fi
@@ -301,15 +311,13 @@ else
 	z=${BASH_REMATCH[2]}
 	p=$d/${BASH_REMATCH[1]}
 	p=${p%[/$'\r']}
-	if((RX)) ;then
-		if((re)) ;then R=\".{${#S}}.*$p\"
-		else	R=\"$S$p\" ;fi
+	if((RX)) ;then	R=\".{${#S}}${re+.*}$p\"
 	elif((re)) ;then	F=\"$s$p\"
 	else	S=$s$p;R=.*
 		[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
 fi
-while [[ $R =~ $'\f'([*?]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
+while [[ $R =~ $'\f'([]*?[]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\"${BASH_REMATCH[1]}"} ;done
 P="\( -path '* *' -printf \"$sz$tm'%p'\n\" -o -printf \"$sz$tm%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$sz$tm'%p/'\n\" -o -printf \"$sz$tm%p/\n\" \)"
 case $z in
