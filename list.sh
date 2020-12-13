@@ -133,7 +133,8 @@ case $e in
 	-[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;;
 	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;;
 	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)
-		(($#==1)) && fd $e;
+		(($#==1)) &&{
+			fd $e; Rt=\! \( $Rt \)
 		dtx="option \"$e\" of exclusion";F=1;;
 	-E|-re)	REX=1;;
 	*)	[[ $e = -* ]] &&echo \'$e\': unrecognized exclusion option, it\'s regarded as an excluded path>&2
@@ -166,7 +167,7 @@ case $e in
 	dt="${a+-mindepth $a}${z:+${a+ }-maxdepth $z}";;
 -s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
 -x=*|-xs=*|-xcs=*|c=*|cp=*)	;;
--i|-ci) I=i;;
+-ci) I=i;;
 -l) lx=-maxdepth\ 1;l=1;;
 -l[0-9]|-l[1-9][0-9])	((${e:2})) &&lx="-maxdepth\ ${e:2}";l=1;;
 -E|-re) RX=1;;
@@ -204,9 +205,9 @@ for a;{
 			((K))&&{	echo -c or -cp option must be as the last>&2;return;}
 			[ ${e:2:1} = = ]&&J=i
 			x_a=$x_a\"${a#-x*=}\"' ';G=1;continue;;
-		-c=?*|-cp=?*)
-			Ca=\"${c#-c*=}\"
-			if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi;K=1;continue;;
+		#-c=?*|-cp=?*)
+			#Ca=\"${c#-c*=}\"
+			#if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi;K=1;continue;;
 		-*|-\!)	continue;;	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
 		-|--)	L=1;continue;;
 		esac
@@ -216,9 +217,9 @@ for a;{
 		if((F)) ;then	x_a=$x_a$a' '
 		else				M=$M$a' '
 		fi
-	elif((K)) ;then
-		((F))&&{	echo -c or -cp option must be as the last>&2;return;}
-		Ca=$Ca\"$c\"' '
+	#elif((K)) ;then
+		#((F))&&{	echo -c or -cp option must be as the last>&2;return;}
+		#Ca=$Ca\"$c\"' '
 	elif ((L)) ;then
 		if((F))	;then	M=$M$a
 		else		M=$a;	x_a=$x_a$M
@@ -333,21 +334,21 @@ esac
 S=\"${S:-/}\"
 ((XF))||{	eval ${x_a+fx ${F-$S} $x_a};XF=1;}
 if [ $F ] ;then	Rt=;eval ${Dt+fd $Dt $F}
-	CL="find $po $S -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]}$Z"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
-else	CL="find $po $S -regextype posix-extended $dt $opt -${I}regex $R \! -path $S \( ${X[@]}"	
+	CL="find $po $S -regextype posix-extended -${I}path $F/* $opt $Rt \( ${X[@]}$Z \)"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
+else	CL="find $po $S -regextype posix-extended $dt $opt -${I}regex $R \! -path $S \( ${X[@]} \)"	
 fi
 [ "$Dt$dtx" ] &&echo "${Dt+Depth specified by \"$Dt\"}${Dt+${dtx+, and }}${dtx+$dtx} is from ${F-$S}">&2
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then	export -f fid
-	eval "$CL$P \) ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
+	eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 elif((if)) &&[[ $z != / ]] ;then
-	eval "$CL$P \) ! -type d -exec /bin/bash -c '
+	eval "$CL ! -type d -exec /bin/bash -c '
 		[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
 elif((Fc+Fp)) ;then
 	#mkdir -pv $cp
 	for i in ${c[@]};{	eval "$CL -exec cp '{}' $i \;";}
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "$CL$Z \)"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "$CL$Z"
 fi
 }
 }

@@ -4,13 +4,11 @@ Should copy too is running the InstallUpdate2.bashrc.sh script
 "list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be applied with in, de option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
-
 Would print its  <pre> 
 - Size								-z   
-- Last modification time					-t   
+- Last modification time						-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
-- Dependencies of file found in one level depth			-de   
-</pre>
+- Dependencies of file found in one level depth			-de</pre>
 To narrow down search   
 <pre>
 - To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
