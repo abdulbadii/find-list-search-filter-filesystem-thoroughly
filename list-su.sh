@@ -214,7 +214,7 @@ for a;{
 	a=\"$a\"		# k l m n -x=k i o --  -c=l m n
 	if((G)) ;then
 		if((F)) ;then	x_a=$x_a$a' '
-		else					M=$M$a' '
+		else				M=$M$a' '
 		fi
 	elif((K)) ;then
 		((F))&&{	echo -c or -cp option must be as the last>&2;return;}
@@ -331,7 +331,7 @@ case $z in
 esac
 ((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt \( $PD -o $P \) \;";}
 S=\"${S:-/}\"
-eval ${x_a+"((XF))||{ fx ${F-$S} "$x_a";XF=1;}"}
+((XF))||{	eval ${x_a+fx ${F-$S} $x_a};XF=1;}
 if [ $F ] ;then	Rt=;eval ${Dt+fd $Dt $F}
 	CL="find $po $S -regextype posix-extended -${I}path $F/* $opt $Rt ${X[@]}$Z"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
 else	CL="find $po $S -regextype posix-extended $dt $opt -${I}regex $R \! -path $S \( ${X[@]}"	
@@ -347,8 +347,7 @@ elif((Fc+Fp)) ;then
 	#sudo mkdir -pv $cp
 	for i in ${c[@]};{	eval "sudo $CL -exec cp '{}' $i \;";}
 else
-	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)
-		eval "sudo $CL$Z \)"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "sudo $CL$Z \)"
 fi
 }
 }

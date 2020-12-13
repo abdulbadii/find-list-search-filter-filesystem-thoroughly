@@ -7,11 +7,12 @@ Find and list specific file, directory, link or any filesystem type recursively 
 
 Would print its  <pre> 
 - Size								-z   
-- Last modification time				-t   
+- Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
 - Dependencies of file found in one level depth			-de   
-
+</pre>
 To narrow down search   
+<pre>
 - To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
 - To have better control by regular expression				-E or -re   
 - To search in case sensitive		-cs or -s .Defaults to insensitive ( -ci option)   
@@ -30,22 +31,12 @@ To narrow down search
 - To filter certain depths :		-1..99[-1..99], e.g.   
 	l /usr -5  : search only up to 5th depths counted from /usr dir.
 	l -5-7  : search only within the 5th to 7th depths counted from current dir.
-	l -7.  : search for exactly the 7th depths counted from current dir.
-	l -5-  : search for in the 5th depths and deeper counted from current dir.
+	l -7.  : search in the exact 7th depths counted from current dir.
+	l -5-  : search in the 5th depths and deeper to the last, counted from current dir.
 </pre>
-	Prefixing a relative path put in with ./ characters will search for it at current dir., i.e. as if the CLI put in is concatenated directly to current dir. Defaults to have recursive in between. E.g. if current working dir. is /usr,   
-	l lib   
-	should mean, in way of shell global star, search for:
-	/usr/lib   
-	/usr/\*/lib   
-	/usr/\*/\*/lib   
-	or same as shell globstar:   
-	/usr/\*\*/lib   
-So prefixing the relative path with ./ ie. l ./lib ensures to only search as the first  
-Most of 'find' 'test' options may also be passed here, below is its manual excerpt for options   
+Most of #### find 'test' options may also be passed here, below is its manual excerpt    
 
 Simply type l   
-
 $ l   
 list every file, directory, and other kind of filesystem under current directory entirely   
 $ l /   
@@ -78,22 +69,34 @@ Will find
 /qt/src/dev/core/c/meta   
 /qt/src/doc/core/build/meta   
 /qt/lib/so/core/c/obj/meta   
-/qt/lib/so/core/src/c/obj/met   
-...   
-will search two plies depth between "qt" and "core" directory, and indefinite number of ply depth between "core" and "meta" directory   
+/qt/lib/so/core/src/c/obj/meta  
+
+will search in two plies depth between "qt" and "core" directory, and indefinite number of ply depth between "core" and "meta" directory   
 
 If navigating in way of relative path i.e. not started with slash character (/), then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it with ./   
 
 Suppose previous explicit part of path exists only where it's specified i.e. "meta" exists only under "core" directory being under any directory being under any dir. under qt directory.   
 
+Prefixing a relative path with ./ characters will search for at current dir., i.e. as if the CLI path is concatenated directly to current dir. Defaults to have recursive in between. E.g. if current working dir. is /usr,   
+
+	l lib   
+
+	should mean, in way of shell global star, searching for:
+	/usr/lib   
+	/usr/\*/lib   
+	/usr/\*/\*/lib   
+	/usr/\*/\*/\*/lib   
+	or same as shell globstar: 	/usr/\*\*/lib   
+So prefixing the relative path with ./ to become l ./lib, will ensure only search /usr/lib (the first one)  
+
 $ cd /qt   
 $ l core/meta   
 
-will find one as e.g:   
+will find one e.g:   
 /qt/src/dev/core/meta   
 
-while such   
+while   
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
@@ -150,16 +153,13 @@ $ l -a5h-7h
 $ l -m-5   
    find object modified between today and 5 days ago inclusively  
 
-EXCLUSION
+## EXCLUSION
 
 
 
 
 
 
-to better narrow down the search use Linux "find" options to test and filter the search   
-
-will give as above which has been modified less than 7 minutes ago   
 
 "find" filter options    
   Note if a number n specified   
