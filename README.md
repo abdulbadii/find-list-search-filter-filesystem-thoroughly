@@ -82,10 +82,10 @@ Prefixing a relative path with ./ characters will search for at current dir., i.
 
 	should mean, in way of shell global star, searching for:
 	/usr/lib   
-	/usr/\*/lib   
-	/usr/\*/\*/lib   
-	/usr/\*/\*/\*/lib   
-	or same as shell globstar: 	/usr/\*\*/lib   
+	/usr/*/lib   
+	/usr/*/*/lib   
+	/usr/*/*/*/lib   
+	or as shell globstar: 	/usr/**/lib   
 So prefixing the relative path with ./ to become l ./lib, will ensure only search /usr/lib (the first one)  
 
 $ cd /qt   
@@ -98,7 +98,7 @@ while
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
-In this way of having relative path explicitly referred i.e. there's no any wildcard in the string, while searching and a directory is found in current working dir (exactly there), then the entire directory content will automatically be shown, otherwise on else place in deeper depth, it will just list them out normally.      
+In this way of having relative path explicitly stated, i.e. there's no any wildcard in the string, if being searched a directory is found in current working dir (exactly there), then the entire directory content will automatically be shown, otherwise on else place in deeper depth, it will just list them out normally.      
 If this purpose is needed in another way of path mentioned above, put -l option in order to show first depth content of any directory found in wildcard pattern or some depth searches   
 To have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. l -l0 lib* 
 
@@ -129,31 +129,32 @@ $ li /usr/**.o\\\\**.c\\\\**.so
 To change separator other than \\\\ use -sep= option   
 -sep={any 1 or 2 characters not being regarded as special ones by Bash}. E.g. -sep=,,   
 
-Can search in  POSIX extended regular expression by enclosing it with ' ' and preceding it with -E option   
+Can search in  POSIX extended regular expression by preceding it with -E or -re option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
-The most usefull and powerful feature of this tool are its recognized standard format of input and output which could be used/piped as input of another tool, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
+One of the most useful and powerful feature of this tool are its recognized standard format of input and output which could be used/piped as input of another tool, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
 E.g. search under "lib" being under "dev" being under "qt" dir. instead of in "src" or "core", any "c" file:   
 
-$ l /qt/src/../dev/core/../lib/*.c   
+$ l /qt/src/../dev/core/../lib/*.c\\*.cpp\\*.o   
 /qt/dev/lib/main.c   
 /qt/dev/lib/edit.c   
 /qt/dev/lib/clear.c   
+/qt/dev/lib/main.cpp   
+/qt/dev/lib/edit.cpp   
 
-And the result is recognizable as absolute path surronded by '' if it contains space, which is ready to be piped correctly by \|xargs ...    
+And the result is recognizable as absolute path, surronded by '' if it contains space, which is ready to be piped correctly by \|xargs ...    
 
-the below will search such above with additional stricter filter that is the one without letter "e" in all "c" files found:   
 
 $ l -c5h-   
    find object created more than or equal to 5 hours ago  
 $ l -a5h-7h   
    find object accesed between 5 and 7 hours ago inclusively  
-$ l -m-5   
+$ l -m-5d   
    find object modified between today and 5 days ago inclusively  
 
 ## EXCLUSION
 
-
+Another most useful and powerful feature is excluding the main result found by specifiying path and/or pattern in `-x=` option 
 
 
 

@@ -135,11 +135,12 @@ case $e in
 	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)
 		(($#==1)) &&{
 			fd $e; Rt=\! \( $Rt \)
+		}
 		dtx="option \"$e\" of exclusion";F=1;;
 	-E|-re)	REX=1;;
 	*)	[[ $e = -* ]] &&echo \'$e\': unrecognized exclusion option, it\'s regarded as an excluded path>&2
 		fxr "$e"
-		((F)) &&fd $e $Sd
+		((F)) &&{	fd $e $Sd; Rt=\! \( $Rt \);}
 esac
 xn=$xn$Rt' '
 }
