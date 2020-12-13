@@ -4,8 +4,8 @@ Should copy too is running the InstallUpdate2.bashrc.sh script
 "list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be applied with in, de option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
-Would print its  <pre> 
-- Size								-z   
+Would print its
+<pre>- Size								-z   
 - Last modification time						-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
 - Dependencies of file found in one level depth			-de</pre>
@@ -48,8 +48,8 @@ or put suffix // to search for file only,
 or put suffix /// to search for executable binary only 
 or put suffix //// to search for link only   
 
-$ l \\/   
-list every filesystem type under "/" (root) directory entirely, the preceding \\ (may be put as \\\\ too) is to differentiate it with second use above: list every directory under current directory   
+$ l \\\\/   
+list every filesystem type under "/" (root) directory entirely, the preceding \\\\ is to differentiate it with second use above: list every directory under current directory   
 
 As absolute path, it always searchs in directories depths as explicitly specified, either with or without wildcard such as:   
 
@@ -123,13 +123,13 @@ this will search for /qt/src/dev/\*.h and /qt/src/dev/\*.c and /qt/src/dev/\*.cp
 $ cd /qt
 $ l src/dev/*.h\\\\\*.c\\\\\*.cpp   
 
-Below is to search for o, c and so type files everywhere under usr directory path on root, separated by separator \\\\\\\\ in a single line   
-$ li /usr/**.o\\\\**.c\\\\**.so   
+Below is to search for o, c and so type files everywhere under usr directory path on root, each must be separated by separator \\\\\\\\ in a row   
+$ l /usr/\*\*.o\\\\\*\*.c\\\\\*\*.so   
 
 To change separator other than \\\\ use -sep= option   
--sep={any 1 or 2 characters not being regarded as special ones by Bash}. E.g. -sep=,,   
+-sep={any 1 or 2 characters not being regarded special by Bash}. E.g. -sep=,, or sep=:   
 
-Can search in  POSIX extended regular expression by preceding it with -E or -re option   
+Can search in POSIX-extended regular expression by -E or -re option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
 One of the most useful and powerful feature of this tool are its recognized standard format of input and output which could be used/piped as input of another tool, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
@@ -144,7 +144,8 @@ $ l /qt/src/../dev/core/../lib/*.c\\*.cpp\\*.o
 
 And the result is recognizable as absolute path, surronded by '' if it contains space, which is ready to be piped correctly by \|xargs ...    
 
-
+$ l -c-5   
+   find object created less than orequal to 5 minutes ago. No unit defaults to be in minute  
 $ l -c5h-   
    find object created more than or equal to 5 hours ago  
 $ l -a5h-7h   
@@ -154,7 +155,7 @@ $ l -m-5d
 
 ## EXCLUSION
 
-Another most useful and powerful feature is excluding the main result found by specifiying path and/or pattern in `-x=` option 
+Another most useful and powerful feature is the exclusion from the main result found. It's done by specifiying path and/or pattern in `-x=` option 
 
 
 
