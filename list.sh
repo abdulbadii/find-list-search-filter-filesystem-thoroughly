@@ -56,7 +56,6 @@ f=$b/${BASH_REMATCH[1]}
 	while [[ $f =~ ([^$'\f']\[)! ]] ;do f=${f/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 	while [[ $f =~ ([^\\].|.[^\\])([.{}()]) ]] ;do f=${f/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}"};done
 }
-
 if [[ $f =~ ([^$'\f']|^)[]*?[] ]] ;then
 		if((re)) ;then	p=**$f
 		else
@@ -72,16 +71,16 @@ else		R=\".{${#D}}${re+.*}$f\"
 [ $s ]&&echo Exclusion path is to directory \"$D\">&2
 fi
 case $z in
-/)	z=-type\ d;;
-//)	z=-type\ f;;
-///)	z="\! -type d -executable";;
-////)	z=-type\ l;;
+/)	z=-type\ d\ ;;
+//)	z=-type\ f\ ;;
+///)	z="\! -type d -executable ";;
+////)	z=-type\ l\ ;;
 esac
 while [[ $R =~ $'\f'([]*?[]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"} ;done
 r="$r|$R"
 }
 }
-Rt=-${J}regex\ \"${r#|}\"
+Rt=$z-${J}regex\ \"${r#|}\"
 }
 ftm(){	local d f a e z x
 	d=${1:2};f=-${1:1:1}
@@ -142,10 +141,10 @@ case $e in
 		fxr "$e";	r=$r\ $Rt
 esac
 }
-x=$x\ $r
+F=${F+'\(' -type d -prune -o -printf \'\' '\)'};: ${F:=-printf \'\'}
+x=($x "$r" "$F")
 }
-F=${F+'\(' -type d -prune -o -printf \'\' '\)'};: ${F=-printf \'\'}
-X=('\(' $x $F -o $Z '\)')
+X=('\(' $x -o $Z '\)')
 }
 fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"

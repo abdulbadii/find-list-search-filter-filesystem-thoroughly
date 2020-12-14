@@ -4,7 +4,7 @@ Should do too is click, copy then paste, prepend Bash functions inside it to ~/.
 "list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be applied with -in, -de option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
-Would print its
+To print its
 <pre>- Size								-z   
 - Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
@@ -13,8 +13,7 @@ To narrow down search
 <pre>
 - To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
 - To have better control by regular expression				-E or -re   
-- To search in case sensitive		-cs or -s .Defaults to insensitive ( -ci option)   
-- To filter out i.e. exclude certain path from the main find search result  
+- To search in case sensitive			-cs.	Defaults to insensitive (-ci)   
 - to filter by creation, acces or, modification pass time, use -c, -a, -m as easier use than find's, e.g.   
 		-c7m last creation equals to 7 minute being rounded up     
     -a-7m last access is less than or equal to 7 minute   
@@ -27,10 +26,11 @@ To narrow down search
     -s7-10 size is between 7 to 10 kibibyte inclusively. No unit means in kibibyte 
     -s70c-50 size is between 70 byte to 50 kibibyte inclusively 
 - To filter certain depths :		-1..99[-1..99], e.g.   
-	l /usr -5  : search only up to 5th depths counted from /usr dir.
-	l -5-7  : search only within the 5th to 7th depths counted from current dir.
-	l -7.  : search in the exact 7th depths counted from current dir.
-	l -5-  : search in the 5th depths and deeper to the last, counted from current dir.
+	l -5 /usr  : search only up to 5th depths counted from /usr dir.
+	l -5-7 /usr : search only within the 5th to 7th depths counted from current dir.
+	l -7. /usr : search in the exact 7th depths counted from current dir.
+	l -5- /usr : search in the 5th depth or deeper up to the last, counted from current dir.
+- To filter out i.e. to exclude certain path(s) from the main find search results   
 </pre>
 Most of `find` test or action options may also be passed and made use of   
 
@@ -40,7 +40,7 @@ list every file, directory, and other kind of filesystem under current directory
 $ l /   
 list every directory under current directory entirely   
 $ l //   
-list every file only under current directory, so on.   
+list every file only under current directory, ...so on   
 
 So it suggests:
 just put suffix / to search for directory only,   
@@ -98,9 +98,9 @@ while
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
-In this way of having relative path explicitly stated, i.e. there's no any wildcard in the string, if being searched a directory is found in current working dir (exactly there), then the entire directory content will automatically be shown, otherwise on else place in deeper depth, it will just list them out normally.      
-If this purpose is needed in another way of path mentioned above, put -l option in order to show first depth content of any directory found in wildcard pattern or some depth searches   
-To have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. l -l0 lib* 
+In this way of having relative path explicitly stated, i.e. there's no any wildcard in the string, if being searched and a directory is found in current working dir (precisely there), then the entire directory content will automatically be shown, otherwise else place in deeper depth, it will just list them out normally regardless of the type.      
+If this purpose is needed in another way of path specification mentioned above, ie. in wildcard pattern or some depth searches, put -l option or -l followed by number of depth contained in a directory found.   
+E.g to have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. l -l0 lib* 
 
 Control the limited search depth by option -1..99[-1..99],  e.g:
    
@@ -155,8 +155,9 @@ $ l -m-5d
 
 ## EXCLUSION
 
-Another most useful and powerful feature is the exclusion from the main result found. It's done by specifiying path and/or pattern in `-x=` option 
+Another most useful and powerful feature is the exclusion from the main result found. It's done by specifiying path and/or pattern in `-x=` option ...
 
+.......is being edited and worked
 
 
 
