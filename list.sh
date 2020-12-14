@@ -81,7 +81,7 @@ while [[ $R =~ $'\f'([]*?[]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMAT
 r="$r|$R"
 }
 }
-Sd=\"$D$p\";Rt=-${J}regex\ \"${r#|}\"
+Rt=-${J}regex\ \"${r#|}\"
 }
 ftm(){	local d f a e z x
 	d=${1:2};f=-${1:1:1}
@@ -124,7 +124,7 @@ fd(){	local d l m a z=1
 	}
 	Rt="$m${z:+ \! -path \"${2-$S}${l// ?/\/*}/*\"}"
 }
-fx(){	local REX F L G H x Rt r IFS S=$1;shift
+fx(){	local REX F L G H x r Rt IFS S=$1;shift
 for a;{
 eval set -- $a
 unset F L G H r;for e;{
@@ -137,7 +137,7 @@ case $e in
 		fd $e "$S";r=$Rt\ $r
 		dtx="exclusion option \"$e\"";;
 	-E|-re)	REX=1;;
-	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'s regarded as an excluded path>&2
+	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be a path to be excluded>&2
 		((F))&&continue;F=1
 		fxr "$e";	r=$r\ $Rt
 esac
@@ -152,7 +152,7 @@ fid(){
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS F L a z RX de po opt se sz tm DT dt dtx if l lh lx c cp Fc Fp Rt X XF;I=i
+unset IFS F L a z RX de po opt se sz tm Dt dt dtx if l lh lx c cp Fc Fp Rt X XF;I=i
 shopt -s extglob;set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	opt=$opt$e\ ;F=;continue;}
@@ -175,7 +175,7 @@ case $e in
 -|--)	break;;
 -rm)	opt=$opt-delete\ ;;
 -sep=?|-sep=??) se=${e:5};;
--sep=*) echo "Separator must be 1 or 2 characters, it'd default to \\">&2;;
+-sep=*) echo "Separator must be 1 or 2 characters, it still defaults to \\">&2;;
 -de) de=1;;
 -t)	tm="%Tr %Tx ";;
 -in) if=1;;
@@ -202,7 +202,7 @@ for a;{
 	((!L)) &&{
 		case $a in
 		-x=?*|-xs=?*|-xcs=?*)
-			((K))&&{	echo -c or -cp option must be as the last>&2;return;}
+			#((K))&&{	echo -c or -cp option must be as the last>&2;return;}
 			[ ${e:2:1} = = ]&&J=i
 			x_a=$x_a\"${a#-x*=}\"' ';G=1;continue;;
 		#-c=?*|-cp=?*)
@@ -242,7 +242,7 @@ else
 	z=${BASH_REMATCH[5]}
 	L=\"${BASH_REMATCH[4]}\"
 	while [[ $L =~ ^"\.\."$ ]] ;do B=$B../;L=*$z;done
-	F=1			# ...none has exact .. pattern to be M, otherwise as L become the outer loop
+	F=1			# ...none has exact .. pattern to be M, otherwise become the outer loop: L
 	shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
 	[ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
 fi
@@ -332,22 +332,20 @@ esac
 S=\"${S:-/}\"
 ((XF))||{	eval ${x_a+fx ${F-$S} $x_a};XF=1;}
 if [ $F ] ;then	Rt=;eval ${Dt+fd $Dt $F}
-	CL="find $po$S -regextype posix-extended -${I}path $F/* $opt$Rt ${X[@]}"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"}
+	CL="find $po$S -regextype posix-extended -${I}path $F/* $opt$Rt ${X[@]}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"}
 else	CL="find $po$S -regextype posix-extended $dt $opt-${I}regex $R \! -path $S ${X[@]}"	
 fi
 [ "$Dt$dtx" ] &&echo "${Dt+Depth specified by \"$Dt\"}${Dt+${dtx+, and }}${dtx+$dtx} is from ${F-$S}">&2
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then	export -f fid
 	eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
-elif((if)) &&[[ $z != / ]] ;then
-	eval "$CL ! -type d -exec /bin/bash -c '
+elif((if)) &&[[ $z != / ]] ;then eval "$CL ! -type d -exec /bin/bash -c '
 		[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
 #elif((Fc+Fp)) ;then
 	#mkdir -pv $cp
 	#for i in ${c[@]};{	eval "$CL -exec cp '{}' $i \;";}
 else
-	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)
-		eval "$CL"
+	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "$CL"
 fi
 }
 }
