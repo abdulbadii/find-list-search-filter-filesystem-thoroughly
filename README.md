@@ -1,12 +1,12 @@
-Click, copy "list.sh"  above, then paste, prepend the Bash functions inside to ~/.bashrc file   
-Should copy too is running the InstallUpdate2.bashrc.sh script     
+Run the InstallUpdate2.bashrc.sh script to quickly copy "list.sh" above to ~/.bashrc    
+Should do too is click, copy then paste, prepend Bash functions inside it to ~/.bashrc file   
 
-"list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be applied with in, de option   
+"list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be applied with -in, -de option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 Would print its
 <pre>- Size								-z   
-- Last modification time						-t   
+- Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
 - Dependencies of file found in one level depth			-de</pre>
 To narrow down search   

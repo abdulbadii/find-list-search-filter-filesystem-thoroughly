@@ -81,8 +81,7 @@ while [[ $R =~ $'\f'([]*?[]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMAT
 r="$r|$R"
 }
 }
-Sd=\"$D$p\"
-Rt="-${J}regex ${r#|} \( -type d -prune -o -printf '' \)"
+Sd=\"$D$p\";Rt=-${J}regex\ \"${r#|}\"
 }
 ftm(){	local d f a e z x
 	d=${1:2};f=-${1:1:1}
@@ -125,28 +124,28 @@ fd(){	local d l m a z=1
 	}
 	Rt="$m${z:+ \! -path \"${2-$S}${l// ?/\/*}/*\"}"
 }
-fx(){	local REX F xn Rt IFS S=$1;shift
+fx(){	local REX F L G H x Rt r IFS S=$1;shift
 for a;{
 eval set -- $a
-unset F xn;for e;{
+unset F L G H r;for e;{
 case $e in
-	-[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;;
-	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	fsz $e;;
-	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)
-		(($#==1)) &&{
-			fd $e; Rt=\! \( $Rt \)
-		}
-		dtx="option \"$e\" of exclusion";F=1;;
+	-[cam][0-9]*|-[cam]-[0-9]*)	((L))&&continue;L=1
+		ftm $e;r=$Rt\ $r;;
+	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	((G))&&continue;G=1
+		fsz $e;r=$Rt\ $r;;
+	-[1-9]|-[1-9][0-9]|-[1-9][-.]*|[1-9][0-9][-.]*)	((H))&&continue;H=1
+		fd $e "$S";r=$Rt\ $r
+		dtx="exclusion option \"$e\"";;
 	-E|-re)	REX=1;;
-	*)	[[ $e = -* ]] &&echo \'$e\': unrecognized exclusion option, it\'s regarded as an excluded path>&2
-		fxr "$e"
-		((F)) &&{	fd $e $Sd; Rt=\! \( $Rt \);}
+	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'s regarded as an excluded path>&2
+		((F))&&continue;F=1
+		fxr "$e";	r=$r\ $Rt
 esac
-xn=$xn$Rt' '
 }
-X=(${X[@]} $xn)
+x=$x\ $r
 }
-X=(${X[@]} '-o ')
+F=${F+'\(' -type d -prune -o -printf \'\' '\)'};: ${F=-printf \'\'}
+X=('\(' $x $F -o $Z '\)')
 }
 fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"
@@ -181,12 +180,12 @@ case $e in
 -t)	tm="%Tr %Tx ";;
 -in) if=1;;
 -h|--help) man find;return;;
--[HDLPO]) po=$e;;
+-[HDLPO]) po=$e\ ;;
 -[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
 \!|-[ac-il-x]?*)
 	if [[ $e =~ ^!|-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]] ;then opt=$opt$e' '
 	else	read -n1 -p "Option '$e' seems unrecognized, ignoring it and continue? " k>&2;echo;[ "$k" = y ]||return;fi;;
--*)	echo \'$e\': unknown option, ignoring. To let it be a path string, put it after - or -- then space>&2;;
+-*)	echo \'$e\': unknown option, ignoring. To let it be a path string, put it after - or -- then space>&2
 esac
 }
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]]
@@ -210,10 +209,10 @@ for a;{
 			#Ca=\"${c#-c*=}\"
 			#if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi;K=1;continue;;
 		-*|-\!)	continue;;	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
-		-|--)	L=1;continue;;
+		-|--)	L=1;continue
 		esac
 	}
-	a=\"$a\"		# k l m n -x=k i o --  -c=l m n
+	a=\"$a\"		# k l m -x=i o  -- -c=m n
 	if((G)) ;then
 		if((F)) ;then	x_a=$x_a$a' '
 		else				M=$M$a' '
@@ -225,7 +224,7 @@ for a;{
 		if((F))	;then	M=$M$a
 		else		M=$a;	x_a=$x_a$M
 		fi;G=0
-	else			M=$M$a' ';F=1;fi
+	else	M=$M$a' ';F=1;fi
 }
 M=${M//\\/\\\\}
 eval set -- ${M:-\"\"}
@@ -238,8 +237,7 @@ else
 	: ${se='\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
 	while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
 	IFS=$'\n';set -- ${e//\\/\\\\}
-	#get common base dir. path (B)
-	[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
+	[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]	#get common dir. (B) of multi items
 	B=${BASH_REMATCH[2]}
 	z=${BASH_REMATCH[5]}
 	L=\"${BASH_REMATCH[4]}\"
@@ -271,8 +269,7 @@ elif [[ $a =~ ^(\.\.(/\.\.)*)(/.+)?$ ]] ;then
 			p=${p#/..}; s=${s%/*};done
 	fi
 else
-	s=~+
-	p=${a:+/$a}
+	s=~+;p=${a:+/$a}
 	if((re)) ;then
 		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
 		[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}}
@@ -320,14 +317,14 @@ else
 		[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
 fi
-while [[ $S =~ $'\f'([]*?[]) ]] ;do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"} ;done
-while [[ $R =~ $'\f'([]*?[]) ]] ;do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"} ;done
+while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
+while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 P="\( -path '* *' -printf \"$sz$tm'%p'\n\" -o -printf \"$sz$tm%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$sz$tm'%p/'\n\" -o -printf \"$sz$tm%p/\n\" \)"
 case $z in
 /)	Z="$PD";;
 //)	Z="-type f $P";;
-///)	Z="\! -type d -executable\ $P";;
+///)	Z="\! -type d -executable $P";;
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
@@ -335,8 +332,8 @@ esac
 S=\"${S:-/}\"
 ((XF))||{	eval ${x_a+fx ${F-$S} $x_a};XF=1;}
 if [ $F ] ;then	Rt=;eval ${Dt+fd $Dt $F}
-	CL="find $po $S -regextype posix-extended -${I}path $F/* $opt $Rt \( ${X[@]}$Z \)"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"};Z=;P=
-else	CL="find $po $S -regextype posix-extended $dt $opt -${I}regex $R \! -path $S \( ${X[@]} \)"	
+	CL="find $po$S -regextype posix-extended -${I}path $F/* $opt$Rt ${X[@]}"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"}
+else	CL="find $po$S -regextype posix-extended $dt $opt-${I}regex $R \! -path $S ${X[@]}"	
 fi
 [ "$Dt$dtx" ] &&echo "${Dt+Depth specified by \"$Dt\"}${Dt+${dtx+, and }}${dtx+$dtx} is from ${F-$S}">&2
 export LC_ALL=C
@@ -345,11 +342,12 @@ if((de)) &&[[ $z != / ]] ;then	export -f fid
 elif((if)) &&[[ $z != / ]] ;then
 	eval "$CL ! -type d -exec /bin/bash -c '
 		[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
-elif((Fc+Fp)) ;then
+#elif((Fc+Fp)) ;then
 	#sudo mkdir -pv $cp
-	for i in ${c[@]};{	eval "sudo $CL -exec cp '{}' $i \;";}
+	#for i in ${c[@]};{	eval "sudo $CL -exec cp '{}' $i \;";}
 else
-	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "sudo $CL$Z"
+	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)
+		eval "sudo $CL"
 fi
 }
 }
