@@ -4,7 +4,7 @@ Should do too is click, copy then paste, prepend Bash functions inside it to ~/.
 "list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be applied with -in, -de option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
-To print its
+To print out
 <pre>- Size								-z   
 - Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
@@ -14,22 +14,22 @@ To narrow down search
 - To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
 - To have better control by regular expression				-E or -re   
 - To search in case sensitive			-cs.	Defaults to insensitive (-ci)   
-- to filter by creation, acces or, modification pass time, use -c, -a, -m as easier use than find's, e.g.   
-		-c7m last creation equals to 7 minute being rounded up     
-    -a-7m last access is less than or equal to 7 minute   
-    -m7d- last modification is more than or equals to 7 days   
-    -c7-10 last creation is between 7 to 10 minutes inclusively. No unit means in minute   
+- to filter by creation, acces or, modification pass time, use -c, -a, -m an easier use:   
+	-c7m last creation equals to 7 minute being rounded up    
+	-a-7m last access is less than or equal to 7 minute   
+	-m7d- last modification is more than or equals to 7 days   
+	-c7-10 last creation is between 7 to 10 minutes inclusively. No unit means in minute   
 - to filter by size in byte, kibi-, mebi- and gibi- byte unit which has simpler command than find's, e.g.   
-		-s7m (or M) size equals to 7 mebibiytes being rounded up  
-    -s-7g (or G) size is less than or equal to 7 gibibytes   
-    -s7b- size is more than or equals to 7 blocks (7 times 512-bytes)   
-    -s7-10 size is between 7 to 10 kibibyte inclusively. No unit means in kibibyte 
-    -s70c-50 size is between 70 byte to 50 kibibyte inclusively 
+	-s7m (or M) size equals to 7 mebibiytes being rounded up  
+	-s-7g (or G) size is less than or equal to 7 gibibytes   
+	-s7b- size is more than or equals to 7 blocks (7 times 512-bytes)   
+	-s7-10 size is between 7 to 10 kibibyte inclusively. No unit means in kibibyte 
+	-s70c-50 size is between 70 byte to 50 kibibyte inclusively 
 - To filter certain depths :		-1..99[-1..99], e.g.   
-	l -5 /usr  : search only up to 5th depths counted from /usr dir.
-	l -5-7 /usr : search only within the 5th to 7th depths counted from current dir.
-	l -7. /usr : search in the exact 7th depths counted from current dir.
-	l -5- /usr : search in the 5th depth or deeper up to the last, counted from current dir.
+	l -5 /usr	: search only up to 5th depths counted from /usr dir.
+	l -5-7	: search only within the 5th to 7th depths counted from current dir.
+	l -7.		: search in the exact 7th depths counted from current dir.
+	l -5- /usr : search in the 5th depth or deeper up to the last, counted from /usr dir.
 - To filter out i.e. to exclude certain path(s) from the main find search results   
 </pre>
 Most of `find` test or action options may also be passed and made use of   
@@ -42,10 +42,10 @@ list every directory under current directory entirely
 $ l //   
 list every file only under current directory, ...so on   
 
-So it suggests:
-just put suffix / to search for directory only,   
+So it suggests:  
+put suffix / to search for directory only,  
 or put suffix // to search for file only,   
-or put suffix /// to search for executable binary only 
+or put suffix /// to search for executable binary only  
 or put suffix //// to search for link only   
 
 $ l \\\\/   

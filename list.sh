@@ -312,8 +312,7 @@ else
 	p=${p%[/$'\r']}
 	if((RX)) ;then	R=\".{${#S}}${re+.*}$p\"
 	elif((re)) ;then	F=\"$s$p\"
-	else	S=$s$p;R=.*
-		[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
+	else	S=$s$p;R=.*;	[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
@@ -331,8 +330,8 @@ esac
 S=\"${S:-/}\"
 ((XF))||{	eval ${x_a+fx ${F-$S} $x_a};XF=1;}
 if [ $F ] ;then	Rt=;eval ${Dt+fd $Dt $F}
-	CL="find $po$S -regextype posix-extended -${I}path $F/* $opt$Rt ${X[@]}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"}
-else	CL="find $po$S -regextype posix-extended $dt $opt-${I}regex $R \! -path $S ${X[@]}"	
+	CL="find $po$S -regextype posix-extended -${I}path $F/* $opt$Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt \( $PD -o $P \)"}
+else	CL="find $po$S -regextype posix-extended $dt $opt-${I}regex $R \! -path $S ${X[@]-$Z}"	
 fi
 [ "$Dt$dtx" ] &&echo "${Dt+Depth specified by \"$Dt\"}${Dt+${dtx+, and }}${dtx+$dtx} is from ${F-$S}">&2
 export LC_ALL=C
