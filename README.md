@@ -76,17 +76,7 @@ To limit the search on current directory only, precede (prefix) it with ./
 
 Suppose previous explicit part of path exists only where it's specified i.e. "meta" exists only under "core" directory being under any directory being under any dir. under qt directory.   
 
-Prefixing a relative path with ./ characters will search for at current dir., i.e. as if the CLI path is concatenated directly to current dir. Defaults to have recursive in between. E.g. if current working dir. is /usr,   
-
-	l lib   
-
-	should mean, in way of shell global star, searching for:
-	/usr/lib   
-	/usr/*/lib   
-	/usr/*/*/lib   
-	/usr/*/*/*/lib   
-	or as shell globstar: 	/usr/**/lib   
-So prefixing the relative path with ./ to become l ./lib, will ensure only search /usr/lib (the first one)  
+Prefixing a relative path with ./ characters will search for at current dir., i.e. as if the CLI path is concatenated directly to current dir.   
 
 $ cd /qt   
 $ l core/meta   
@@ -97,6 +87,17 @@ will find one e.g:
 while   
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
+
+More e.g. if current working dir. is /usr,   
+	l lib   
+
+Defaults to have recursive in between so it should mean (in way of shell global star) searching for:   
+	/usr/lib   
+	/usr/*/lib   
+	/usr/*/*/lib   
+	/usr/*/*/*/lib   
+	or as shell globstar: 	/usr/**/lib   
+So prefixing the relative path with ./ to become l ./lib, will ensure only search /usr/lib (the first one)  
 
 In this way of having relative path explicitly stated, i.e. there's no any wildcard in the string, if being searched and a directory is found in current working dir (precisely there), then the entire directory content will automatically be shown, otherwise else place in deeper depth, it will just list them out normally regardless of the type.      
 If this purpose is needed in another way of path specification mentioned above, ie. in wildcard pattern or some depth searches, put -l option or -l followed by number of depth contained in a directory found.   
@@ -132,7 +133,7 @@ To change separator other than \\\\ use -sep= option
 Can search in POSIX-extended regular expression by -E or -re option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
-One of the most useful and powerful feature of this tool are its recognized standard format of input and output which could be used/piped as input of another tool, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
+One of the most useful feature of this tool are its recognized standard format of input and output which could be used/piped as input of another utility, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
 E.g. search under "lib" being under "dev" being under "qt" dir. instead of in "src" or "core", any "c" file:   
 
 $ l /qt/src/../dev/core/../lib/*.c\\*.cpp\\*.o   

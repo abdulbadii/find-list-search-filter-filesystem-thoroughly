@@ -1,5 +1,5 @@
 fxr(){ ##### BEGINNING OF l, find wrap script #####
-local F L a b e M p re s z r R D
+local F L a b e d M p re s z r R D
 [[ $1 =~ ^\.?/[^/] ]]||re=1;e=${1#./}
 : ${se='\\\\'}
 while [[ $e =~ ([^\\])($se) ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
@@ -16,9 +16,9 @@ unset IFS;eval set -- $L
 for a;{
 a=$d${a%%+(/)}
 if [[ $a =~ ^/ ]] ;then
-	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
-	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
-	p=$a
+	echo No absolute path to be put on exclusion. Instead use relative path to \"$S\"
+	kill -s 2 $TID
+	#return
 elif [[ $a =~ ^(\.\.(/\.\.)*)(/.+)?$ ]] ;then
 	s=$S/${BASH_REMATCH[1]}
 	p=${BASH_REMATCH[3]}	# is first explicit path
@@ -152,7 +152,8 @@ fid(){
 }
 l(){
 unset IFS F L a z RX de po opt se sz tm Dt dt dtx if l lh lx c cp Fc Fp Rt X XF;I=i
-shopt -s extglob;set -f;trap 'set +f;unset IFS' 1 2
+shopt -s extglob;set -f
+trap 'set +f;unset IFS' 1 2;export TID=$$
 for e;{
 ((F)) &&{	opt=$opt$e\ ;F=;continue;}
 case $e in
