@@ -1,7 +1,7 @@
-Run the InstallUpdate2.bashrc.sh script to quickly copy "list.sh" above to ~/.bashrc    
-Should do too is click, copy then paste, prepend Bash functions inside it to ~/.bashrc file   
+Run the InstallUpdate2.bashrc.sh script to quickly copy **list.sh** above to ~/.bashrc    
+Should do too is clicking it, then copy Bash functions inside and paste, prepend to it ~/.bashrc file   
 
-"list-su.sh" differs only in having superuser request (sudo-prefixed command), however it cannot be applied with -in, -de option   
+**list-su.sh** differs only in having superuser request; `sudo` command prefix, however it cannot be applied with -in, -de option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
 To print out
@@ -11,26 +11,26 @@ To print out
 - Dependencies of file found in one level depth			-de</pre>
 To narrow down search   
 <pre>
-- To find only directory, file, executable or link type, suffix it with /, //, /// or ////    
+- To find only directory, file, executable or link type, suffix path with /, //, /// or ////    
 - To have better control by regular expression				-E or -re   
 - To search in case sensitive			-cs.	Defaults to insensitive (-ci)   
-- to filter by creation, acces or, modification pass time, use -c, -a, -m an easier use:   
-	-c7m last creation equals to 7 minute being rounded up    
-	-a-7m last access is less than or equal to 7 minute   
+- to filter by creation, acces or, modification pass time, use -c, -a, -m an easier use than find (the found number is rounded up to the given)   
+	-a-7m last access is less than or equal to 7 minutes   
+	-c7d last creation equals to 7 days   
 	-m7d- last modification is more than or equals to 7 days   
 	-c7-10 last creation is between 7 to 10 minutes inclusively. No unit means in minute   
-- to filter by size in byte, kibi-, mebi- and gibi- byte unit which has simpler command than find's, e.g.   
-	-s7m (or M) size equals to 7 mebibiytes being rounded up  
-	-s-7g (or G) size is less than or equal to 7 gibibytes   
-	-s7b- size is more than or equals to 7 blocks (7 times 512-bytes)   
-	-s7-10 size is between 7 to 10 kibibyte inclusively. No unit means in kibibyte 
-	-s70c-50 size is between 70 byte to 50 kibibyte inclusively 
-- To filter certain depths :		-1..99[-1..99], e.g.   
+- to filter by size in byte, kibi-, mebi- and gibi- byte unit which has simpler command than find's   
+	-s7m (or M): size equals to 7 mebibiytes being rounded up  
+	-s-7g (or G): size is less than or equal to 7 gibibytes   
+	-s7b- : size is more than or equals to 7 blocks (7 times 512-bytes)   
+	-s7-10 : size is between 7 to 10 kibibyte inclusively. No unit means in kibibyte 
+	-s70c-50 : size is between 70 byte to 50 kibibyte inclusively 
+- To filter certain depths :		-1..99[-1..99][r | /], e.g.   
 	l -5 /usr	: search only up to 5th depths counted from /usr dir.
-	l -5-7	: search only within the 5th to 7th depths counted from current dir.
-	l -7.		: search in the exact 7th depths counted from current dir.
+	l -5-7	: search only within the 5th to 7th depths of current dir.
+	l -7.		: search in the exact 7th depths from current dir.
 	l -5- /usr : search in the 5th depth or deeper up to the last, counted from /usr dir.
-- To filter out i.e. to exclude certain path(s) from the main find search results   
+- To filter out by path name i.e. to exclude certain path(s) from the main search results   
 </pre>
 Most of `find` test or action options may also be passed and made use of   
 
@@ -41,15 +41,14 @@ $ l /
 list every directory under current directory entirely   
 $ l //   
 list every file only under current directory, ...so on   
-
-So it suggests:  
+Suggests:  
 put suffix / to search for directory only,  
 or put suffix // to search for file only,   
-or put suffix /// to search for executable binary only  
+or put suffix /// to search for executable file only  
 or put suffix //// to search for link only   
 
 $ l \\\\/   
-list every filesystem type under "/" (root) directory entirely, the preceding \\\\ is to differentiate it with second use above: list every directory under current directory   
+list any filesystem type under "/" (root) directory entirely, the prepended \\\\ is to differentiate it with second usage above: list every directory under current directory   
 
 As absolute path, it always searchs in directories depths as explicitly specified, either with or without wildcard such as:   
 
