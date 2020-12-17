@@ -112,17 +112,17 @@ fd(){	local a e A E
 	if [[ $D =~ - ]];then	A=${D%-*}
 	elif [[ $D = *. ]];then	E=${D%.};A=$E;fi
 	if((Rd));then
-		a=\ $(eval echo {1..$((DM-E+1))})
-		a=${a// ?/\/*}
-		e=\ $(eval echo {1..$((DM-A+1))})\ .
-		e=${e// ?/\/*}
-		Rt="${E+-path \"${2-$S}$a\"}${A:+ \! -path \"${2-$S}$e\"}"
+		a=\ $(eval echo {1..$((DM-A+1))})
+		a=${a// [! ][! ]/ .};a=${a// ?/\/*}/*
+		e=\ $(eval echo {1..$((DM-E+1))})
+		e=${e// [! ][! ]/ .};e=${e// ?/\/*}
+		Rt="${E+-path \"${1-$S}$e\"}${A:+ \! -path \"${1-$S}$a\"}"
 	else
 		a=\ $(eval echo {1..$A})
-		a=${a// ?/\/*}
-		e=\ $(eval echo {1..$E})\ .
-		e=${e// ?/\/*}
-		Rt="${A+-path \"${2-$S}$a\"}${E:+ \! -path \"${2-$S}$e\"}"
+		a=${a// [! ][! ]/ .};a=${a// ?/\/*}
+		e=\ $(eval echo {1..$E})
+		e=${e// [! ][! ]/ .};e=${e// ?/\/*}/*
+		Rt="${A+-path \"${1-$S}$a\"}${E:+ \! -path \"${1-$S}$e\"}"
 	fi
 }
 fx(){	local D F L G H x r Rt REX IFS S=$1;shift
@@ -136,7 +136,7 @@ case $e in
 		fsz $e;r=$Rt\ $r;;
 	-[1-9]|-[1-9][0-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])
 		((H))&&continue;H=1
-		D=${e:1};[[ ${e: -1} = [r/] ]]&&{	${D%?};Rd=1;}
+		D=${e:1};[[ $e =~ [r/]$ ]]&&{	${D%?};Rd=1;}
 		fd;	r=$Rt\ $r
 		dtx="exclusion option \"$e\"";;
 	-E|-re)	REX=1;;
@@ -156,7 +156,7 @@ fid(){
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS F L A E a RX de po opt se sz tm D Dt Rd DM dt dtx if l lh lx c cp Fc Fp Rt X XF;I=i
+unset IFS F L A E a RX de dp po opt se sz tm D Dt Rd DM dt dtx if l lh lx c cp Fc Fp Rt X XF;I=i
 shopt -s extglob;set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	opt=$opt$e\ ;F=;continue;}
@@ -294,9 +294,9 @@ b=${p%%$'\n'*}
 p=${b##*$'\v'}${z//\//$'\v'}$M
 b=${b%$'\v'*}
 S=$s
-i=;IFS=$'\n';set -- ${p:-\"\"}
+i=;F=;set -- ${p:-\"\"}
 for f;{
-if((!RX)) &&[[ $f =~ ([^$'\f']|^)[]*?[] ]] ;then
+if((!RX)) &&[[ ${r[i]} =~ ([^$'\f']|^)[]*?[] ]] ;then
 	[[ $f =~ ^(.*[^$'\v'])?($'\v'*)$ ]]
 	z=${BASH_REMATCH[2]//$'\v'/\/}
 	f=$b$'\v'${BASH_REMATCH[1]}
@@ -308,7 +308,7 @@ if((!RX)) &&[[ $f =~ ([^$'\f']|^)[]*?[] ]] ;then
 	fi
 	R=\".{${#S}}${p//$'\v'/\/}\"
 else
-	[[ ${r[((i++))]} =~ ^(.*[^/])?(/*)$ ]]
+	[[ ${r[i]} =~ ^(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[2]}
 	p=$d/${BASH_REMATCH[1]};p=${p%[/$'\r']}
 	if((RX)) ;then	R=\".{${#S}}${re+.*}$p\"
@@ -316,9 +316,10 @@ else
 	else	S=$s$p;R=.*;	[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
 fi
+((i++))
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-P="\( -path '* *' -printf \"$sz$tm'%p'\n\" -o -printf \"$sz$tm%p\n\" \)"
+P="\( -path '* *' -printf \"$dp$sz$tm'%p'\n\" -o -printf \"$dp$sz$tm%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$dp$tm'%p/'\n\" -o -printf \"$dp$tm%p/\n\" \)"
 ((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt\( $PD -o $P \) \;";}
 case $z in
@@ -328,18 +329,15 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-S=\"${S:-/}\"
-((Rd))&&{	[[ `eval "find $S -type d -links 2 -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
+S=\"${S:-/}\";FS=${F-$S}
+((Rd))&&{	[[ `eval "find $FS -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 
-((XF))||{	eval ${x_a+fx ${F-$S} $x_a};(($?))&&return;XF=1;}
+((XF))||{	eval ${x_a+fx $FS $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
-if [ $F ] ;then
-	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt\( $PD -o $P \)"}
-else
-	CL="find $po$S -regextype posix-extended $Rt $opt-${I}regex $R \! -path $S ${X[@]-$Z}"
+if [ $F ] ;then	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt\( $PD -o $P \)"}
+else	CL="find $po$S -regextype posix-extended $Rt $opt-${I}regex $R \! -path $S ${X[@]-$Z}"
 fi
-
-[ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ reversed $D from max depth $DM} of ${F-$S}}${D+${dtx+ and }}${dtx+$dtx is of ${F-$S}}">&2
+[ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ '$D' depth from max $DM} of $FS}${D+${dtx+ and }}${dtx+$dtx is of $FS}">&2
 export LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then	export -f fid
 	eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"

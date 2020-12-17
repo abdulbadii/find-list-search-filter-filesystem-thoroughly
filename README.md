@@ -1,10 +1,9 @@
 Run the InstallUpdate2.bashrc.sh script to quickly copy **list.sh** above to ~/.bashrc    
-Should do too is clicking it, then copy Bash functions inside and paste, prepend to it ~/.bashrc file   
+Should do too is clicking it, and copy Bash functions inside then paste, prepend to ~/.bashrc file   
 
-**list-su.sh** differs only in having superuser request; `sudo` command prefix, however it cannot be applied with -in, -de option   
+**list-su.sh** differs only in having superuser request; `sudo` command prefix. However it cannot be applied with -in, -de option   
 
-Find and list specific file, directory, link or any filesystem type recursively while keep utilizing "find" utility useful options   
-To print out
+Find and list specific file, directory, link or any filesystem type recursively while keep utilizing **find** utility useful options. The options to print out found file's:  
 <pre>- Size								-z   
 - Last modification time					-t   
 - Information on file found (whether 64/32 bit binary etc)	-in   
@@ -13,7 +12,7 @@ To narrow down search
 <pre>
 - To find only directory, file, executable or link type, suffix path with /, //, /// or ////    
 - To have better control by regular expression				-E or -re   
-- To search in case sensitive			-cs.	Defaults to insensitive (-ci)   
+- To search in case sensitive			-cs. (Defaults to insensitive, -ci)   
 - to filter by creation, acces or, modification pass time, use -c, -a, -m an easier use than find (the found number is rounded up to the given)   
 	-a-7m last access is less than or equal to 7 minutes   
 	-c7d last creation equals to 7 days   
@@ -40,8 +39,7 @@ list every file, directory, and other kind of filesystem under current directory
 $ l /   
 list every directory under current directory entirely   
 $ l //   
-list every file only under current directory, ...so on   
-Suggests:  
+list every file only under current directory, ...so on which suggests:  
 put suffix / to search for directory only,  
 or put suffix // to search for file only,   
 or put suffix /// to search for executable file only  
@@ -52,11 +50,11 @@ list any filesystem type under "/" (root) directory entirely, the prepended \\\\
 
 As absolute path, it always searchs in directories depths as explicitly specified, either with or without wildcard such as:   
 
-/qt/build/core/meta   
-means searching for any object type namedly "meta" under "core under "build" in "qt" directory   
+l /qt/build/core/meta   
+means searching for any object type namedly **meta** under "core under **build** within **qt** directory in root location   
 
-/qt/\*/\*/core/meta   
-search for any file type "meta" under "core" dir. being under any directory being under any directory under "qt" directory on top/root of filesystem.   
+/qt/\*/\*/core/\*.c//   
+search for any file having extension name ".c" under **core** directory under any directory being under any directory under **qt** directory on root of filesystem.   
 
 To search somewhere deeper than such up to maximum, add "\*\*", double wildcard asterisks, in the context of intended depth, e.g.   
 $ l /qt/\*/\*/core/\*\*/meta   
@@ -65,15 +63,15 @@ Will find
 /qt/src/dev/core/meta   
 /qt/src/dev/core/c/meta   
 /qt/src/doc/core/build/meta   
-/qt/lib/so/core/c/obj/meta   
-/qt/lib/so/core/src/c/obj/meta  
+/qt/lib/sys/core/c/obj/meta   
+/qt/lib/sys/core/src/c/obj/meta  
 
-will search in two plies depth between "qt" and "core" directory, and indefinite number of ply depth between "core" and "meta" directory   
+will search in two plies depth between **qt** and **core** directory, and indefinite number of ply depth between **core** and **meta** directory   
 
 If navigating in way of relative path i.e. not started with slash character (/), then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it with ./   
 
-Suppose previous explicit part of path exists only where it's specified i.e. "meta" exists only under "core" directory being under any directory being under any dir. under qt directory.   
+Suppose previous explicit part of path exists only where it's specified i.e. **meta** exists only under **core** directory being under any directory being under any dir. under qt directory.   
 
 Prefixing a relative path with ./ characters will search for at current dir., i.e. as if the CLI path is concatenated directly to current dir.   
 
@@ -133,7 +131,7 @@ Can search in POSIX-extended regular expression by -E or -re option
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
 
 One of the most useful feature of this tool are its recognized standard format of input and output which could be used/piped as input of another utility, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
-E.g. search under "lib" being under "dev" being under "qt" dir. instead of in "src" or "core", any "c" file:   
+E.g. search under **lib** being under **dev** being under **qt** dir. instead of in **src** or **core**, any **c** file:   
 
 $ l /qt/src/../dev/core/../lib/*.c\\*.cpp\\*.o   
 /qt/dev/lib/main.c   
