@@ -55,9 +55,9 @@ f=$b/${BASH_REMATCH[1]}
 if [[ $f =~ ([^$'\f']|^)[]*?[] ]] ;then
 		if((re)) ;then	p=**$f
 		else
-			[[ $f =~ ^([^]*?[]*)(/.+)$ ]]
-			D=$s${BASH_REMATCH[1]}
-			p=${BASH_REMATCH[2]}
+			[[ $f =~ [^$'\f'][]*?[].*$ ]];	p=${BASH_REMATCH[0]}
+			t=${f%$/*$p};p=${f#$t}
+			D=$s$t
 		fi
 		while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 		p=${p//\*\*/.$'\r'}
@@ -113,15 +113,15 @@ fd(){	local a e A E
 	elif [[ $D = *. ]];then	E=${D%.};A=$E;fi
 	if((Rd));then
 		a=\ $(eval echo {1..$((DM-A+1))})
-		a=${a// [! ][! ]/ .};a=${a// ?/\/*}/*
+		a=${a// ?[! ]/ .};a=${a// ?/\/*}/*
 		e=\ $(eval echo {1..$((DM-E+1))})
-		e=${e// [! ][! ]/ .};e=${e// ?/\/*}
+		e=${e// ?[! ]/ .};e=${e// ?/\/*}
 		Rt="${E+-path \"${1-$S}$e\"}${A:+ \! -path \"${1-$S}$a\"}"
 	else
 		a=\ $(eval echo {1..$A})
-		a=${a// [! ][! ]/ .};a=${a// ?/\/*}
+		a=${a// ?[! ]/ .};a=${a// ?/\/*}
 		e=\ $(eval echo {1..$E})
-		e=${e// [! ][! ]/ .};e=${e// ?/\/*}/*
+		e=${e// ?[! ]/ .};e=${e// ?/\/*}/*
 		Rt="${A+-path \"${1-$S}$a\"}${E:+ \! -path \"${1-$S}$e\"}"
 	fi
 }
@@ -140,7 +140,7 @@ case $e in
 		fd;	r=$Rt\ $r
 		dtx="exclusion option \"$e\"";;
 	-E|-re)	REX=1;;
-	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be a path to be excluded>&2
+	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be an excluded path>&2
 		((F))&&continue;F=1
 		fxr "$e"; (($?))&&return 1
 		r=$r\ $Rt
@@ -174,7 +174,7 @@ case $e in
 -|--)	break;;
 -rm)	opt=$opt-delete\ ;;
 -sep=?|-sep=??) se=${e:5};;
--sep=*) echo "Separator must be 1 or 2 characters, it still defaults to \\">&2;;
+-sep=*) echo "Separator must be 1 or 2 characters, it'd still default to \\">&2;;
 -de) de=1;;
 -in) if=1;;
 -ci) I=i;;
@@ -204,7 +204,7 @@ for a;{
 		case $a in
 		-x=?*|-xs=?*|-xcs=?*)
 			#((K))&&{	echo -c or -cp option must be as the last>&2;return;}
-			J[ ${e:2:1} = = ]&&J=i
+			[ ${e:2:1} = = ]&&J=i
 			x_a=$x_a\"${a#-x*=}\"' ';G=1;continue;;
 		#-c=?*|-cp=?*)
 			#Ca=\"${c#-c*=}\"
@@ -301,9 +301,9 @@ if((!RX)) &&[[ ${r[i]} =~ ([^$'\f']|^)[]*?[] ]] ;then
 	f=$b$'\v'${BASH_REMATCH[1]}
 	if((re)) ;then	p=.*$f
 	else
-		[[ $f =~ [^$'\f']\*.*$ ]];	p=${BASH_REMATCH[0]}
-		t=${f%$'\v'*$p};p=${f#$t}
-		S=$s${t//$'\v'/\/}
+		[[ $f =~ [^$'\f'][]*?[].*$ ]];	p=${BASH_REMATCH[0]}
+		S=${f%$'\v'*$p};p=${f#$S}
+		S=$s${S//$'\v'/\/}
 	fi
 	R=\".{${#S}}${p//$'\v'/\/}\"
 else
@@ -328,7 +328,7 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-S=\"${S:-/}\";FS=${F-$S}
+S=\"${S:-/}\";FS=${F:-$S}
 ((Rd))&&{	[[ `eval "find $FS -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 
 ((XF))||{	eval ${x_a+fx $FS $x_a};(($?))&&return;XF=1;}
@@ -346,7 +346,7 @@ elif((if)) &&[[ $z != / ]] ;then eval "$CL ! -type d -exec /bin/bash -c '
 #elif((Fc+Fp)) ;then
 	#mkdir -pv $cp
 	#for i in ${c[@]};{	eval "$CL -exec cp '{}' $i \;";}
-else	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval "$CL"
+else	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval $CL
 fi
 }
 }
