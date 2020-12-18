@@ -9,7 +9,7 @@ IFS=$'\n';set -- ${e//\\/\\\\}
 d=${BASH_REMATCH[2]}
 L=\"${BASH_REMATCH[4]}\"
 z=${BASH_REMATCH[5]}
-while [[ $L =~ \"\.\.\" ]] ;do d=$d../;L=*$z;done
+[[ $L =~ \"\.\.\" ]] &&{ d=$d../;L=*$z;}
 F=1
 shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
 [ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
@@ -204,7 +204,7 @@ for a;{
 		case $a in
 		-x=?*|-xs=?*|-xcs=?*)
 			#((K))&&{	echo -c or -cp option must be as the last>&2;return;}
-			[ ${e:2:1} = = ]&&J=i
+			J[ ${e:2:1} = = ]&&J=i
 			x_a=$x_a\"${a#-x*=}\"' ';G=1;continue;;
 		#-c=?*|-cp=?*)
 			#Ca=\"${c#-c*=}\"
@@ -238,17 +238,16 @@ else
 	: ${se='\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
 	while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
 	IFS=$'\n';set -- ${e//\\/\\\\}
-	[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]	#get common dir. (B) of multi items
-	B=${BASH_REMATCH[2]}
-	z=${BASH_REMATCH[5]}
+	[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
+	B=${BASH_REMATCH[2]}					#get common dir. (B) of multi items
 	L=\"${BASH_REMATCH[4]}\"
-	while [[ $L =~ ^"\.\."$ ]] ;do B=$B../;L=*$z;done
+	z=${BASH_REMATCH[5]}
+	[[ $L =~ ^"\.\."$ ]] &&{	B=$B../;L=*$z;}
 	F=1			# ...none has exact .. pattern to be M, otherwise become the outer loop: L
 	shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
 	[ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
 fi
-unset IFS R s F
-eval set -- $L
+unset IFS R s;eval set -- $L
 for a;{
 a=$B${a%%+(/)}
 if [[ $a =~ ^/ ]] ;then
@@ -302,9 +301,9 @@ if((!RX)) &&[[ ${r[i]} =~ ([^$'\f']|^)[]*?[] ]] ;then
 	f=$b$'\v'${BASH_REMATCH[1]}
 	if((re)) ;then	p=.*$f
 	else
-		[[ $f =~ ^([^]*?[]*)($'\v'.+)$ ]]
-		S=$s${BASH_REMATCH[1]//$'\v'/\/}
-		p=${BASH_REMATCH[2]}
+		[[ $f =~ [^$'\f']\*.*$ ]];	p=${BASH_REMATCH[0]}
+		t=${f%$'\v'*$p};p=${f#$t}
+		S=$s${t//$'\v'/\/}
 	fi
 	R=\".{${#S}}${p//$'\v'/\/}\"
 else
@@ -334,11 +333,12 @@ S=\"${S:-/}\";FS=${F-$S}
 
 ((XF))||{	eval ${x_a+fx $FS $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
-if [ $F ] ;then	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt\( $PD -o $P \)"}
+if [ $F ] ;then
+	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt\( $PD -o $P \)"}
 else	CL="find $po$S -regextype posix-extended $Rt $opt-${I}regex $R \! -path $S ${X[@]-$Z}"
 fi
 [ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ '$D' depth from max $DM} of $FS}${D+${dtx+ and }}${dtx+$dtx is of $FS}">&2
-export LC_ALL=C
+LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then	export -f fid
 	eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 elif((if)) &&[[ $z != / ]] ;then eval "$CL ! -type d -exec /bin/bash -c '

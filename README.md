@@ -24,11 +24,16 @@ To narrow down search
 	-s7b- : size is more than or equals to 7 blocks (7 times 512-bytes)   
 	-s7-10 : size is between 7 to 10 kibibyte inclusively. No unit means in kibibyte 
 	-s70c-50 : size is between 70 byte to 50 kibibyte inclusively 
-- To filter certain depths :		-1..99[-1..99][r | /], e.g.   
+- To filter certain depths :		-1..99[-1..99][r|/], e.g.   
 	l -5 /usr	: search only up to 5th depths counted from /usr dir.
 	l -5-7	: search only within the 5th to 7th depths of current dir.
 	l -7.		: search in the exact 7th depths from current dir.
 	l -5- /usr : search in the 5th depth or deeper up to the last, counted from /usr dir.
+	Suffix it with **r** e.g. l -1r  means reverse direction (or put / instead of r)
+	l -1r /usr :
+	l -1/ /usr : search in the last/deepest depth of /usr dir.
+	l -3r /usr : search in 3 plies before the last up to the last depth of /usr dir.
+	l -4.r /usr : search exactly in 4 plies before the last depth of /usr dir.
 - To filter out by path name i.e. to exclude certain path(s) from the main search results   
 </pre>
 Most of `find` test or action options may also be passed and made use of   
@@ -39,7 +44,7 @@ list every file, directory, and other kind of filesystem under current directory
 $ l /   
 list every directory under current directory entirely   
 $ l //   
-list every file only under current directory, ...so on which suggests:  
+list every file only under current directory... so on, which suggests:  
 put suffix / to search for directory only,  
 or put suffix // to search for file only,   
 or put suffix /// to search for executable file only  
