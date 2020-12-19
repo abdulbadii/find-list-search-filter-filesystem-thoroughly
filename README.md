@@ -34,7 +34,7 @@ To narrow down search
 	l -1/ /usr : search in the last/deepest depth of /usr dir.
 	l -3r /usr : search in 3 plies before the last up to the last depth of /usr dir.
 	l -4.r /usr : search exactly in 4 plies before the last depth of /usr dir.
-- To filter out by path name i.e. to exclude certain path(s) from the main search results   
+- To filter out by path name i.e. to exclude certain path(s) from the main search results -x=   
 </pre>
 Most of `find` test or action options may also be passed and made use of   
 
@@ -46,8 +46,8 @@ list every directory under current directory entirely
 $ l //   
 list every file only under current directory... so on, which suggests:  
 put suffix / to search for directory only,  
-or put suffix // to search for file only,   
-or put suffix /// to search for executable file only  
+put suffix // to search for file only,   
+put suffix /// to search for executable file only  
 or put suffix //// to search for link only   
 
 $ l \\\\/   
@@ -56,7 +56,7 @@ list any filesystem type under "/" (root) directory entirely, the prepended \\\\
 As absolute path, it always searchs in directories depths as explicitly specified, either with or without wildcard such as:   
 
 l /qt/build/core/meta   
-means searching for any object type namedly **meta** under "core under **build** within **qt** directory in root location   
+means searching for any object type namedly **meta** under **core** under **build** within **qt** directory in root dir.   
 
 /qt/\*/\*/core/\*.c//   
 search for any file having extension name ".c" under **core** directory under any directory being under any directory under **qt** directory on root of filesystem.   
@@ -71,7 +71,7 @@ Will find
 /qt/lib/sys/core/c/obj/meta   
 /qt/lib/sys/core/src/c/obj/meta  
 
-will search in two plies depth between **qt** and **core** directory, and indefinite number of ply depth between **core** and **meta** directory   
+I.e. it will search in two plies depth between **qt** and **core** directory, and indefinite number of ply depth between **core** and **meta** directory   
 
 If navigating in way of relative path i.e. not started with slash character (/), then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it with ./   
@@ -83,17 +83,16 @@ Prefixing a relative path with ./ characters will search for at current dir., i.
 $ cd /qt   
 $ l core/meta   
 
-will find one e.g:   
+Would find, e.g:   
 /qt/src/dev/core/meta   
 
-while   
 $ l ./core/meta   
 will not find it since there is no /qt/core/meta    
 
-More e.g. if current working dir. is /usr,   
+More e.g. if current working dir. is **/usr**,   
 	l lib   
 
-Defaults to have recursive in between so it should mean (in way of shell global star) searching for:   
+Defaults to search recursively under **/usr** so it should mean (in way of shell global star) searching for:   
 	/usr/lib   
 	/usr/*/lib   
 	/usr/*/*/lib   

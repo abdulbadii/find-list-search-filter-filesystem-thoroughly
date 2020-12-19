@@ -56,8 +56,8 @@ if [[ $f =~ ([^$'\f']|^)[]*?[] ]] ;then
 		if((re)) ;then	p=**$f
 		else
 			[[ $f =~ [^$'\f'][]*?[].*$ ]];	p=${BASH_REMATCH[0]}
-			t=${f%$/*$p};p=${f#$t}
-			D=$s$t
+			D=${f%$/*$p};p=${f#$D}
+			D=$s$D
 		fi
 		while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 		p=${p//\*\*/.$'\r'}
@@ -233,33 +233,33 @@ for e;{
 unset b B s re M
 if [ "${e:0:1}" = \\ ];then	z=${e##+(\\)};z=${z#/};[[ $z =~ /* ]]&&L=/$'\r'$z # put \x0D to mark a root dir
 else
-	[[ $e =~ ^\.?/[^/] ]]||re=1	# if no prefix ./ nor /, search recursively any depth from PWD
-	e=${e#./}
-	: ${se='\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
-	while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
-	IFS=$'\n';set -- ${e//\\/\\\\}
-	[[ $1 =~ ^((/?([^/]+/)*)([^/]+))?(/*)$ ]]
-	B=${BASH_REMATCH[2]}					#get common dir. (B) of multi items
-	L=\"${BASH_REMATCH[4]}\"
-	z=${BASH_REMATCH[5]}
-	[[ $L =~ ^"\.\."$ ]] &&{	B=$B../;L=*$z;}
-	F=1			# ...none has exact .. pattern to be M, otherwise become the outer loop: L
-	shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
-	[ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
-fi
-unset IFS R s;eval set -- $L
-for a;{
-a=$B${a%%+(/)}
+[[ $e =~ ^\.?/[^/] ]]||re=1	# if no prefix ./ nor /, search recursively any depth from PWD
+e=${e#./}
+: ${se='\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
+while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
+IFS=$'\n';set -- ${e//\\/\\\\}
+[[ $1 =~ ^(.*[^/])?(/*)$ ]]
+z=${BASH_REMATCH[2]}
+a=${BASH_REMATCH[1]}
+
 if [[ $a =~ ^/ ]] ;then
 	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
 	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
 	p=$a
-elif [[ $a =~ ^(\.\.(/\.\.)*)(/.+)?$ ]] ;then
-	s=~+/${BASH_REMATCH[1]}
-	p=${BASH_REMATCH[3]}	# is first explicit path
-	while [[ $s =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do s=${s/"${BASH_REMATCH[0]}"/\/};done
-	[[ $s =~ ^/..(/|$) ]] &&{ echo -e Invalid path: $a. It goes up beyond root>&2;continue;}
-	s=${s%/}
+else
+	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do
+		a=${a/"${BASH_REMATCH[0]}"/\/};done
+	[[ $a =~ ^(/\.\.)+(/.*|$) ]] &&{
+	p=${BASH_REMATCH[2]}
+	s=$s"${BASH_REMATCH[1]}"
+	while [[ $s =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do
+		[[ $s =~ ^\.\.(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+		s=${s/"${BASH_REMATCH[0]}"/\/};done
+fi
+	
+
+
+	s=$s{s%/}
 	if((re)) ;then
 		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
 		[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}} # clear remaining leading /..
@@ -279,6 +279,18 @@ else
 			p=${p#/..}; s=${s%/*};done
 	fi
 fi
+fi
+	B=${BASH_REMATCH[2]}					#get common dir. (B) of multi items
+	L=\"${BASH_REMATCH[4]}\"
+
+	F=1			# ...none has exact .. pattern to be M, otherwise become the outer loop: L
+	shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
+	[ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
+
+unset IFS R s;eval set -- $L
+for a;{
+a=$B${a%%+(/)}
+
 p=${p%/}
 d=${p%/*};IFS=$'\n';eval set -- \"${p##*/}\"$z$M; r=("$@")
 p=$p$M
