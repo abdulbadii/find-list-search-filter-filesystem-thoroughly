@@ -231,75 +231,46 @@ M=${M//\\/\\\\}
 eval set -- ${M:-\"\"}
 for e;{
 unset b B s re M
-if [ "${e:0:1}" = \\ ];then	z=${e##+(\\)};z=${z#/};[[ $z =~ /* ]]&&L=/$'\r'$z # put \x0D to mark a root dir
+if [ "${e:0:2}" = \\/ ];then	z=${e:2};L=/$'\r'$z			# replace with \x0D to mark a root dir
 else
-[[ $e =~ ^\.?/[^/] ]]||re=1	# if no prefix ./ nor /, search recursively any depth from PWD
-e=${e#./}
-: ${se='\\'} # Get multi items separated by \\ or $sep of same dir path, if any and...
+: ${se='\\'}		# paths share same head separated by \\ or $sep, if any and...
 while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
 IFS=$'\n';set -- ${e//\\/\\\\}
-[[ $1 =~ ^(.*[^/])?(/*)$ ]]
-z=${BASH_REMATCH[2]}
+[[ $1 =~ ^(\./|.*[^/])?(/*)$ ]];z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}
-
 if [[ $a =~ ^/ ]] ;then
-	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};done
-	[[ $a =~ ^/..(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
-	p=$a
+	p=$a;s=/
+	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
+	[[ $p =~ ^/..(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
 else
-	while [[ $a =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do
-		a=${a/"${BASH_REMATCH[0]}"/\/};done
-	[[ $a =~ ^(/\.\.)+(/.*|$) ]] &&{
+	[ "$a" = . ]&&a=./			# if not . or prefixed by ./, search recursively
+	[[ $a =~ ^\./ ]]||re=1
+	a=${a#./}
+	p=${a:+/$a};while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};done
+	[[ $p =~ ^(/\.\.)*(/.*|$) ]]
+	s=~+
 	p=${BASH_REMATCH[2]}
-	s=$s"${BASH_REMATCH[1]}"
-	while [[ $s =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do
-		[[ $s =~ ^\.\.(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
-		s=${s/"${BASH_REMATCH[0]}"/\/};done
+	((re))||{	s=$s${BASH_REMATCH[1]}
+		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/}
+			[[ $s =~ ^\.\.(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue 2;};done
+	}
 fi
-	
+B=${p/*}					#get common shared path head to B
+M=${p##*/}\ ${@:1}
 
-
-	s=$s{s%/}
-	if((re)) ;then
-		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-		[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}} # clear remaining leading /..
-	else
-		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-		while [[ $p =~ ^/..(/|$) ]];do	[ "$s" ] ||{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
-			p=${p#/..}; s=${s%/*};done
-	fi
-else
-	s=~+;p=${a:+/$a}
-	if((re)) ;then
-		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-		[[ $p =~ ^((/\.\.)+)(/|$) ]] && p=${p/${BASH_REMATCH[1]}}
-	else
-		while [[ $p =~ /([^.].|.[^.]|[^/]{3,}|[^/])/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-		while [[ $p =~ ^/..(/|$) ]];do	[ "$s" ]||{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
-			p=${p#/..}; s=${s%/*};done
-	fi
-fi
-fi
-	B=${BASH_REMATCH[2]}					#get common dir. (B) of multi items
-	L=\"${BASH_REMATCH[4]}\"
-
-	F=1			# ...none has exact .. pattern to be M, otherwise become the outer loop: L
-	shift;for a;{	[[ $a =~ (/|^)\.\.(/|$) ]] &&{	L=$L\ "$@";F=;break;};}
-	[ $# -ge 1 ]&&((F)) &&{	[[ $e =~ ^[^$'\n']*($'\n'.*)?$ ]];M=${BASH_REMATCH[1]};}
-
-unset IFS R s;eval set -- $L
-for a;{
+return
 a=$B${a%%+(/)}
-
 p=${p%/}
 d=${p%/*};IFS=$'\n';eval set -- \"${p##*/}\"$z$M; r=("$@")
 p=$p$M
-p=${p//\//$'\v'}
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 while [[ $p =~ ([^\\].|.[^\\])([.{}()]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}"};done
 p=${p//\*\*/.$'\r'}
 while [[ $p =~ ([^$'\f']|^)\* ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'} ;done;p=${p//$'\r'/*}
+
+
+fi
 M=${M:+$'\n'${p#*$'\n'}}
 b=${p%%$'\n'*}
 p=${b##*$'\v'}${z//\//$'\v'}$M
@@ -360,7 +331,6 @@ elif((if)) &&[[ $z != / ]] ;then eval "$CL ! -type d -exec /bin/bash -c '
 	#for i in ${c[@]};{	eval "$CL -exec cp '{}' $i \;";}
 else	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2; done)	eval $CL
 fi
-}
 }
 }
 set +f;unset IFS;} ##### ENDING OF l, find wrap script #####
