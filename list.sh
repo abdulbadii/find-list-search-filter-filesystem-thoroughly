@@ -157,7 +157,8 @@ fid(){
 }
 l(){
 unset IFS F L A E a RX de dp po opt se sz tm D Dt Rd DM dt dtx if l lh lx c cp Fc Fp Rt X XF;I=i
-shopt -s extglob;set -f;trap 'set +f;unset IFS' 1 2
+shopt -s extglob nocaseglob
+set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	opt=$opt$e\ ;F=;continue;}
 case $e in
@@ -231,74 +232,72 @@ M=${M//\\/\\\\}
 eval set -- ${M:-\"\"}
 for e;{
 unset b B s re M
-if [ "${e:0:2}" = \\/ ];then	z=${e:2};L=/$'\r'$z			# replace with \x0D to mark a root dir
+if [ "${e:0:2}" = \\/ ];then	z=${e:2};p=/$'\r'			# replace with \x0D to mark a root dir
 else
-: ${se='\\'}		# paths share same head separated by \\ or $sep, if any and...
-while [[ $e =~ ([^\\])$se ]] ;do e=${e/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'} ;done 
-IFS=$'\n';set -- ${e//\\/\\\\}
-[[ $1 =~ ^(\./|.*[^/])?(/*)$ ]];z=${BASH_REMATCH[2]}
-a=${BASH_REMATCH[1]}
-if [[ $a =~ ^/ ]] ;then
-	p=$a;s=/
-	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
-	[[ $p =~ ^/..(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;}
+: ${se='\\'};e=${e//$se/$'\n'}			# path with same head separated by \\ or $sep
+IFS=$'\n';set -- $e
+[[ $1 =~ ^(\./|.*[^/])?(/*)$ ]]
+z=${BASH_REMATCH[2]}
+a=${BASH_REMATCH[1]}	#[ "${a: -3}" = /.. ];F=!$?
+if [ ${a:0:1} = / ] ;then	p=$a
+	while [[ $p =~ /[^/]+/\.\.(/|$) ]] ;do	p=${p/"${BASH_REMATCH[0]}"/\/}
+		[[ $p =~ ^/..(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;};done
 else
-	[ "$a" = . ]&&a=./			# if not . or prefixed by ./, search recursively
-	[[ $a =~ ^\./ ]]||re=1
-	a=${a#./}
+	[ "$a" = . ] &&a=./			# if not . or prefixed by ./, search recursively
+	[[ $a =~ ^\./ ]]||re=1;a=${a#./}
 	p=${a:+/$a};while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};done
 	[[ $p =~ ^(/\.\.)*(/.*|$) ]]
-	s=~+
-	p=${BASH_REMATCH[2]}
-	((re))||{	s=$s${BASH_REMATCH[1]}
+	s=~+;p=${BASH_REMATCH[2]}
+	((re))||{
+		s=$s${BASH_REMATCH[1]}
 		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/}
-			[[ $s =~ ^\.\.(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue 2;};done
-	}
+			[[ $s =~ ^\.\.(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue 2;};done;}
 fi
-B=${p/*}					#get common shared path head to B
-M=${p##*/}\ ${@:1}
-
-return
-a=$B${a%%+(/)}
-p=${p%/}
-d=${p%/*};IFS=$'\n';eval set -- \"${p##*/}\"$z$M; r=("$@")
-p=$p$M
+fi
+#if((F));then B=$p;p=*;else
+B=${p%/*}							#;fi	# common head/base dir. is B 
+r=("${p##*/}"$z ${@:2})
+p=${e//\//$'\v'}
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
-while [[ $p =~ ([^\\].|.[^\\])([.{}()]) ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\\\\${BASH_REMATCH[2]}"};done
+p=${p//./\\\\.};p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/\\\\\)}
 p=${p//\*\*/.$'\r'}
 while [[ $p =~ ([^$'\f']|^)\* ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'} ;done;p=${p//$'\r'/*}
 
-
-fi
-M=${M:+$'\n'${p#*$'\n'}}
 b=${p%%$'\n'*}
-p=${b##*$'\v'}${z//\//$'\v'}$M
+p=${b##*$'\v'}${z//\//$'\v'}$'\n'${p#*$'\n'}
 b=${b%$'\v'*}
-S=$s
-i=;F=;set -- ${p:-\"\"}
+S=$s;i=;F=;set -- ${p:-\"\"}
+
 for f;{
-if((!RX)) &&[[ ${r[i]} =~ ([^$'\f']|^)[]*?[] ]] ;then
+if((!RX)) &&[[ $f =~ ([^$'\f']|^)[*[] ]] ;then
 	[[ $f =~ ^(.*[^$'\v'])?($'\v'*)$ ]]
 	z=${BASH_REMATCH[2]//$'\v'/\/}
 	f=$b$'\v'${BASH_REMATCH[1]}
 	if((re)) ;then	p=.*$f
 	else
-		[[ $f =~ [^$'\f'][]*?[].*$ ]];	p=${BASH_REMATCH[0]}
-		S=${f%$'\v'*$p};p=${f#$S}
-		S=$s${S//$'\v'/\/}
+		[[ $f =~ [^$'\f'][]*?[].*$ ]]
+		S=${f%$'\v'*${BASH_REMATCH[0]}}
+		p=${f#$S};	S=$s${S//$'\v'/\/}
 	fi
 	R=\".{${#S}}${p//$'\v'/\/}\"
+return;echo ${r[@]}
 else
-	[[ ${r[i]} =~ ^(.*[^/])?(/*)$ ]]
+	[[ ${r[i++]} =~ ^(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[2]}
-	p=$d/${BASH_REMATCH[1]};p=${p%[/$'\r']}
+	p=$B/${BASH_REMATCH[1]}
+	p=${p%[/$'\r']}
 	if((RX)) ;then	R=\".{${#S}}${re+.*}$p\"
 	elif((re)) ;then	F=\"$s$p\"
 	else	S=$s$p;R=.*;	[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
 	fi
 fi
-((i++))
+((I))&&{
+	c=${S: -1};S=${S/$c/[$c]};set +f
+	S=`echo $S`;set -f;}
+	
+	
+	
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 P="\( -path '* *' -printf \"$dp$sz$tm'%p'\n\" -o -printf \"$dp$sz$tm%p\n\" \)"
