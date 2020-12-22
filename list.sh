@@ -259,10 +259,10 @@ fi
 p=${p%/}
 fi
 #if((F));then B=$p;p=*;else
-B=${p%/*}							#;fi	# common head/base dir. is B 
+B=${p%/*}					#;fi	# common head/base dir. for literal is B and each is in array
 r=("${p##*/}$z" ${@:2})
-e=$e$'\n';${e#*$'\n'}
-p=$p$z${e:+$'\n'$e}
+e=$e$'\n';e=${e#*$'\n'}
+p=$p$z${e:+$'\n'$e}			# the other ones converted to regex is in p delimited by \n
 p=${p//\//$'\v'}
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
@@ -284,9 +284,10 @@ if((!RX))&&	[[ $B$f =~ ([^$'\f']|^)[*[] ]] ;then
 	if((re)) ;then	p=.*$f;S=$s
 	else	IS=$I
 		[[ $f =~ [^$'\f'][]*?[].*$ ]]
-		S=${f%$'\v'*${BASH_REMATCH[0]}};p=${f#$S};S=$s$S
+		S=${f%$'\v'*${BASH_REMATCH[0]}};p=${f#$S}
+		S=$s${S//$'\v'/\/}
 	fi
-	R=$S$p;R=\"${R//$'\v'/\/}\"
+	R=\"$S${p//$'\v'/\/}\"
 else
 	f=$B/${r[i++]}
 	while [[ $f =~ /[^/]+/\.\.(/|$) ]];do	f=${f/"${BASH_REMATCH[0]}"/\/}
@@ -297,7 +298,7 @@ else
 	if((RX))
 		then	R=\"$S${re+.*}$p\"
 	elif((re)) ;then	F=\"$s$p\";L=1
-	else	IS=I
+	else	IS=$I
 		S=$s$p;R=.*;	[ -d "$S" ]||{ R=\"$S\";S=${S%/*};x_a=;}
 	fi
 fi
@@ -311,11 +312,12 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-((IS))&&{
+if [ $IS ] ;then
 	c=${S: -1};S=${S/$c/[$c]}	#;s=$S
 	set +f;S=`echo $S`;set -f
-}
-S=\"${S:-/}\";: ${F=$S}
+else	S=\"${S:-/}\"
+fi
+: ${F=$S}
 ((Rd))&&{	[[ `eval "find $S -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a+fx $S $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
