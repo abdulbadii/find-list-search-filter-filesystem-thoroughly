@@ -156,7 +156,7 @@ fid(){
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS F L A E a RX de dp po opt se sz tm D Dt Rd DM dt dtx if l lh lx c cp Fc Fp Rt X XF;I=i
+unset IFS F L A E a RX de dp po opt se sz tm D Dt Rd DM dt dtx if l lh lx c cp Fc Fp Rt X XF IS;I=i
 shopt -s extglob nocaseglob
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
@@ -210,8 +210,9 @@ for a;{
 		#-c=?*|-cp=?*)
 			#Ca=\"${c#-c*=}\"
 			#if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi;K=1;continue;;
-		-*|-\!)	continue;;	-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
-		-|--)	L=1;continue
+		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
+		-|--)	L=1;continue;;
+		-\!|-*)	continue;;
 		esac
 	}
 	a=\"$a\"			# k l m -x=i o  -- -c=m n
@@ -228,11 +229,11 @@ for a;{
 		fi;G=0
 	else	M=$M$a' ';F=1;fi
 }
-M=${M//\\/\\\\}
-eval set -- ${M:-\"\"}
+E='echo Invalid path: "$a". It goes up beyond root>&2;continue'
+M=${M//\\/\\\\};eval set -- ${M:-\"\"}
 for e;{
-unset b B s re M
-if [ "${e:0:2}" = \\/ ];then	z=${e:2};p=/$'\r'			# replace with \x0D to mark a root dir
+unset F b B s re M
+if [ "${e:0:2}" = \\/ ];then	z=${e:2};p=/$'\r'			# append \x0D to mark a root dir
 else
 : ${se='\\'};e=${e//$se/$'\n'}			# path with same head separated by \\ or $sep
 IFS=$'\n';set -- $e
@@ -240,86 +241,90 @@ IFS=$'\n';set -- $e
 z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}	#[ "${a: -3}" = /.. ];F=!$?
 if [ ${a:0:1} = / ] ;then	p=$a
-	while [[ $p =~ /[^/]+/\.\.(/|$) ]] ;do	p=${p/"${BASH_REMATCH[0]}"/\/}
-		[[ $p =~ ^/..(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue;};done
+	[[ $a =~ ^/\.\.(/|$) ]] &&eval $E 2
+	while [[ $p =~ /[^/]+/\.\.(/|$) ]] ;do
+		p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&{	a=$p;eval $E 2;};done
 else
-	[ "$a" = . ] &&a=./			# if not . or prefixed by ./, search recursively
-	[[ $a =~ ^\./ ]]||re=1;a=${a#./}
-	p=${a:+/$a};while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};done
-	[[ $p =~ ^(/\.\.)*(/.*|$) ]]
-	s=~+;p=${BASH_REMATCH[2]}
+	[ "$a" = . ]&&a=./;[[ $a =~ ^\./ ]]||re=1			# if not . nor prefixed by ./, search recursively
+	a=${a#./};p=${a:+/$a};s=~+;
+	while [[ $p =~ /([^.].|.[^.]|.{3,}|.)/\.\.(/|$) ]];do p=${p/"${BASH_REMATCH[0]}"/\/};done
+	[[ $p =~ ^((/\.\.)*)(/.+|$) ]]
+	p=${BASH_REMATCH[3]}
 	((re))||{
 		s=$s${BASH_REMATCH[1]}
 		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/}
-			[[ $s =~ ^\.\.(/|$) ]] &&{ echo Invalid path: $a. It goes up beyond root>&2;continue 2;};done;}
+			[[ $s =~ ^\.\.(/|$) ]] &&eval $E 2;done
+		s=${s%/};}
 fi
+p=${p%/}
 fi
 #if((F));then B=$p;p=*;else
 B=${p%/*}							#;fi	# common head/base dir. is B 
-r=("${p##*/}"$z ${@:2})
-p=${e//\//$'\v'}
+r=("${p##*/}$z" ${@:2})
+e=$e$'\n';${e#*$'\n'}
+p=$p$z${e:+$'\n'$e}
+p=${p//\//$'\v'}
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
 p=${p//./\\\\.};p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/\\\\\)}
 p=${p//\*\*/.$'\r'}
-while [[ $p =~ ([^$'\f']|^)\* ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'} ;done;p=${p//$'\r'/*}
-
+while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'};done;p=${p//$'\r'/*}
 b=${p%%$'\n'*}
-p=${b##*$'\v'}${z//\//$'\v'}$'\n'${p#*$'\n'}
-b=${b%$'\v'*}
-S=$s;i=;F=;set -- ${p:-\"\"}
-
+p=${b##*$'\v'}$'\n'${p#*$'\n'}
+b=${b%$'\v'*}							# common head/base dir. is b
+unset i F L;set -- ${p:-\"\"}
 for f;{
-if((!RX)) &&[[ $f =~ ([^$'\f']|^)[*[] ]] ;then
+if((!RX))&&	[[ $B$f =~ ([^$'\f']|^)[*[] ]] ;then
+	f=$b$'\v'$f
+	while [[ $f =~ /[^/]+/\.\.(/|$) ]];do	f=${f/"${BASH_REMATCH[0]}"/\/}
+		[[ $f =~ ^/\.\.(/|$) ]]&&{	a=$f;eval $E;};done
 	[[ $f =~ ^(.*[^$'\v'])?($'\v'*)$ ]]
 	z=${BASH_REMATCH[2]//$'\v'/\/}
-	f=$b$'\v'${BASH_REMATCH[1]}
-	if((re)) ;then	p=.*$f
-	else
+	p=${BASH_REMATCH[1]}
+	if((re)) ;then	p=.*$f;S=$s
+	else	IS=$I
 		[[ $f =~ [^$'\f'][]*?[].*$ ]]
-		S=${f%$'\v'*${BASH_REMATCH[0]}}
-		p=${f#$S};	S=$s${S//$'\v'/\/}
+		S=${f%$'\v'*${BASH_REMATCH[0]}};p=${f#$S};S=$s$S
 	fi
-	R=\".{${#S}}${p//$'\v'/\/}\"
-return;echo ${r[@]}
+	R=$S$p;R=\"${R//$'\v'/\/}\"
 else
-	[[ ${r[i++]} =~ ^(.*[^/])?(/*)$ ]]
-	z=${BASH_REMATCH[2]}
-	p=$B/${BASH_REMATCH[1]}
-	p=${p%[/$'\r']}
-	if((RX)) ;then	R=\".{${#S}}${re+.*}$p\"
-	elif((re)) ;then	F=\"$s$p\"
-	else	S=$s$p;R=.*;	[ -d "$S" ]||{ R=\"$S\";S=${s%/*};x_a=;}
+	f=$B/${r[i++]}
+	while [[ $f =~ /[^/]+/\.\.(/|$) ]];do	f=${f/"${BASH_REMATCH[0]}"/\/}
+		[[ $f =~ ^/..(/|$) ]]&&{	a=$f;eval $E;};done
+	[[ $f =~ ^(.*[^/])?(/*)$ ]];	z=${BASH_REMATCH[2]}
+	p=${BASH_REMATCH[1]}
+	p=${p%[/$'\r']};S=$s
+	if((RX))
+		then	R=\"$S${re+.*}$p\"
+	elif((re)) ;then	F=\"$s$p\";L=1
+	else	IS=I
+		S=$s$p;R=.*;	[ -d "$S" ]||{ R=\"$S\";S=${S%/*};x_a=;}
 	fi
 fi
-((I))&&{
-	c=${S: -1};S=${S/$c/[$c]};set +f
-	S=`echo $S`;set -f;}
-	
-	
-	
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 P="\( -path '* *' -printf \"$dp$sz$tm'%p'\n\" -o -printf \"$dp$sz$tm%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$dp$tm'%p/'\n\" -o -printf \"$dp$tm%p/\n\" \)"
 ((l)) &&{ [ "$lx" ]|| lh=-prune; PD="-type d $lh -exec find \{\} $lx $opt\( $PD -o $P \) \;";}
 case $z in
-/)	Z="$PD";;
-//)	Z="-type f $P";;
-///)	Z="\! -type d -executable $P";;
+/)	Z="$PD";;//)	Z="-type f $P";;///)	Z="\! -type d -executable $P";;
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-S=\"${S:-/}\";FS=${F:-$S}
-((Rd))&&{	[[ `eval "find $FS -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
-
-((XF))||{	eval ${x_a+fx $FS $x_a};(($?))&&return;XF=1;}
+((IS))&&{
+	c=${S: -1};S=${S/$c/[$c]}	#;s=$S
+	set +f;S=`echo $S`;set -f
+}
+S=\"${S:-/}\";: ${F=$S}
+((Rd))&&{	[[ `eval "find $S -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
+((XF))||{	eval ${x_a+fx $S $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
-if [ $F ] ;then
-	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt\( $PD -o $P \)"}
-else	CL="find $po$S -regextype posix-extended $Rt $opt-${I}regex $R \! -path $S ${X[@]-$Z}"
+
+if((L)) ;then
+	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F $P -o -${I}regex \".{${#s}}.+$p\" $opt\( $PD -o $P \)"}	# -type f (between -${I}path $F $P)
+else	CL="find $po$S -regextype posix-extended $Rt $opt-${I}regex $R ${X[@]-$Z}"	#\! -path $s
 fi
-[ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ '$D' depth from max $DM} of $FS}${D+${dtx+ and }}${dtx+$dtx is of $FS}">&2
+[ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ '$D' depth from max $DM} of $F}${D+${dtx+ and }}${dtx+$dtx is of $F}">&2
 LC_ALL=C
 if((de)) &&[[ $z != / ]] ;then	export -f fid
 	eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
