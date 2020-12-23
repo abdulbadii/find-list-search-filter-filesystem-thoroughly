@@ -233,11 +233,12 @@ for a;{
 E='echo Invalid path: \"$a\". It goes up beyond root>&2;continue'
 M=${M//\\/\\\\};eval set -- ${M:-\"\"}
 for e;{
-unset F b B s p z;re=1
-if [ "${e:0:2}" = \\/ ];then	z=${e:2};p=/$'\r'			# append \x0D to mark a root dir
+unset F b B s p z r re
+if [ "${e:0:2}" = \\/ ];then	z=${e:2};s=/			# append \x0D to mark a root dir
 else
 : ${se='\\'};e=${e//$se/$'\n'}			# path with same head separated by \\ or $sep
-IFS=$'\n';set -- $e;for a;{
+IFS=$'\n';set -- $e;re=1
+for a;{
 	[[ $a =~ ^(\./|.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[2]}
 	a=${BASH_REMATCH[1]}
@@ -265,11 +266,10 @@ IFS=$'\n';set -- $e;for a;{
 	fi
 	p=${p%/}
 break;}
-fi
-B=${p%/*}${p:+/}					# common head/base dir. for literal is B and each is in array
+B=${p%/*}${p:+/}					# common head/base dir. for file paths in literal is B, they're in array
 r=("${p##*/}$z" ${@:2})
 e=$e$'\n';e=${e#*$'\n'}
-p=$p${e:+$'\n'$e}			# the other ones converted to regex is in p delimited by \n
+p=$p${e:+$'\n'$e}			# else are to be converted to regex put in p delimited by \n
 p=${p//\//$'\v'}
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
@@ -280,6 +280,7 @@ b=${p%%$'\n'*}
 p=$p$'\n';p=${p#*$'\n'}
 p=${b##*$'\v'}${z//\//$'\v'}$p
 b=${b%$'\v'*}							# common head/base dir. is b
+fi
 unset i F L;set -- ${p:-\"\"}
 for f;{
 if((!RX))&&	[[ $B$f =~ ([^$'\f']|^)[*[] ]] ;then
@@ -300,13 +301,12 @@ else
 	a=$B${r[i++]}
 	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do	a=${a/"${BASH_REMATCH[0]}"/\/};[[ $a =~ ^/..(/|$) ]]&&eval $E;done
 	[[ $a =~ ^(.*[^/])?(/*)$ ]];	z=${BASH_REMATCH[2]}
-	p=${BASH_REMATCH[1]%$'\r'}
-	if((RX))
-		then	R=\"$s${re+.*}$p\"
-	elif((re))
-		then	L=1;F=\"$s$p\";S=${s:-$PWD}
-	else	IS=$I
-		S=$s$p;R=.*;	[ -d "$S" ]||{ R=\"$S\";S=${S%/*};x_a=;}
+	p=${BASH_REMATCH[1]}
+	: ${s:=~+}
+	if((RX));then	R=\"$s${re+.*}$p\"
+	elif((re));then	L=1;F=\"$s$p\";S=$s
+	else	IS=$I;S=$s$p;R=.*
+		[ -d "$S" ]||{ R=\"$S\";S=${S%/*};x_a=;}
 	fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
@@ -319,12 +319,9 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-if [ $IS ] ;then
-	c=${S: -1};
-	set +f;printf -v S "%q " ${S/$c/[$c]};set -f
-else	S=\"${S:-/}\"
+if [ $IS ];then	c=${S: -1};[ $c = / ]||{ set +f;printf -v S "%q " ${S/$c/[$c]};set -f;}
+else	S=\"${S:-/}\";: ${F=$S}
 fi
-: ${F=$S}
 ((Rd))&&{	[[ `eval "find $F -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a+fx $F $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
