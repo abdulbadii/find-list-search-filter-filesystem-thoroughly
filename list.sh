@@ -1,16 +1,14 @@
 fxr(){ ##### BEGINNING OF l, find wrap script #####
 local F B a b e d r p re s z R D
-[[ $1 =~ ^\./ ]]||re=1
-a=${a#./};[[ $a =~ ^\.?/ ]]&&{echo should be no absolute path on exclusion, it must be relative to \'$S\';return;}
-a=${1//$se/$'\n'}
-[[ $a =~ ^(.*[^/])?(/*)$ ]]
+[[ $1 =~ ^\./ ]]||re=1;e=${1#./}
+[[ $e =~ ^\.?/ ]]&&{	echo should be no absolute path on exclusion but be relative to \'$S\';return;}
+IFS=$'\n';set -- ${e//$se/$'\n'}
+[[ $1 =~ ^(.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
-p=${BASH_REMATCH[1]};s=$S
+p=${BASH_REMATCH[1]}
 
-B=${p%/*}${p:+/}
-r=("${p##*/}$z" ${@:2})
-e=$e$'\n';e=${e#*$'\n'}
-p=$p${e:+$'\n'$e}
+r=("${p##*/}$z" ${@:2}); B=${p%/*}${p:+/}	
+(($#>1)) &&p=$p$'\n'${e#*$'\n'}
 p=${p//\//$'\v'}
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
@@ -18,38 +16,31 @@ p=${p//./\\\\.};p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/
 p=${p//\*\*/.$'\r'}
 while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'};done;p=${p//$'\r'/*}
 b=${p%%$'\n'*}
-p=$p$'\n';p=${p#*$'\n'}
-p=${b##*$'\v'}${z//\//$'\v'}$p
+p=${b##*$'\v'}${z//\//$'\v'}${p#"$b"}
 b=${b%$'\v'*}
 
+s=$S
 unset i F L;set -- ${p:-\"\"}
 for f;{
-if((!RX))&&	[[ $B$f =~ ([^$'\f']|^)[*[] ]] ;then
+if((!REX))&&	[[ $B$f =~ ([^$'\f']|^)[*[] ]];then
 	a=$b$'\v'$f
-	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do	a=${a/"${BASH_REMATCH[0]}"/\/};[[ $a =~ ^/\.\.(/|$) ]]&&{	a=$a;eval $E;};done
+	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do	a=${a/"${BASH_REMATCH[0]}"/\/};[[ $a =~ ^/\.\.(/|$) ]]&&eval $E;done
 	[[ $a =~ ^(.*[^$'\v'])?($'\v'*)$ ]]
 	z=${BASH_REMATCH[2]//$'\v'/\/}
-	p=${BASH_REMATCH[1]}
-	p=${re+.*}$a;
-	R=\"$S${p//$'\v'/\/}\"
+	p=${re+.*}${BASH_REMATCH[1]}
+	R=-${J}regex\ \"$S${p//$'\v'/\/}\"
 else	a=$B${r[i++]}
 	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do	a=${a/"${BASH_REMATCH[0]}"/\/};[[ $a =~ ^/..(/|$) ]]&&eval $E;done
 	[[ $a =~ ^(.*[^/])?(/*)$ ]]
-	z=${BASH_REMATCH[2]};p=${BASH_REMATCH[1]}
-	if((RX));then	R=\"$s${re+.*}$p\"
-	elif((re));then	L=1;F=\"$s$p\";S=$s
-	else	S=$s$p;R=.*;	[ -d "$S" ]||{ R=\"$S\";S=${S%/*};x_a=;}
-	fi
+	z=${BASH_REMATCH[2]}
+	R=-${J}path\ \"$S${re+.*}${BASH_REMATCH[1]}\"
 fi
-
 case $z in
-/)	z=-type\ d;;
-//)	z=-type\ f;;
-///)	z="\! -type d -executable";;
-////)	z=-type\ l
+/) z=-type\ d;;//) z=-type\ f;;///) z="\! -type d -executable";;////) z=-type\ l
 esac
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-Rt="$z -${J}regex \"$R\""
+Rt="$z $R"
+}
 }
 ftm(){	local d f a e z x
 	d=${1:2};f=-${1:1:1}
@@ -251,7 +242,7 @@ p=${p//./\\\\.};p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/
 p=${p//\*\*/.$'\r'}
 while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'};done;p=${p//$'\r'/*}
 b=${p%%$'\n'*}
-a=${b##*$'\v'}${z//\//$'\v'}${p#$b}
+a=${b##*$'\v'}${z//\//$'\v'}${p#"$b"}
 b=${b%$'\v'*}							# head/base dir. is b
 fi
 unset i F L;set -- ${a:-\"\"}
@@ -289,7 +280,7 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-if [ $IS ]&&[ $S != / ];then	c=${S: -1};set +f;printf -v S "%q " ${S/$c/[$c]};set -f
+if [ $IS ]&&[ $S != / ];then	F=\"${S:-/}\";c=${S: -1};set +f;printf -v S "%q " ${S/$c/[$c]};set -f
 else	S=\"${S:-/}\";: ${F=$S}
 fi
 ((Rd))&&{	[[ `eval "find $F -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
