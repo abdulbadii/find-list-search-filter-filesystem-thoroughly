@@ -1,12 +1,10 @@
 fxr(){ ##### BEGINNING OF l, find wrap script #####
 local F B a b e d r p re s z R D
 [[ $1 =~ ^\./ ]]||re=1;e=${1#./}
-[[ $e =~ ^\.?/ ]]&&{	echo should be no absolute path on exclusion but be relative to \'$S\';return;}
+[[ $e =~ ^\.?/ ]]&&{	echo Should be no absolute path on exclusion, instead be relative to \'$S\';return 1;}
 IFS=$'\n';set -- ${e//$se/$'\n'}
 [[ $1 =~ ^(.*[^/])?(/*)$ ]]
-z=${BASH_REMATCH[2]}
-p=${BASH_REMATCH[1]}
-
+z=${BASH_REMATCH[2]};p=${BASH_REMATCH[1]}
 r=("${p##*/}$z" ${@:2}); B=${p%/*}${p:+/}	
 (($#>1)) &&p=$p$'\n'${e#*$'\n'}
 p=${p//\//$'\v'}
@@ -18,8 +16,6 @@ while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1
 b=${p%%$'\n'*}
 p=${b##*$'\v'}${z//\//$'\v'}${p#"$b"}
 b=${b%$'\v'*}
-
-s=$S
 unset i F L;set -- ${p:-\"\"}
 for f;{
 if((!REX))&&	[[ $B$f =~ ([^$'\f']|^)[*[] ]];then
@@ -108,7 +104,7 @@ case $e in
 	-E|-re)	REX=1;;
 	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be an excluded path>&2
 		((F))&&continue;F=1
-		fxr "$e"; (($?))&&return 1
+		fxr "$e"	;(($?))&&return 1
 		r=$r\ $Rt
 esac
 }
