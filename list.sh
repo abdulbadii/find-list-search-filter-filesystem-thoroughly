@@ -106,17 +106,16 @@ case $e in
 		r=$r\ $Rt
 esac
 }
-F="'\(' ${F+-type d -prune -o }-printf \'\' '\)'"
-x=($x "$r" "$F")
+x=($x "$r" '\(' ${F+-type d -prune -o }-printf \'\' '\)')
 }
-X=('\(' $x -o $Z '\)')
+X=('\(' ${x[@]} -o $Z '\)')
 }
 fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS F L A RX de dp po opt se sz tm D Dt Rd DM dt dtx if ld lx c cp Fc Fp Rt X XF IS;I=i
+unset IFS F L A RX de dp po opt se sz tm D Dt Rd DM dt dtx if ld c cp Fc Fp Rt X XF IS;I=i
 shopt -s extglob nocaseglob
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
@@ -128,7 +127,8 @@ case $e in
 	Dt=$e;D=${e:1};[[ ${e: -1} = [r/] ]]&&{	D=${D%?};Rd=1;};;
 -s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
 -x=*|-xs=*|-xcs=*|c=*|cp=*);;
--l|-l[0-9]|-l[1-9][0-9])	n=${e:2};lx=-maxdepth\ ${n:-1};ld=1;;
+-l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
+	lx=-maxdepth\ ${n:=1};	((!n))&&lx=;;
 -z)	sz=%s\ ;;
 -E|-re) RX=1;;
 -|--)	break;;
@@ -280,8 +280,10 @@ fi
 ((XF))||{	eval ${x_a+fx $F $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
 
-if((G));then	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
-else	CL="find $po$S -regextype posix-extended \! -path $F $Rt $opt-${I}regex $R ${X[@]-$Z}";fi
+if((G));then
+	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
+else
+	CL="find $po$S -regextype posix-extended \! -path $F $Rt $opt-${I}regex $R ${X[@]-$Z}";fi
 
 [ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ '$D' depth from max $DM} of $F}${D+${dtx+ and }}${dtx+$dtx of $F}">&2
 LC_ALL=C
@@ -290,7 +292,9 @@ elif((if)) &&[[ $z != / ]] ;then eval "$CL ! -type d -exec /bin/bash -c '[[ \`fi
 #elif((Fc+Fp)) ;then
 	#mkdir -pv $cp
 	#for i in ${c[@]};{	eval "$CL -exec cp '{}' $i \;";}
-else command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)	eval $CL
+else
+ #command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
+	eval $CL
 fi
 }
 }
