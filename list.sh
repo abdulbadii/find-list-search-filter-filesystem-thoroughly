@@ -255,10 +255,9 @@ if((!RX))&& [[ $b$f =~ ([^$'\f']|^)[*[] ]];then L=$ld
 else	a=${B:+$B/}${r[i++]}
 	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do	a=${a/"${BASH_REMATCH[0]}"/\/};[[ $a =~ ^/..(/|$) ]]&&eval $E;done
 	[[ $a =~ ^(.*[^/])?(/*)$ ]]
-	z=${BASH_REMATCH[2]}
 	p=${BASH_REMATCH[1]#/};p=${p:+/$p}
-	if((re));then
-		S=${s-~+}
+	z=${BASH_REMATCH[2]}
+	if((re));then	S=${s-~+}
 		if((RX));then	R=\"$s${re+.*}$p\"
 		else	G=1;F=\"$s$p\";fi
 	else	IS=$I;S=$s$p;R=.*;	[ -d "$S" ]||x_a=;fi
