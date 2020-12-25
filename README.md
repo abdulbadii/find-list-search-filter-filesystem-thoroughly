@@ -1,5 +1,5 @@
 Run InstallUpdate2.bashrc.sh script to quickly copy **list.sh** above to ~/.bashrc    
-Should do too is clicking it, and copy Bash functions inside then paste, prepend to ~/.bashrc   
+Should do too is clicking it, and copy Bash functions inside then paste into ~/.bashrc   
 **list-su.sh** differs only in having superuser request; `sudo` command prefix. However it cannot be applied with -in, -de option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing **find** utility useful options. The options to print out found file's:  
