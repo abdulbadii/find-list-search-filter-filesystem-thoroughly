@@ -210,9 +210,10 @@ if [ "${a:0:1}" = / ];then re=
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E 2;done
 else
 	[ "$a" = . ]&&a=./;[[ $a =~ ^\./ ]]&&re=;a=${a#./}	# if . or prefixed by ./ do not search recursively
-	p=/$a;s=~+
-	[[ $p =~ ^((/\.\.)*)(/.+|$) ]];s=$s${BASH_REMATCH[1]};p=${BASH_REMATCH[3]}
-	[[ $s =~ ^/\.\.(/|$) ]] &&eval $E 2
+	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
+	p=${BASH_REMATCH[3]}
+	s=$PWD${BASH_REMATCH[1]}
+	[[ $s =~ ^//\.\. ]]&&eval $E 2
 	while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/};[[ $s =~ ^/\.\.(/|$) ]]&&eval $E 2;done
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};done
 	[[ $p =~ ^((/\.\.)*)(/.+|$) ]]
@@ -254,12 +255,13 @@ if((!RX))&& [[ $b$f =~ ([^$'\f']|^)[*[] ]];then L=$ld
 else	a=${B:+$B/}${r[i++]}
 	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do	a=${a/"${BASH_REMATCH[0]}"/\/};[[ $a =~ ^/..(/|$) ]]&&eval $E;done
 	[[ $a =~ ^(.*[^/])?(/*)$ ]]
-	z=${BASH_REMATCH[2]};p=${BASH_REMATCH[1]#/}
+	z=${BASH_REMATCH[2]}
+	p=${BASH_REMATCH[1]#/};p=${p:+/$p}
 	if((re));then
 		S=${s-~+}
-		if((RX));then	R=\"$s${re+.*}/$p\"
-		else	G=1;F=\"$s/$p\";fi
-	else	IS=$I;S=$s/$p;R=.*;	[ -d "$S" ]||x_a=;fi
+		if((RX));then	R=\"$s${re+.*}$p\"
+		else	G=1;F=\"$s$p\";fi
+	else	IS=$I;S=$s$p;R=.*;	[ -d "$S" ]||x_a=;fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
@@ -278,9 +280,9 @@ fi
 ((Rd))&&{	[[ `eval "find $F -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a+fx $F $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
-if((G)) ;then
-	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
-else	CL="find $po$S -regextype posix-extended $Rt $opt-${I}regex $R ${X[@]-$Z}";fi
+
+if((G));then	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
+else	CL="find $po$S -regextype posix-extended \! -path $F $Rt $opt-${I}regex $R ${X[@]-$Z}";fi
 
 [ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ '$D' depth from max $DM} of $F}${D+${dtx+ and }}${dtx+$dtx of $F}">&2
 LC_ALL=C
@@ -289,7 +291,7 @@ elif((if)) &&[[ $z != / ]] ;then eval "$CL ! -type d -exec /bin/bash -c '[[ \`fi
 #elif((Fc+Fp)) ;then
 	#mkdir -pv $cp
 	#for i in ${c[@]};{	eval "$CL -exec cp '{}' $i \;";}
-else command 2> >(while read s;do echo -e "\e[1;31m$s\e[m" >&2;done)	eval $CL
+else command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)	eval $CL
 fi
 }
 }
