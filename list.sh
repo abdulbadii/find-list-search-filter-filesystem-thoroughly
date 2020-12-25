@@ -198,29 +198,28 @@ for e;{
 unset F a b B s p z r re
 if [ "${e:0:2}" = \\/ ];then	z=${e:2};s=/			# start with prefix \\ suggests root dir search
 else
-: ${se='\\'}					# path with same head separated by \\ or $sep
-re=1;IFS=$'\n';set -- ${e//$se/$'\n'}
-for a;{									# Fake For Loop
+e=${e//${se='\\'}/$'\n'}			# path with same head separated by \\ or $sep
+re=1;IFS=$'\n';set -- $e
+for a;{									# a fake 'For Loop' as once it'll break
 [[ $a =~ ^(\./|.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}
-if [ "${a:0:1}" = / ] ;then re=
+if [ "${a:0:1}" = / ];then re=
 	p=$a;[[ $a =~ ^/\.\.(/|$) ]] &&eval $E 2
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E 2;done
 else
 	[ "$a" = . ]&&a=./;[[ $a =~ ^\./ ]]&&re=;a=${a#./}	# if . or prefixed by ./ do not search recursively
 	p=/$a;s=~+
-	[[ $p =~ ^((/\.\.)*)(/.+|$) ]]
-	p=${BASH_REMATCH[3]};s=$s${BASH_REMATCH[1]}
-	[[ $s =~ ^/\.\.(/|$) ]] &&{	a=$s;eval $E 2;}
-	while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/};[[ $s =~ ^/\.\.(/|$) ]]&&{	a=$s;eval $E 2;};done
+	[[ $p =~ ^((/\.\.)*)(/.+|$) ]];s=$s${BASH_REMATCH[1]};p=${BASH_REMATCH[3]}
+	[[ $s =~ ^/\.\.(/|$) ]] &&eval $E 2
+	while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/};[[ $s =~ ^/\.\.(/|$) ]]&&eval $E 2;done
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};done
 	[[ $p =~ ^((/\.\.)*)(/.+|$) ]]
 	p=${BASH_REMATCH[3]}
 	((re))||{
 		s=$s${BASH_REMATCH[1]}
 		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/}
-			[[ $s =~ ^\.\.(/|$) ]] &&{ a=$s;eval $E 2;};done
+			[[ $s =~ ^\.\.(/|$) ]] &&eval $E 2;done
 	}
 	s=${s%/}
 fi
@@ -239,18 +238,15 @@ b=${b%$'\v'*}							# head/base dir. is b
 break;}
 fi
 unset i F L;set -- ${p:-\"\"};for f;{
-if((!RX))&&	[[ $b$f =~ ([^$'\f']|^)[*[] ]] ;then
+if((!RX))&&	[[ $b$f =~ ([^$'\f']|^)[*[] ]];then
 	a=$b$'\v'$f
-	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do	a=${a/"${BASH_REMATCH[0]}"/\/}
-		[[ $a =~ ^/\.\.(/|$) ]]&&{	a=$a;eval $E;};done
+	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};[[ $a =~ ^/\.\.(/|$) ]]&&eval $E;done
 	[[ $a =~ ^(.*[^$'\v'])?($'\v'*)$ ]]
-	z=${BASH_REMATCH[2]//$'\v'/\/}
-	p=${BASH_REMATCH[1]}
+	z=${BASH_REMATCH[2]//$'\v'/\/};p=${BASH_REMATCH[1]}
 	if((re)) ;then	p=.*$p;S=$s
-	else	IS=$I
-		[[ $p =~ [^$'\f']([]*?[].*)$ ]]
+	else	[[ $p =~ [^$'\f']([]*?[].*)$ ]]
 		S=${p%$'\v'*${BASH_REMATCH[1]}}
-		S=$s${S//$'\v'/\/}
+		S=$s${S//$'\v'/\/};IS=$I
 	fi
 	R=\"$s${p//$'\v'/\/}\"
 else	a=${B:+$B/}${r[i++]}
@@ -259,10 +255,9 @@ else	a=${B:+$B/}${r[i++]}
 	z=${BASH_REMATCH[2]};p=${BASH_REMATCH[1]#/}
 	if((re));then
 		S=${s-~+}
-		if((RX));then	R=\"$s${re+.*}$p\"
-		else	L=1;F=\"$s/$p\"
-		fi
-	else	IS=$I;S=$s$p;R=.*;	[ -d "$S" ]||x_a=;fi
+		if((RX));then	R=\"$s${re+.*}/$p\"
+		else	L=1;F=\"$s/$p\";fi
+	else	IS=$I;S=$s/$p;R=.*;	[ -d "$S" ]||x_a=;fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
@@ -281,7 +276,7 @@ fi
 ((XF))||{	eval ${x_a+fx $F $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
 if((L)) ;then
-	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}.+$p\" $opt\( $PD -o $P \)"}
+	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
 else	CL="find $po$S -regextype posix-extended $Rt $opt-${I}regex $R ${X[@]-$Z}";fi
 
 [ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ '$D' depth from max $DM} of $F}${D+${dtx+ and }}${dtx+$dtx of $F}">&2
