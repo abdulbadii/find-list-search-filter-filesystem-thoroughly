@@ -193,7 +193,7 @@ J=;for a;{	((S))&&{	S=;continue;}
 		fi;G=0
 	else	M=$M$a' ';F=1;fi
 }
-E='echo Invalid path: \"$a\". It goes up beyond root>&2;continue'
+E='{ echo Invalid path: \"$a\". It goes up beyond root>&2;continue;}'
 M=${M//\\/\\\\};eval set -- ${M:-\"\"}
 for e;{
 unset F a b B s p z r re
@@ -201,12 +201,12 @@ if [ "${e:0:2}" = \\/ ];then	z=${e:2};s=/			# start with prefix \\ suggests root
 else
 e=${e//${se='\\'}/$'\n'}			# path with same head separated by \\ or $sep
 re=1;IFS=$'\n';set -- $e
-for a;{									# a fake 'For Loop' as once it'll break
+for a;{									# a fake 'For Loop' to apart of no path argument, in once, break
 [[ $a =~ ^(\./|.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}
 if [ "${a:0:1}" = / ];then re=
-	p=$a;[[ $a =~ ^/\.\.(/|$) ]] &&eval $E 2
+	p=$a;[[ $p =~ ^/\.\.(/|$) ]]&&eval $E 2
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E 2;done
 else
 	[ "$a" = . ]&&a=./;[[ $a =~ ^\./ ]]&&re=;a=${a#./}	# if . or prefixed by ./ do not search recursively
@@ -218,49 +218,59 @@ else
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};done
 	[[ $p =~ ^((/\.\.)*)(/.+|$) ]]
 	p=${BASH_REMATCH[3]}
-	((re))||{
-		s=$s${BASH_REMATCH[1]}
-		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/}
-			[[ $s =~ ^\.\.(/|$) ]] &&eval $E 2;done
+	((re))||{	s=$s${BASH_REMATCH[1]}
+		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/};[[ $s =~ ^\.\.(/|$) ]]&&eval $E 2;done
 	}
 	s=${s%/}
 fi
 p=${p%/}
 r=("${p##*/}$z" ${@:2})
 B=${p%/*}				# common base dir. of sub paths as literal is B, they're in array
-(($#>1)) &&p=$p$'\n'${e#*$'\n'}			# else the regex-converted ones put in p delimited by \n
+p=$p$'\n'${e#*$'\n'};p=${p%$'\n'}	# else the regex-converted ones are put in p delimited by \n...
 p=${p//\//$'\v'}
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
-p=${p//./\\\\.};p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/\\\\\)};p=${p//\*\*/.$'\r'}
+p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/\\\\\)};p=${p//\*\*/.$'\r'}
 while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'};done;p=${p//$'\r'/*}
 b=${p%%$'\n'*}
 p=${b##*$'\v'}${z//\//$'\v'}${p#"$b"}
-b=${b%$'\v'*}							# head/base dir. is b
+b=${b%$'\v'*}							# ... and common head/base dir. is b
 break;}
 fi
 unset i F L G
-set -- ${p:-\"\"};for f;{
-if((!RX))&& [[ $b$f =~ ([^$'\f']|^)[*[] ]];then L=$ld
-	a=$b$'\v'$f
-	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do a=${a/"${BASH_REMATCH[0]}"/\/};[[ $a =~ ^/\.\.(/|$) ]]&&eval $E;done
-	[[ $a =~ ^(.*[^$'\v'])?($'\v'*)$ ]]
+set -- ${p:-\"\"};for a;{
+if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
+	[[ $b$'\v'$a =~ ^((/\.\.)*)(/.+)?$ ]]
+	m=${BASH_REMATCH[3]}
+	[ ${BASH_REMATCH[1]} ]&&{	S=$s${BASH_REMATCH[1]}
+		[[ $S =~ ^//\.\.(/|$) ]]&&eval $E 2
+		while [[ $S =~ /[^/]+/\.\.(/|$) ]];do S=${S/"${BASH_REMATCH[0]}"/\/};[[ $S =~ ^/\.\.(/|$) ]]&&eval $E 2;done
+		S=${S%/};}
+	while [[ $m =~ /[^/]+/\.\.(/|$) ]];do m=${m/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $m =~ ^/\.\.(/|$) ]]&&eval $E;done
+	[[ $m =~ ^(.*[^$'\v'])?($'\v'*)$ ]]
 	z=${BASH_REMATCH[2]//$'\v'/\/};p=${BASH_REMATCH[1]}
 	if((re)) ;then	p=.*$p;S=$s
 	else	[[ $p =~ [^$'\f']([]*?[].*)$ ]]
 		S=${p%$'\v'*${BASH_REMATCH[1]}}
 		S=$s${S//$'\v'/\/};IS=$I
 	fi
-	R=\"$s${p//$'\v'/\/}\"
-else	a=${B:+$B/}${r[i++]}
-	while [[ $a =~ /[^/]+/\.\.(/|$) ]];do	a=${a/"${BASH_REMATCH[0]}"/\/};[[ $a =~ ^/..(/|$) ]]&&eval $E;done
-	[[ $a =~ ^(.*[^/])?(/*)$ ]]
+	p=${p//./\\\\.}
+	R=\"$S${p//$'\v'/\/}\"
+else	a=${r[i++]}
+	[[ $B/$a =~ ^((/\.\.)*)(/.+)?$ ]]
+	m=${BASH_REMATCH[3]}
+	[ ${BASH_REMATCH[1]} ]&&{	S=$s${BASH_REMATCH[1]}
+		[[ $S =~ ^//\.\.(/|$) ]]&&eval $E 2
+		while [[ $S =~ /[^/]+/\.\.(/|$) ]];do S=${S/"${BASH_REMATCH[0]}"/\/};[[ $S =~ ^/\.\.(/|$) ]]&&eval $E 2;done
+		S=${S%/};}
+	while [[ $m =~ /[^/]+/\.\.(/|$) ]];do	m=${m/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $m =~ ^/\.\.(/|$) ]]&&eval $E;done
+	[[ $m =~ ^(.*[^/])?(/*)$ ]]
 	p=${BASH_REMATCH[1]#/};p=${p:+/$p}
 	z=${BASH_REMATCH[2]}
-	if((re));then	S=${s-~+}
-		if((RX));then	R=\"$s${re+.*}$p\"
-		else	G=1;F=\"$s$p\";fi
-	else	IS=$I;S=$s$p;R=.*;	[ -d "$S" ]||x_a=;fi
+	: ${S:=~+}
+	if((RX));then	R=\"$S${re+.*}$p\"
+	elif((re));then	G=1;F=\"$S$p\"
+	else	IS=$I;S=$S$p;R=.*;	[ -d "$S" ]||x_a=;fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
