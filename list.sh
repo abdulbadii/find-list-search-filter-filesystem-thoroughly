@@ -163,8 +163,7 @@ for c;{
 	set --
 }
 J=;for a;{	((S))&&{	S=;continue;}
-	((!L)) &&{
-	case $a in
+	((!L)) &&{	case $a in
 		-x=?*|-xs=?*|-xcs=?*)
 			#((K))&&{	echo -c or -cp option must be as the last>&2;return;}
 			[ ${e:2:1} = = ]&&J=i
@@ -175,8 +174,7 @@ J=;for a;{	((S))&&{	S=;continue;}
 			#Ca=\"${c#-c*=}\"
 			#if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi;K=1;continue;;
 		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
-		-|--)	L=1;continue;;
-		-\!|-*)	continue;;
+		-|--)	L=1;continue;;-\!|-*)continue
 	esac
 	}
 	a=\"$a\"			# k l m -x=i o  -- -c=m n
@@ -201,7 +199,7 @@ if [ "${e:0:2}" = \\/ ];then	z=${e:2};s=/			# start with prefix \\ suggests root
 else
 e=${e//${se='\\'}/$'\n'}			# path with same head separated by \\ or $sep
 re=1;IFS=$'\n';set -- $e
-for a;{									# a fake 'For Loop' to apart of no path argument, in once, break
+for a;{									# a fake 'For Loop' to apart of no path argument, in once it breaks
 [[ $a =~ ^(\./|.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}
@@ -226,11 +224,14 @@ fi
 p=${p%/}
 r=("${p##*/}$z" ${@:2})
 B=${p%/*}				# common base dir. of sub paths as literal is B, they're in array
-p=$p$'\n'${e#*$'\n'};p=${p%$'\n'}	# else the regex-converted ones are put in p delimited by \n...
+(($#>1))&&p=$p$'\n'${e#*$'\n'}			# else the regex-converted ones are put in p delimited by \n...
 p=${p//\//$'\v'}
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"} ;done
 while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"} ;done
-p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/\\\\\)};p=${p//\*\*/.$'\r'}
+p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/\\\\\)}
+
+#p=${p//"/**/"/"(.$'\r'|/)"}
+p=${p//\*\*/.$'\r'}
 while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'};done;p=${p//$'\r'/*}
 b=${p%%$'\n'*}
 p=${b##*$'\v'}${z//\//$'\v'}${p#"$b"}
@@ -254,8 +255,7 @@ if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
 		S=${p%$'\v'*${BASH_REMATCH[1]}}
 		S=$s${S//$'\v'/\/};IS=$I
 	fi
-	p=${p//./\\\\.}
-	R=\"$S${p//$'\v'/\/}\"
+	p=${p//./\\\\.};R=\"$S${p//$'\v'/\/}\"
 else	a=${r[i++]}
 	[[ $B/$a =~ ^((/\.\.)*)(/.+)?$ ]]
 	m=${BASH_REMATCH[3]}
@@ -267,9 +267,8 @@ else	a=${r[i++]}
 	[[ $m =~ ^(.*[^/])?(/*)$ ]]
 	p=${BASH_REMATCH[1]#/};p=${p:+/$p}
 	z=${BASH_REMATCH[2]}
-	: ${S:=~+}
-	if((RX));then	R=\"$S${re+.*}$p\"
-	elif((re));then	G=1;F=\"$S$p\"
+	if((RX));then	: ${S:=~+};	R=\"$S${re+.*}$p\"
+	elif((re));then	: ${S:=~+};	G=1;F=\"$S$p\"
 	else	IS=$I;S=$S$p;R=.*;	[ -d "$S" ]||x_a=;fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
@@ -283,7 +282,7 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-if [ $IS ]&&[ $S != / ];then	F=\"$S\";c=${S: -1};set +f;printf -v S "%q " ${S/$c/[$c]};set -f
+if [ $IS ]&&[ "$S" != / ];then	F=\"$S\";c=${S: -1};set +f;printf -v S "%q " ${S/$c/[$c]};set -f
 else	: ${F=\"$S\"}
 fi
 ((Rd))&&{	[[ `eval "find $F -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
