@@ -126,6 +126,7 @@ case $e in
 -[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])
 	Dt=$e;D=${e:1};[[ ${e: -1} = [r/] ]]&&{	D=${D%?};Rd=1;};;
 -s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
+-s=?|-s=??) se=${e:5};;
 -x=*|-xs=*|-xcs=*|c=*|cp=*);;
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
 	lx=-maxdepth\ ${n:=1};	((!n))&&lx=;;
@@ -133,7 +134,6 @@ case $e in
 -E|-re) RX=1;;
 -|--)	break;;
 -rm)	opt=$opt-delete\ ;;
--sep=?|-sep=??) se=${e:5};;
 -sep=*) echo "Separator must be 1 or 2 characters. So it still defaults to \\">&2;;
 -de) de=1;;
 -in) if=1;;
@@ -189,34 +189,39 @@ J=;for a;{	((S))&&{	S=;continue;}
 		fi;G=0
 	else	M=$M$a' ';F=1;fi
 }
-E='echo Path \"$a\" is invalid as it is up beyond root>&2;continue'
-E2="{ $E 2;}";E="{ $E;}"
+E="echo Path \'$a\' is invalid, as it\'d be up beyond root>&2"
+E2="{ $E;continue 2;}"	#E1="{ $E;break;}"
 M=${M//\\/\\\\};eval set -- ${M:-\"\"}
 for e;{
 unset F a b B s p z r re S
 if [ "${e:0:2}" = \\/ ];then	z=${e:2};s=/			# start with prefix \\ suggests root dir search
 else
-e=${e//${se='\\'}/$'\n'}			# path with same head separated by \\ or $sep
-re=1;IFS=$'\n';set -- $e
+e=${e//${se='\\'}/$'\n'}
+re=1;IFS=$'\n';set -- $e			# break down into paths with same head separated by \\ or $se
 for a;{									# fake 'For Loop' to apart of no path argument, once then breaks
 [[ $a =~ ^(\./|.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}
 if [ "${a:0:1}" = / ];then re=;p=$a;[[ $p =~ ^/\.\.(/|$) ]]&&eval $E 2
-	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E 2;done
+	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 else
-	[ "$a" = . ]&&a=./;[[ $a =~ ^\./ ]]&&re=;a=${a#./}	# if . or prefixed by ./ do not search recursively
+	[[ $a =~ ^\.(/|$) ]]&&{ re=;a=${a#${BASH_REMATCH[0]}};}	# if . or prefixed by ./ needn't to insert .* search
 	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
-	p=${BASH_REMATCH[3]}
-	s=$PWD${BASH_REMATCH[1]}
-	[[ $s =~ ^//\.\. ]]&&eval $E 2
-	while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/};[[ $s =~ ^/\.\.(/|$) ]]&&eval $E 2;done
-	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};done
-	[[ $p =~ ^((/\.\.)*)(/.+|$) ]]
-	p=${BASH_REMATCH[3]}
-	((re))||{	s=$s${BASH_REMATCH[1]}
-		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/};[[ $s =~ ^\.\.(/|$) ]]&&eval $E 2;done
+	p=${BASH_REMATCH[3]};s=~+
+	[ ${BASH_REMATCH[1]} ]&&{	[ $s = / ]&&eval $E 2
+		s=$s${BASH_REMATCH[1]}
+		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/};[[ $s =~ ^/\.\.(/|$) ]]&&eval $E2;done
 	}
+	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/}
+		[[ $p =~ ^/\.\.(/|$) ]]&&{
+			[[ $p =~ ^((/\.\.)*)(/.+)?$ ]]
+			p=${BASH_REMATCH[3]}
+			((re))||{	[ $s = / ]&&eval $E 2;	s=$s${BASH_REMATCH[1]}
+				while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/}
+					[[ $s =~ ^/\.\.(/|$) ]]&&{ eval $E;return;}
+				done;}
+			break;}
+	done		
 	s=${s%/}
 fi
 p=${p%/}
@@ -228,7 +233,7 @@ p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/\\\\\)}
 while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"};done
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"};done
 p=${p//./\\\\.};p=${p//\//$'\v'}
-#p=${p//$'\v**\v'/$'\v(.\r/)?'}
+p=${p//$'\v**\v'/$'\v(.\r/)?'}
 p=${p//\*\*/.$'\r'}
 while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'};done;p=${p//$'\r'/*}
 b=${p%%$'\n'*}							# ... and common head/base dir. is b
@@ -250,7 +255,7 @@ if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
 	if((re));then
 		p=.*$p;S=$s
 	else	[[ $p =~ [^$'\f']([]*?[].*)$ ]]
-		S=${p%$'\v'*${BASH_REMATCH[1]}};p=${p#$S}
+		S=${p%$'\v'*"${BASH_REMATCH[1]}"};p=${p#$S}
 		S=$s${S//$'\v'/\/};
 		IS=$I
 	fi

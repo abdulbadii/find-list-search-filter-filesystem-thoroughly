@@ -124,9 +124,9 @@ e.g. this will search for /qt/src/dev/\*.h, /qt/src/dev/\*.c, and /qt/src/dev/\*
 $ cd /qt
 $ l src/dev/*.h\\\\\*.c\\\\\*.cpp   
 
-To change separator other than \\\\ use **-sep=** option, it'd be any 1 or 2 characters (not guaranteed being robust if it's regarded as special one by Bash)   
+To change separator other than \\\\ use **-s=** option, it'd be any 1 or 2 characters (not guaranteed robust if the character is regarded as special one by Bash)   
 Below is to search for o, c and so type files everywhere under usr directory path   
-$ l  sep=:: /usr/\*\*.o::*\*.c::*\*.so   
+$ l -s=:: /usr/\*\*.o::*\*.c::*\*.so   
 
 Can search in POSIX-extended regular expression by -E or -re option   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'   
