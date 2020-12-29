@@ -1,5 +1,5 @@
 fxr(){ ##### BEGINNING OF l, find wrap script #####
-local B a b e p re r z R Z m=path
+local B a b e i p re r z R Z m=path
 [[ $1 =~ ^\./ ]]||re=1;e=${1#./}
 [[ $e =~ ^\.?\.?/ ]]&&{ echo Exclusion must not be upward/.. nor absolute path, it is relative to \'$S\'>&2;return 1;}
 e=${e//$se/$'\n'}
@@ -123,10 +123,10 @@ fid(){
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS F L A RX de dp po opt se sz tm D Dt Rd DM dt dtx if ld c cp Fc Fp Rt X XF IS;I=i
+unset IFS F L RX xc dp po opt se sz tm XC D Dt Rd DM dt dtx de if ld c cp Fc Fp Rt X XF IS;I=i
 shopt -s nocaseglob;set -f;trap 'set +f;unset IFS' 1 2
 for e;{
-((F)) &&{	opt=$opt$e\ ;F=;continue;}
+((F)) &&{	F=;((xc))||opt=$opt$e\ ;continue;}
 case $e in
 -cs) I=;;
 -[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;opt=$opt$Rt\ ;;
@@ -134,22 +134,23 @@ case $e in
 	Dt=$e;D=${e:1};[[ ${e: -1} = [r/] ]]&&{	D=${D%?};Rd=1;};;
 -s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
 -s=?|-s=??) se=${e:5};;
--x=*|-xs=*|-xcs=*|c=*|cp=*);;
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
-	lx=-maxdepth\ ${n:=1};	((!n))&&lx=;;
+	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
+-x=*|-xs=*|-xcs=*|-c=*|-cp=*);;
+-exec|-execdir)xc=1;F=1;;
 -z)	sz=%s\ ;;
 -E|-re) RX=1;;
 -|--)	break;;
 -rm)	opt=$opt-delete\ ;;
--s=*) echo "Separator must be 1 or 2 characters. Ignoring, it\'d default to \\">&2;;
+-s=*) echo "Separator must be 1 or 2 characters. Ignoring as it\'d default to \\">&2;;
 -de) de=1;;
 -in) if=1;;
 -ci) I=i;;
--dp)	dp=%d\ ;;
 -t)	tm="%Tr %Tx ";;
+-dp)	dp=%d\ ;;
 -h|--help) man find;return;;
 -[HDLPO]) po=$e\ ;;
--[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
+-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
 \!|-[ac-il-x]?*)
 	if [[ $e =~ ^!|-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]];then opt=$opt$e' '
 	else	read -n1 -p "Option '$e' seems unrecognized, ignore and continue? " k>&2;echo;[ "$k" = y ]||return;fi;;
@@ -159,7 +160,7 @@ esac
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
 while [[ $h =~ ([^\\]|\\\\)[\;\&|\>\<] ]];do	h=${h/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'};done
 IFS=$'\n';set -- $h
-unset IFS F L G K S Ca x_a x M
+unset IFS F L G K Fc Fp x_a x C M S
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
 		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
@@ -172,34 +173,39 @@ for c;{
 J=;for a;{	((S))&&{	S=;continue;}
 	((!L)) &&{	case $a in
 		-x=?*|-xs=?*|-xcs=?*)
-			#((K))&&{	echo -c or -cp option must be as the last>&2;return;}
+			((Fc))&&{	echo -c or -cp option must be as the last>&2;return;}
 			[ ${e:2:1} = = ]&&J=i
 			x=${a#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
-		#-c=?*|-cp=?*)
-			#Ca=\"${c#-c*=}\"
-			#if [ ${a:2:1} = = ] ;then Fc=1;else Fp=1 ;fi;K=1;continue;;
+		-c=?*|-cp=?*)	((K))&&{ echo Cannot be both -exec/-execdir and copy, $a option;return;}
+			C=\"${a#-c*=}\"
+			[ ${a:2:1} = p ]&&Fp=1;Fc=1;continue;;
+		-exec|-execdir) ((Fc))&&{ echo Cannot be both copy and $a option;return;}
+			XC=\ $a;K=1;continue;;
 		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
-		-|--)	L=1;continue;;-\!|-*)continue
+		-|--)	L=1;continue;;
+		-\!|-*)continue
 	esac
 	}
 	a=\"$a\"			# k l m -x=i o  -- -c=m n
 	if((G));then
 		if((F));then	x_a=$x_a$a\ ;else			M=$M$a\ ;fi
-	#elif((K)) ;then
-		#((F))&&{	echo -c or -cp option must be the last>&2;return;}
-		#Ca=$Ca\"$c\"' '
+	elif((Fc)) ;then
+		((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
+		C=$C\"$a\"' '
+	elif((K));then
+		XC=$XC\ \"$a\"
 	elif ((L));then
 		if((F));then		M=$M$a
 		else		M=$a;	x_a=$x_a$M
 		fi;G=0
 	else	M=$M$a' ';F=1;fi
 }
-E="echo Path \'$a\' is invalid, it\'d be up beyond root. Ignoring...>&2";E2="{ $E;continue 2;}"	#E1="{ $E;break;}"
+E="echo Path \'\$a\' is invalid, it\'d be up beyond root. Ignoring>&2";E2="{ $E;continue 2;}"	#E1="{ $E;break;}"
 M=${M//\\/\\\\};eval set -- ${M:-\"\"}
 for e;{
-unset F a b B s p z r re S
+unset F a b B p z r re s S
 if [ "${e:0:2}" = \\/ ];then	z=${e:2};s=/			# start with prefix \\ suggests root dir search
 else
 e=${e//${se='\\'}/$'\n'}
@@ -257,12 +263,10 @@ if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
 		while [[ $S =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do S=${S/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $S =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
 	}
 	while [[ $p =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
-	if((re));then
-		p=.*$p;S=$s
+	if((re));then	p=.*$p;S=$s
 	else	[[ $p =~ [^$'\f']([]*?[].*)$ ]]
-		S=${p%$'\v'*"${BASH_REMATCH[1]}"};p=${p#$S}
-		S=$s${S//$'\v'/\/};
-		IS=$I
+		S=${p%$'\v'*"${BASH_REMATCH[1]}"}
+		p=${p#$S};S=$s${S//$'\v'/\/};IS=$I
 	fi
 	R=\"$S${p//$'\v'/\/}\"
 else
@@ -272,7 +276,7 @@ else
 		S=${S-$s}${BASH_REMATCH[1]};[[ $S =~ ^/\.\.(/|$) ]]&&{ eval $E;continue;}
 		while [[ $S =~ /[^/]+/\.\.(/|$) ]];do S=${S/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $S =~ ^/\.\.(/|$) ]]&&eval $E2;done;}
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
-	if((RX));then	R=\"${S=${s-~+}}${re+.*}$p\"
+	if((RX));then	L=$ld;R=\"${S=${s-~+}}${re+.*}$p\"
 	elif((re));then	G=1;F=\"${S=${s-~+}}$p\"
 	else	IS=$I;S=$s$p;R=.*;	[ -d "$S" ]||x_a=;fi
 fi
@@ -280,8 +284,7 @@ while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 P="\( -path '* *' -printf \"$dp$sz$tm'%p'\n\" -o -printf \"$dp$sz$tm%p\n\" \)"
 PD="-type d \( -path '* *' -printf \"$dp$tm'%p/'\n\" -o -printf \"$dp$tm%p/\n\" \)"
-((L))||((RX))&&
-	PD="\( -type d -prune -exec find \{\} $lx \( $PD -o $P \) \; -o $P \)"
+((L))&&	PD="\( -type d -prune -exec find \{\} $lx \( $PD -o $P \) \; -o $P \)"
 case $z in
 /)	Z="$PD";;//)	Z="-type f $P";;///)	Z="\! -type d -executable $P";;
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
@@ -295,19 +298,19 @@ fi
 eval ${D+fd $F}
 
 if((G));then
-	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
-else	CL="find $po$S -regextype posix-extended \! -path $F $Rt $opt-${I}regex $R ${X[@]-$Z}";fi
+	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}$XC"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
+else	CL="find $po$S -regextype posix-extended \! -path $F $opt$Rt -${I}regex $R ${X[@]-$Z}$XC";fi
 
 [ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ '$D' depth from max $DM} of $F}${D+${dtx+ and }}${dtx+$dtx of $F}">&2
 LC_ALL=C
 if((de))&&[[ $z != / ]];then	export -f fid;eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 elif((if))&&[[ $z != / ]];then eval "$CL ! -type d -exec /bin/bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
-#elif((Fc+Fp)) ;then
-	#mkdir -pv $cp
-	#for i in ${c[@]};{	eval "$CL -exec cp '{}' $i \;";}
-else
- #command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
-	eval $CL
+elif((Fc));then	eval set -- $C;for i;{
+	[ -d $i ]||{
+		[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $i||rm $i;}
+		mkdir -pv $i||mkdir -pv $i;}
+	eval "$CL -exec cp '{}' $i \;";}
+else command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)	eval $CL
 fi
 }
 }
