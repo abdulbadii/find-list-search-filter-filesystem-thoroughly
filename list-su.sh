@@ -123,7 +123,7 @@ fid(){
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS F L RX xc dp po opt se sz tm XC D Dt Rd DM dt dtx de if ld c cp Fc Fp Rt X XF IS;I=i
+unset IFS F L RX xc dp po opt se sz tm AX D Dt Rd DM dt dtx de if ld c cp vb Fc Fp Rt X XF IS;I=i
 shopt -s nocaseglob;set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	F=;((xc))||opt=$opt$e\ ;continue;}
@@ -136,12 +136,12 @@ case $e in
 -s=?|-s=??) se=${e:5};;
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
--x=*|-xs=*|-xcs=*|-c=*|-cp=*);;
+-x=*|-xs=*|-xcs=*|-c=*|-cp=*|-cv=*|-cpv=*);;
 -exec|-execdir)xc=1;F=1;;
 -z)	sz=%s\ ;;
 -E|-re) RX=1;;
 -|--)	break;;
--rm)	opt=$opt-delete\ ;;
+-rm)	AX=-delete;;
 -s=*) echo "Separator must be 1 or 2 characters. Ignoring as it\'d default to \\">&2;;
 -de) de=1;;
 -in) if=1;;
@@ -178,11 +178,15 @@ J=;for a;{	((S))&&{	S=;continue;}
 			x=${a#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
-		-c=?*|-cp=?*)	((K))&&{ echo Cannot be both -exec/-execdir and copy, $a option;return;}
+		-c=?*|-cp=?*)
+			[ $K$AX ]&&{ S=${K+-exec/execdir};echo Cannot be both ${S:-$AX} and $a option;return;}
 			C=\"${a#-c*=}\"
-			[ ${a:2:1} = p ]&&Fp=1;Fc=1;continue;;
-		-exec|-execdir) ((Fc))&&{ echo Cannot be both copy and $a option;return;}
-			XC=\ $a;K=1;continue;;
+			vb=${a:2:1}
+			[ $vb	= p ]&&{ Fp=1;vb=;}
+			Fc=1;continue;;
+		-exec|-execdir)
+			[ $Fc$AX ]&&{	S=${Fc+copy};echo Cannot be both ${S:-$AX} and $a option;return;}
+			AX=\ $a;K=1;continue;;
 		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
 		-|--)	L=1;continue;;
 		-\!|-*)continue
@@ -298,18 +302,19 @@ fi
 eval ${D+fd $F}
 
 if((G));then
-	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}$XC"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
-else	CL="find $po$S -regextype posix-extended \! -path $F $opt$Rt -${I}regex $R ${X[@]-$Z}$XC";fi
+	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}$AX"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
+else	CL="find $po$S -regextype posix-extended \! -path $F $opt$Rt -${I}regex $R ${X[@]-$Z}$AX";fi
 
-[ "$D$dtx" ]&&echo "${D+Depth option \"$Dt\" is${Rd+ '$D' depth from max $DM} of $F}${D+${dtx+ and }}${dtx+$dtx of $F}">&2
+[ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $F}${D+${dtx+ and }}${dtx+$dtx of $F}">&2
 LC_ALL=C
 if((de))&&[[ $z != / ]];then	export -f fid;eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 elif((if))&&[[ $z != / ]];then eval "$CL ! -type d -exec /bin/bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
 elif((Fc));then	eval set -- $C;for i;{
 	[ -d $i ]||{
-		[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $i||sudo rm $i;}
-		mkdir -pv $i||sudo mkdir -pv $i;}
-	eval "sudo $CL -exec cp '{}' $i \;";}
+		[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $i||{ echo Failed, try again as root>&2;sudo rm $i;};}
+		mkdir -p $i||{ echo Failed, try again as root>&2;sudo mkdir -pv $i;}
+	}
+	eval "sudo $CL -exec cp $vb '{}' $i \;";}
 else command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)	eval sudo $CL
 fi
 }
