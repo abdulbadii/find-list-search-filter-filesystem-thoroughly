@@ -312,14 +312,15 @@ elif((if))&&[[ $z != / ]];then eval "$CL ! -type d -exec /bin/bash -c '[[ \`file
 elif((Fc));then	eval set -- $C;for i;{
 	[ -d $i ]||{
 		[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $i||{ echo Failed, try again as root>&2;sudo rm $i;};}
-		mkdir -p $i||{ echo Failed, try again as root>&2;sudo mkdir -pv $i;}
+		mkdir -p $i||{ echo Failed, try again as root>&2;sudo mkdir -pv $i;};}
+	eval "sudo $CL -exec cp $vb '{}' $i \;"
 	}
-	eval "sudo $CL -exec cp $vb '{}' $i \;";}
-elif((co));then	x=;c=
-	command> >(while read -r l;do IFS=/;for i in $l;{
-		[ $i ]&&{	echo -ne "\e[${c}m/$i">&2
-		((x=!x))&&c=||c=1\;36;};};echo
-		done)	eval sudo $CL
+elif((co));then
+	command> >(x=;IFS=/;while read -r l;do	m=${l: -1};: ${m:=/}
+	for i in $l;{
+		((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}"
+	};echo -e "\e[41;1;33m${m%[!/]}\e[m"
+	done)	eval sudo $CL
 else command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)	eval sudo $CL
 fi
 }
