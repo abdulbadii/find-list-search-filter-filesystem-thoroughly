@@ -123,7 +123,7 @@ fid(){
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS F L RX xc dp po opt se sz tm AX D Dt Rd DM dt dtx de if ld c cp vb Fc Fp Rt X XF IS;I=i
+unset IFS F L RX xc co dp po opt se sz tm AX D Dt Rd DM dt dtx de if ld c cp vb Fc Fp Rt X XF IS;I=i
 shopt -s nocaseglob;set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	F=;((xc))||opt=$opt$e\ ;continue;}
@@ -143,11 +143,11 @@ case $e in
 -|--)	break;;
 -rm)	AX=-delete;;
 -s=*) echo "Separator must be 1 or 2 characters. Ignoring as it\'d default to \\">&2;;
--de) de=1;;
--in) if=1;;
--ci) I=i;;
--t)	tm="%Tr %Tx ";;
--dp)	dp=%d\ ;;
+-de)de=1;;
+-in)if=1;;
+-co)co=1;;
+-ci)I=i;;
+-t)	tm="%Tr %Tx ";;#-dp)	dp=%d\ ;;
 -h|--help) man find;return;;
 -[HDLPO]) po=$e\ ;;
 -[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
@@ -258,7 +258,7 @@ b=${b%$'\v'*}
 break;}
 fi
 set -- ${p:-\"\"};i=;for a;{
-unset F L G IS p
+unset IFS F L G IS p
 if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
@@ -315,6 +315,11 @@ elif((Fc));then	eval set -- $C;for i;{
 		mkdir -p $i||{ echo Failed, try again as root>&2;sudo mkdir -pv $i;}
 	}
 	eval "sudo $CL -exec cp $vb '{}' $i \;";}
+elif((co));then	x=;c=
+	command> >(while read -r l;do IFS=/;for i in $l;{
+		[ $i ]&&{	echo -ne "\e[${c}m/$i">&2
+		((x=!x))&&c=||c=1\;36;};};echo
+		done)	eval sudo $CL
 else command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)	eval sudo $CL
 fi
 }
