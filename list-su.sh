@@ -145,7 +145,7 @@ case $e in
 -s=*) echo "Separator must be 1 or 2 characters. Ignoring as it\'d default to \\">&2;;
 -de)de=1;;
 -in)if=1;;
--co)co=1;;
+-c)co=1;;
 -ci)I=i;;
 -t)	tm="%Tr %Tx ";;#-dp)	dp=%d\ ;;
 -h|--help) man find;return;;
@@ -301,8 +301,7 @@ fi
 ((XF))||{	eval ${x_a+fx $F $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
 
-if((G));then
-	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}$AX"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
+if((G));then	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}$AX"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
 else	CL="find $po$S -regextype posix-extended \! -path $F $opt$Rt -${I}regex $R ${X[@]-$Z}$AX";fi
 
 [ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $F}${D+${dtx+ and }}${dtx+$dtx of $F}">&2
@@ -315,8 +314,8 @@ elif((Fc));then	eval set -- $C;for i;{
 		mkdir -p $i||{ echo Failed, try again as root>&2;sudo mkdir -pv $i;};}
 	eval "sudo $CL -exec cp $vb '{}' $i \;"
 	}
-elif((co));then
-	command> >(x=;IFS=/;while read -r l;do	m=${l: -1};: ${m:=/}
+elif((co));then	command> >(x=;F=;IFS=/;while read -r l;do
+	((F=x=!F));m=${l: -1};: ${m:=/}
 	for i in $l;{
 		((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}"
 	};echo -e "\e[41;1;33m${m%[!/]}\e[m"
