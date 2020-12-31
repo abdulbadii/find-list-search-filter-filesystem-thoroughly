@@ -136,9 +136,9 @@ case $e in
 -s=?|-s=??) se=${e:5};;
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
--x=*|-xs=*|-xcs=*|-c=*|-cp=*|-cv=*|-cpv=*);;
+-x=*|-xs=*|-xcs=*|-c=*|-cv=*);;	#|-cz=*|-czv=*)
 -exec|-execdir)xc=1;F=1;;
--z)	sz=%s\ ;;
+-z)	sz=\ %s;;
 -E|-re) RX=1;;
 -|--)	break;;
 -rm)	AX=-delete;;
@@ -147,7 +147,7 @@ case $e in
 -in)if=1;;
 -c)co=1;;
 -ci)I=i;;
--t)	tm="%Tr %Tx ";;#-dp)	dp=%d\ ;;
+-t)	tm=" %Tr %Tx";;	#-dp)dp=%d\ ;;
 -h|--help) man find;return;;
 -[HDLPO]) po=$e\ ;;
 -[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
@@ -174,16 +174,15 @@ J=;for a;{	((S))&&{	S=;continue;}
 	((!L)) &&{	case $a in
 		-x=?*|-xs=?*|-xcs=?*)
 			((Fc))&&{	echo -c or -cp option must be as the last>&2;return;}
-			[ ${e:2:1} = = ]&&J=i
+			[ ${a:2:1} = = ]&&J=i
 			x=${a#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
-		-c=?*|-cp=?*)
+		-c=?*|-cv=?*)	#|-cz=*|-czv=?*)
 			[ $K$AX ]&&{ S=${K+-exec/execdir};echo Cannot be both ${S:-$AX} and $a option;return;}
 			C=\"${a#-c*=}\"
-			vb=${a:2:1}
-			[ $vb	= p ]&&{ Fp=1;vb=;}
-			Fc=1;continue;;
+			[[ $a = -c*v= ]]&&vb=-v
+			[ ${a:2:1} = z ]&&Fz=1;	Fc=1;continue;;
 		-exec|-execdir)
 			[ $Fc$AX ]&&{	S=${Fc+copy};echo Cannot be both ${S:-$AX} and $a option;return;}
 			AX=\ $a;K=1;continue;;
@@ -192,7 +191,7 @@ J=;for a;{	((S))&&{	S=;continue;}
 		-\!|-*)continue
 	esac
 	}
-	a=\"$a\"			# k l m -x=i o  -- -c=m n
+	a=\"$a\"			# l m -x=i o - -c=m n
 	if((G));then
 		if((F));then	x_a=$x_a$a\ ;else			M=$M$a\ ;fi
 	elif((Fc)) ;then
@@ -204,7 +203,7 @@ J=;for a;{	((S))&&{	S=;continue;}
 		if((F));then		M=$M$a
 		else		M=$a;	x_a=$x_a$M
 		fi;G=0
-	else	M=$M$a' ';F=1;fi
+	else	M=$M$a\ ;F=1;fi
 }
 E="echo Path \'\$a\' is invalid, it\'d be up beyond root. Ignoring>&2";E2="{ $E;continue 2;}"	#E1="{ $E;break;}"
 M=${M//\\/\\\\};eval set -- ${M:-\"\"}
@@ -257,7 +256,8 @@ p=${b##*$'\v'}$z${p#"$b"}
 b=${b%$'\v'*}
 break;}
 fi
-set -- ${p:-\"\"};i=;for a;{
+unset T U i
+set -- ${p:-\"\"};for a;{
 unset IFS F L G IS p
 if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[3]}
@@ -286,7 +286,7 @@ else
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-P="\( -path '* *' -printf \"$dp$sz$tm'%p'\n\" -o -printf \"$dp$sz$tm%p\n\" \)"
+P="\( -path '* *' -printf \"$dp'%p'$sz$tm\n\" -o -printf \"$dp%p$sz$tm\n\" \)"
 PD="-type d \( -path '* *' -printf \"$dp$tm'%p/'\n\" -o -printf \"$dp$tm%p/\n\" \)"
 ((L))&&	PD="\( -type d -prune -exec find \{\} $lx \( $PD -o $P \) \; -o $P \)"
 case $z in
@@ -301,27 +301,35 @@ fi
 ((XF))||{	eval ${x_a+fx $F $x_a};(($?))&&return;XF=1;}
 eval ${D+fd $F}
 
-if((G));then	CL="find $po$S -regextype posix-extended $opt-${I}path $F/* $Rt ${X[@]-$Z}$AX"${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" $opt\( $PD -o $P \)"}
+if((G));then	CD="find $po$S -regextype posix-extended $Rt $opt\( -${I}path $F/* ${X[@]-$Z}"
+	CL="$CD${p:+" -o -${I}path $F -type f $P -o -${I}regex \".{${#s}}/.+$p\" \\( $PD -o $P \\)"} \)$AX"
 else	CL="find $po$S -regextype posix-extended \! -path $F $opt$Rt -${I}regex $R ${X[@]-$Z}$AX";fi
 
 [ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $F}${D+${dtx+ and }}${dtx+$dtx of $F}">&2
 LC_ALL=C
 if((de))&&[[ $z != / ]];then	export -f fid;eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 elif((if))&&[[ $z != / ]];then eval "$CL ! -type d -exec /bin/bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
-elif((Fc));then	eval set -- $C;for i;{
-	[ -d $i ]||{
-		[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $i||{ echo Failed, try again as root>&2;};}
-		mkdir -p $i||{ echo Failed, try again as root>&2;};}
-	eval "$CL -exec cp $vb '{}' $i \;"
-	}
 elif((co));then	command> >(x=;F=;IFS=/;while read -r l;do
-	((F=x=!F));m=${l: -1};: ${m:=/}
-	for i in $l;{
-		((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}"
-	};echo -e "\e[41;1;33m${m%[!/]}\e[m"
+	l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
+	for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
+	echo -e "\e[41;1;33m${m%[!/]}\e[m">&2
 	done)	eval $CL
-else command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)	eval $CL
+elif((Fc));then	T=$T\ $S;U=$U\ $R
+else	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) 	eval $CL
 fi
 }
+if((Fc));then	eval set -- $C;for i;{
+	[ -d $i ]||{
+		[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $vb $i||{ echo Failed, try again as root>&2;};}
+		mkdir -p$vb $i||{ echo Failed, try again as root>&2;};}
+	eval "$CD \) -exec cp -r$vb '{}' \"$i\" \;"
+	}
+#elif((Fz));then	eval set -- $C;for i;{
+	#[ -d $i ]||{
+		#[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $vb $i||{ echo Failed, try again as root>&2;};}
+		#i=$cp$i
+		#mkdir -p$vb $i||{ echo Failed, try again as root>&2;};}
+	#eval "$CL -exec cp $vb '{}' $i \;";}
+fi
 }
 set +f;unset IFS;} ##### ENDING OF l, find wrap script #####
