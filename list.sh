@@ -179,7 +179,7 @@ J=;for a;{	((S))&&{	S=;continue;}
 			G=1;continue;;
 		-c=?*|-cv=?*)	#|-cz=*|-czv=?*)
 			[ $K$AX ]&&{ S=${K+-exec/execdir};echo Cannot be both ${S:-$AX} and $a option;return;}
-			C=\"${a#-c*=}\"
+			C=${a#-c*=}
 			[[ $a = -c*v= ]]&&vb=-v
 			[ ${a:2:1} = z ]&&Fz=1;Fc=1
 			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
@@ -196,8 +196,7 @@ J=;for a;{	((S))&&{	S=;continue;}
 	if((G));then
 		if((F));then	x_a=$x_a$a\ ;else			M=$M$a\ ;fi
 	#elif((Fc)) ;then
-		#((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
-		#C=$C\"$a\"' '
+		#((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}C=$C\"$a\"' '
 	elif((K));then
 		XC=$XC\ \"$a\"
 	elif ((L));then
@@ -298,17 +297,16 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-if [ $IS ]&&[ -d "${S%/}" ];then	c=${S: -1};set +f;printf -v S "%q" ${S/$c/[$c]};set -f
-else	: ${N=\"$S\"}
-fi
+: ${N=\"$S\"}
+[ $IS ]&&[ -d "${S%/}" ]&&{ c=${S: -1};set +f;printf -v S "%q" ${S/$c/[$c]};set -f;}
+
 ((Rd))&&{	[[ `eval "find $S -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a+fx $N $x_a};(($?))&&return;XF=1;}
 
 eval ${D+fd $N}
 [ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $N}${D+${dtx+ and }}${dtx+$dtx of $N}">&2
 LC_ALL=C
-if((Fc));then	T=${T% \"$S\"}\ \"$S\"
-	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
+if((Fc));then T=${T% \"$S\"}\ \"$S\";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
 else
 	if((F));then
 		CD="find $po$S -regextype posix-extended $Rt $opt\( -${I}path \"$G/*\" ${X[@]-$Z}"
@@ -323,22 +321,18 @@ else
 		for i in $l;{
 			((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
 		echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	eval $CL
-	else	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
-		eval $CL
+	else	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) eval $CL
 	fi
 fi
 }
 if((Fc));then
-	if [ -d $C ];then read -n1 -p "wipe \"$C\" out and replace with the search result?" o;[ $o = y]&&rm -r $C
-	elif	[ -f $C ];then echo Trying to replace file $C>&2;rm $vb $C||{ echo Failed, try again as root>&2;}
-	fi;U=${U#\|};V=${V# -o }
-	eval "find $po$T -regextype posix-extended $opt\( $Rt ${U:+-${I}regex \"$U\"} ${V:+$V} \) ${X[@]-$Z} -exec cp -ru$vb '{}' \"$C\" \;"
-#elif((Fz));then	eval set -- $C;for i;{
-	#[ -d $i ]||{
-		#[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $vb $i||{ echo Failed, try again as root>&2;};}
-		#i=$cp$i
-		#mkdir -p$vb $i||{ echo Failed, try again as root>&2;};}
-	#eval "$CL -exec cp $vb '{}' $i \;";}
+	if [ -d "$C" ];then read -n1 -p "Deleting dir. \"$C\" and replacing it with the found result.. Confirm? " o
+		[ "$o" = y ]||return;rm -r "$C"
+	elif	[ -f "$C" ];then echo Trying to replace file $C>&2;rm $vb "$C"||{ echo Failed, try again as root>&2;};fi
+	mkdir -p$vb "$C";	U=${U#\|};V=${V# -o }
+	ax='-exec cp -ru$vb '{}' "$C" \;'
+	#if((Fz));then	ax="/usr/bin/bash -c \'bsdtar -cf$vb \{\} $C;cp $C;bsdtar -xf$vb'" 
+	eval "find $po$T -regextype posix-extended $opt\( $Rt ${U:+-${I}regex \"$U\"} ${V:+$V} \) ${X[@]-$Z} $ax"
 fi
 }
 set +f;unset IFS;} ##### ENDING OF l, find wrap script #####
