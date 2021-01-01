@@ -181,7 +181,9 @@ J=;for a;{	((S))&&{	S=;continue;}
 			[ $K$AX ]&&{ S=${K+-exec/execdir};echo Cannot be both ${S:-$AX} and $a option;return;}
 			C=\"${a#-c*=}\"
 			[[ $a = -c*v= ]]&&vb=-v
-			[ ${a:2:1} = z ]&&Fz=1;	Fc=1;continue;;
+			[ ${a:2:1} = z ]&&Fz=1;Fc=1
+			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
+			break;; #continue;;
 		-exec|-execdir)
 			[ $Fc$AX ]&&{	S=${Fc+copy};echo Cannot be both ${S:-$AX} and $a option;return;}
 			AX=\ $a;K=1;continue;;
@@ -193,9 +195,9 @@ J=;for a;{	((S))&&{	S=;continue;}
 	a=\"$a\"			# l m -x=i o - -c=m n
 	if((G));then
 		if((F));then	x_a=$x_a$a\ ;else			M=$M$a\ ;fi
-	elif((Fc)) ;then
-		((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
-		C=$C\"$a\"' '
+	#elif((Fc)) ;then
+		#((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
+		#C=$C\"$a\"' '
 	elif((K));then
 		XC=$XC\ \"$a\"
 	elif ((L));then
@@ -256,8 +258,8 @@ p=${b##*$'\v'}$z${p#"$b"}
 b=${b%$'\v'*}
 break;}
 fi
-unset i F L T U S;set -- ${p:-\"\"};for a;{
-F=;N=;IS=
+unset i L T U V;set -- ${p:-\"\"};for a;{
+unset F N IS R S G
 if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
@@ -282,8 +284,8 @@ else
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 	: ${S=${s-~+}}
 	if((RX));then	L=$ld;R=\".{${#S}}${re+.*}$p\"
-	elif((re));then	F=1;N=\"$S$p\"
-		while [[ $S =~ ([^\\]|^)\* ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\*"};done;G=\"$S$p\"
+	elif((re));then	F=1;N=\"$S$p\";	G=$S$p
+		while [[ $G =~ ([^\\]|^)\* ]];do G=${G/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\*"};done;
 	else	IS=$I;S=$s$p;R=.*;	[ -d "$S" ]||x_a=;fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
@@ -296,39 +298,41 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-if [ $IS ]&&[ -d "${S%/}" ];then	c=${S: -1};set +f;printf -v S "%q " ${S/$c/[$c]};set -f
+if [ $IS ]&&[ -d "${S%/}" ];then	c=${S: -1};set +f;printf -v S "%q" ${S/$c/[$c]};set -f
 else	: ${N=\"$S\"}
 fi
 ((Rd))&&{	[[ `eval "find $S -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a+fx $N $x_a};(($?))&&return;XF=1;}
 
 eval ${D+fd $N}
-if((F));then
-	CD="find $po$S -regextype posix-extended $Rt $opt\( -${I}path $G/* ${X[@]-$Z}"
-	CL="$CD${p:+" -o -${I}path $G -type f $P -o -${I}regex \".{${#s}}/.+$p\" \\( $PD -o $P \\)"} \)$AX"
-else	CL="find $po$S -regextype posix-extended $opt$Rt -${I}regex $R ${X[@]-$Z}$AX";fi
-
 [ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $N}${D+${dtx+ and }}${dtx+$dtx of $N}">&2
 LC_ALL=C
-if((de))&&[[ $z != / ]];then	export -f fid;eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
-elif((if))&&[[ $z != / ]];then eval "$CL ! -type d -exec /bin/bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
-elif((co));then	command> >(x=;F=;IFS=/;while read -r l;do
-	l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
-	for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
-	echo -e "\e[41;1;33m${m%[!/]}\e[m">&2
-	done)	eval $CL
-elif((Fc));then	T=$T\ $S;U=$U\ $R
+if((Fc));then	T=${T% \"$S\"}\ \"$S\"
+	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
 else
-	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
- 	eval $CL
+	if((F));then
+		CD="find $po$S -regextype posix-extended $Rt $opt\( -${I}path \"$G/*\" ${X[@]-$Z}"
+		CL="$CD${p:+" -o -${I}path \"$G\" -type f $P -o -${I}regex \".{${#s}}/.+$p\" \\( $PD -o $P \\)"} \)$AX"
+	else	CL="find $po$S -regextype posix-extended $opt$Rt -${I}regex $R ${X[@]-$Z}$AX";fi
+	if((de))&&[[ $z != / ]];then
+		export -f fid;eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
+	elif((if))&&[[ $z != / ]];then
+		eval "$CL ! -type d -exec /bin/bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;"
+	elif((co));then	command> >(x=;F=;IFS=/;while read -r l;do
+		l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
+		for i in $l;{
+			((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
+		echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	eval $CL
+	else	#command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
+		eval $CL
+	fi
 fi
 }
-if((Fc));then	eval set -- $C;for i;{
-	[ -d $i ]||{
-		[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $vb $i||{ echo Failed, try again as root>&2;};}
-		mkdir -p$vb $i||{ echo Failed, try again as root>&2;};}
-	eval "$CD \) -exec cp -r$vb '{}' \"$i\" \;"
-	}
+if((Fc));then
+	if [ -d $C ];then read -n1 -p "wipe \"$C\" out and replace with the search result?" o;[ $o = y]&&rm -r $C
+	elif	[ -f $C ];then echo Trying to replace file $C>&2;rm $vb $C||{ echo Failed, try again as root>&2;}
+	fi;U=${U#\|};V=${V# -o }
+	eval "find $po$T -regextype posix-extended $opt\( $Rt ${U:+-${I}regex \"$U\"} ${V:+$V} \) ${X[@]-$Z} -exec cp -ru$vb '{}' \"$C\" \;"
 #elif((Fz));then	eval set -- $C;for i;{
 	#[ -d $i ]||{
 		#[ -f $i ]&&{ echo Trying to replace file $i>&2;rm $vb $i||{ echo Failed, try again as root>&2;};}
