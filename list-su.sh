@@ -114,9 +114,9 @@ case $e in
 		r=$r\ $Rt
 esac
 }
-x=($x "$r" '\(' ${F+-type d -prune -o }-printf \'\' '\)')
+x=(${x[@]}"$r" '\(' ${F+-type d -prune -o }-true '\)' -o )
 }
-X=('\(' ${x[@]} -o $Z '\)')
+X=('\(' ${x[@]} $Z '\)')
 }
 fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"
@@ -136,7 +136,7 @@ case $e in
 -s=?|-s=??) se=${e:5};;
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
--x=*|-xs=*|-xcs=*|-c=*|-cv=*);;	#|-cz=*|-czv=*)
+-x=*|-xs=*|-xcs=*|-c=*|-cv=*|-cz=*|-czv=*);;
 -exec|-execdir)xc=1;F=1;;
 -z)	sz=\ %s;;
 -E|-re) RX=1;;
@@ -177,7 +177,7 @@ J=;for a;{	((S))&&{	S=;continue;}
 			x=${a#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
-		-c=?*|-cv=?*)	#|-cz=*|-czv=?*)
+		-c=?*|-cv=?*|-cz=*|-czv=?*)
 			[ $K$AX ]&&{ S=${K+-exec/execdir};echo Cannot be both ${S:-$AX} and $a option;return;}
 			C=${a#-c*=}
 			[[ $a = -c*v= ]]&&vb=-v
@@ -302,16 +302,15 @@ esac
 
 ((Rd))&&{	[[ `eval "find $S -printf \"%d\n\"|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a+fx $N $x_a};(($?))&&return;XF=1;}
-
 eval ${D+fd $N}
 [ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $N}${D+${dtx+ and }}${dtx+$dtx of $N}">&2
 LC_ALL=C
-if((Fc));then T=${T% \"$S\"}\ \"$S\";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
+if((Fc));then T="${T% $S} $S ! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
 else
-	if((F));then
-		CD="find $po$S -regextype posix-extended $Rt $opt\( -${I}path \"$G/*\" ${X[@]-$Z}"
+	if((F));then	CD="find $po$S -regextype posix-extended $Rt $opt\( -${I}path \"$G/*\" ${X[@]-$Z}"
 		CL="$CD${p:+" -o -${I}path \"$G\" -type f $P -o -${I}regex \".{${#s}}/.+$p\" \\( $PD -o $P \\)"} \)$AX"
-	else	CL="find $po$S -regextype posix-extended $opt$Rt -${I}regex $R ${X[@]-$Z}$AX";fi
+	else
+		CL="find $po$S \! -ipath $N -regextype posix-extended $opt$Rt -${I}regex $R ${X[@]-$Z}$AX";fi
 	if((de))&&[[ $z != / ]];then
 		export -f fid;eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 	elif((if))&&[[ $z != / ]];then
@@ -326,13 +325,13 @@ else
 fi
 }
 if((Fc));then
-	if [ -d "$C" ];then read -n1 -p "Deleting dir. \"$C\" and replacing it with the found result.. Confirm? " o
-		[ "$o" = y ]||return;sudo rm -r "$C"
+	if [ -d "$C" ];then read -n1 -p "Really to delete dir. \"$C\" and replace it with the found result? " o
+		echo;[ "$o" = y ]||return;sudo rm -r "$C"
 	elif	[ -f "$C" ];then echo Trying to replace file $C>&2;rm $vb "$C"||{ echo Failed, try again as root>&2;sudo rm $vb "$C";};fi
 	mkdir -p$vb "$C";	U=${U#\|};V=${V# -o }
-	ax='-exec cp -ru$vb '{}' "$C" \;'
-	#if((Fz));then	ax="/usr/bin/bash -c \'bsdtar -cf$vb \{\} $C;cp $C;bsdtar -xf$vb'" 
-	eval "sudo find $po$T -regextype posix-extended $opt\( $Rt ${U:+-${I}regex \"$U\"} ${V:+$V} \) ${X[@]-$Z} $ax"
+	a='cp -u$vb '{}' "$C" \;'
+	((Fz))&&	a='bsdtar -cf$vb $C \{\} \; ;cd $C;bsdtar -xf$vb $C' 
+	eval "sudo find $po$T -regextype posix-extended $opt\( $Rt ${U:+-${I}regex \"$U\"} ${V:+$V} \) ${X[@]-$Z} -exec $a" 2>/dev/null
 fi
 }
 set +f;unset IFS;} ##### ENDING OF l, find wrap script #####
