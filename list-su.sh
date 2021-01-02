@@ -114,7 +114,7 @@ case $e in
 		r=$r\ $Rt
 esac
 }
-x=(${x[@]}"$r" '\(' ${F+-type d -prune -o }-true '\)' -o )
+x=(${x[@]} "$r" '\(' ${F+-type d -prune -o }-true '\)' -o)
 }
 X=('\(' ${x[@]} $Z '\)')
 }
@@ -291,7 +291,7 @@ while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 P="\( -path '* *' -printf \"$dp'%p'$sz$tm\n\" -o -printf \"$dp%p$sz$tm\n\" \)"
 PD="-type d \( -path '* *' -printf \"$dp$tm'%p/'\n\" -o -printf \"$dp$tm%p/\n\" \)"
-((L))&&PD="\( -type d -prune -exec find \{\} $lx \( $PD -o $P \) \; -o $P \)"
+((ld))&&PD="\( -type d -prune -exec find \{\} $lx \( $PD -o $P \) \; -o $P \)"
 case $z in
 /)	Z="$PD";;//)	Z="-type f $P";;///)	Z="\! -type d -executable $P";;
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
@@ -330,8 +330,10 @@ if((Fc));then
 	elif	[ -f "$C" ];then echo Trying to replace file $C>&2;rm $vb "$C"||{ echo Failed, try again as root>&2;sudo rm $vb "$C";};fi
 	mkdir -p$vb "$C";	U=${U#\|};V=${V# -o }
 	a='cp -u$vb '{}' "$C" \;'
-	((Fz))&&	a='bsdtar -cf$vb $C \{\} \; ;cd $C;bsdtar -xf$vb $C' 
+	#((Fz))&&	a='bsdtar -cf$vb $C \{\} \; ;cd $C;bsdtar -xf$vb $C' 
+
 	eval "sudo find $po$T -regextype posix-extended $opt\( $Rt ${U:+-${I}regex \"$U\"} ${V:+$V} \) ${X[@]-$Z} -exec $a" 2>/dev/null
+
 fi
 }
 set +f;unset IFS;} ##### ENDING OF l, find wrap script #####
