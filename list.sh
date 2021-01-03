@@ -55,11 +55,11 @@ ftm(){	local d f a e z x
 		z=${d#*-};x=${z##*[0-9]}
 		: ${x:=m};z=${z%[mhdM]}
 		[ $x = h ] &&let z*=60;[ $x = M ] &&let z*=30
-		x="${x//////[mh]/min} ";x="${x/[dM]/time} "
-		if((!a)) ;then	Rt="\( $f$x-$z -o $f$x$z \) "
-		elif((!z)) ;then	Rt="\( $f$e+$a -o $f$e$a \) "
-		else	Rt="\( $f$e+$a $f$x-$z -o $f$e$a -o $f$x$z \) ";fi
-	else	Rt=$f$e$a\ ;fi
+		x="${x/[mh]/min} ";x="${x/[dM]/time}"
+		if((!a)) ;then	Rt="\( $f$x-$z -o $f$x$z \)"
+		elif((!z)) ;then	Rt="\( $f$e+$a -o $f$e$a \)"
+		else	Rt="\( $f$e+$a $f$x-$z -o $f$e$a -o $f$x$z \)";fi
+	else	Rt=$f$e$a;fi
 }
 fsz(){	local d f a e z x
 	d=${1:2};f='-size '
@@ -67,8 +67,8 @@ fsz(){	local d f a e z x
 	: ${e:=k};e=${e//m/M};e=${e//g/G}
 	a=${a%[cwbkmMgG]}
 	if [[ $d = *-* ]] ;then
-		z=${d#*-};x=${z##*[0-9]}
-		: ${x:=k};x=${x//m/M};x=${x//g/G}
+		z=${d#*-};x=${z#*[0-9]}
+		: ${x:=k};x=${x/m/M};x=${x/g/G}
 		z=${z%[cwbkmMgG]}
 		if((!a)) ;then	Rt="\( $f-$z$x -o $f$z$x \)"
 		elif((!z)) ;then	Rt="\( $f+$a$e -o $f$a$e \)"
@@ -332,7 +332,7 @@ if((Fc));then
 	a='cp -u$vb '{}' "$C" \;'
 	#((Fz))&&	a='bsdtar -cf$vb $C \{\} \; ;cd $C;bsdtar -xf$vb $C' 
 
-	eval "find $po$T -regextype posix-extended $opt\( $Rt ${U:+-${I}regex \"$U\"} ${V:+$V} \) ${X[@]-$Z} -exec $a" 2>/dev/null
+	eval "find $po$T $opt$Rt \( -regextype posix-extended ${U:+-${I}regex \"$U\"} ${V:+$V} \) ${X[@]-$Z} -exec $a" 2>/dev/null
 
 fi
 }
