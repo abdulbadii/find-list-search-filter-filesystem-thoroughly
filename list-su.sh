@@ -135,7 +135,7 @@ case $e in
 -s=?|-s=??) se=${e:5};;
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
--x=*|-xs=*|-xcs=*|-c=*|-cv=*|-cz=*|-czv=*);;
+-x=?*|-xs=?*|-xcs=?*|-c=?*|-cv=?*|-cc=?*|-ccv=?*);;
 -exec|-execdir)xc=1;F=1;;
 -z)	sz=\ %s;;
 -E|-re) RX=1;;
@@ -176,7 +176,7 @@ J=;for a;{	((S))&&{	S=;continue;}
 			x=${a#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
-		-c=?*|-cv=?*|-cz=*|-czv=?*)
+		-c=*|-cv=*|-cc=*|-ccv=*)
 			[ $K$AX ]&&{ S=${K+-exec/execdir};echo Cannot be both ${S:-$AX} and $a option;return;}
 			C=${a#-c*=}
 			[[ $a = -c*v= ]]&&vb=-v
@@ -259,7 +259,8 @@ fi
 unset i L T Q U V dt;set -- ${p:-\"\"};for a;{
 unset F N IS R S G
 if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
-	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[3]}
+	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]]
+	z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
 	[[ ${BASH_REMATCH[1]} ]]&&{
 		S=$s${BASH_REMATCH[1]};[[ $S =~ ^$'\t'($'\v'|$) ]]&&{ eval $E;continue;}
@@ -269,8 +270,7 @@ if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
 	if((re));then	p=.*$p;S=$s
 	else
 		[[ $p =~ [^$'\f']([]*?[].*)$ ]];	S=${p%$'\v'*"${BASH_REMATCH[1]}"};	p=${p#$S}
-		S=$s${S//$'\v'/\/}
-		IS=$I
+		S=$s${S//$'\v'/\/};	IS=$I
 	fi
 	R=\".{${#S}}${p//$'\v'/\/}\"
 else
@@ -290,6 +290,11 @@ else
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
+[ ${C#.} ] ||{
+	if [ $R = .* ] ;then C=${p##*/}
+	else [ -e $R ] && C=${p##*/}
+	fi
+}
 P="\( -path '* *' -printf \"$dp'%p'$sz$tm\n\" -o -printf '$dp%p$sz$tm\n' \)"
 PD="-type d \( -path '* *' -printf \"$dp$tm'%p/'\n\" -o -printf '$dp$tm%p/\n' \)"
 ((ld))&&PD="\( -type d -prune -exec find \{\} $lx \( $PD -o $P \) \; -o $P \)"
@@ -321,21 +326,19 @@ else
 		l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
 		for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
 		echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	eval sudo $CL
-	else	command 2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) eval sudo $CL;fi
+	else	2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) eval sudo $CL;fi
 fi
 }
 if((Fc));then
 	if [ -d "$C" ];then read -n1 -p "Really to delete dir. \"$C\" and replace it with the found result? " o
 		echo;[ "$o" = y ]||return;sudo rm -r "$C"
 	elif	[ -f "$C" ];then echo Trying to replace file $C>&2;rm $vb "$C"||{ echo Failed, try again as root>&2;sudo rm $vb "$C";};fi
-	T=${T# };Q=${Q# };U=${U#\|};V=${V# -o }
-	U=${U:+-${I}regex \"$U\"};V=${V:+$V}
-	[[ `eval "find $po$T $opt$Rt \( -regextype posix-extended $U $V \) \( ${X[@]} -type d -printf '%d\n' \)|sort -nur"` =~ [1-9]+ ]]
-	D=${BASH_REMATCH[0]}.;fd $T
-	eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type d -printf '%P\n' -exec mkdir -p$vb $C'{}' \;"
-
-	#[[ $D =~ - ]]&&	D=${D%-*}
-	#eval "sudo find $po$T $opt$Rt \( -regextype posix-extended ${U:+-${I}regex \"$U\"} ${V:+$V} \) ${X[@]-$Z} -printf \"%P\n\" \( -type d -exec mkdir -p$vb "$C/\{\}" -o  -exec /bin/bash -c 'fcf \"\$0\" \"\$@\"' '{}' \;"
+	T=${T# };Q=${Q# };U=${U#\|};V=${V# -o };U=${U:+-${I}regex \"$U\"};V=${V:+$V}
+	C=${C%/}
+	eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type d -printf \"$C/%P\n\"" |xargs mkdir -p$vb --
+	cd $C
+	eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type f -printf '%P\n' -exec cp -u$vb '{}' . \;"
+	cd -
 	
 	#2>/dev/null
 	#((Fz))&&	a='bsdtar -cf$vb $C \{\} \; ;cd $C;bsdtar -xf$vb $C' 
