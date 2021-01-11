@@ -290,9 +290,9 @@ else
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-[ ${C#.} ] ||{
-	if [ $R = .* ] ;then C=${p##*/}
-	else [ -e $R ] && C=${p##*/}
+((Fc))&&[ ${C#.} ] ||{
+	if [ "$R" = .* ] ;then C=${p##*/}
+	else [ -e "$R" ] && C=${R##*/}
 	fi
 }
 P="\( -path '* *' -printf \"$dp'%p'$sz$tm\n\" -o -printf '$dp%p$sz$tm\n' \)"
