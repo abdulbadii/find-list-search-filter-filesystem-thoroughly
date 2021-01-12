@@ -122,7 +122,7 @@ fid(){
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
 l(){
-unset IFS F RX xc co po opt se sz tm AX D Dt Rd DM dtx de if ld c cp;I=i
+unset IFS F RX xc co po opt se sz tm AX D Dt Rd DM dtx de if ld;I=i;CM=cp
 shopt -s nocaseglob;set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	F=;((xc))||opt=$opt$e\ ;continue;}
@@ -135,13 +135,13 @@ case $e in
 -s=?|-s=??) se=${e:5};;
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
--x=?*|-xs=?*|-xcs=?*|-c=?*|-cv=?*|-cc=?*|-ccv=?*);;
+-x=?*|-xs=?*|-xcs=?*|-c=?*|-cv=?*|-cu=?*|-cuv=?*|-cz=?*|-czv=?*|-m=?*|-mv=?*);;
 -exec|-execdir)xc=1;F=1;;
 -z)	sz=\ %s;;
 -E|-re) RX=1;;
 -|--)	break;;
 -rm)	AX=-delete;;
--s=*) echo "Separator must be 1 or 2 characters. Ignoring as it\'d default to \\">&2;;
+-s=*) echo "Separator must be 1 or 2 characters. Ignoring to let it default to \\">&2;;
 -de)de=1;;
 -in)if=1;;
 -c)co=1;;
@@ -159,7 +159,7 @@ esac
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
 while [[ $h =~ ([^\\]|\\\\)[\;\&|\>\<] ]];do	h=${h/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'};done
 IFS=$'\n';set -- $h
-unset IFS F L G K Fc Fp x_a x vb C M Rt X XF IS S
+unset IFS F L G K Fc Fu x_a x vb C M Rt X XF IS S
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
 		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
@@ -171,18 +171,21 @@ for c;{
 J=;for a;{	((S))&&{	S=;continue;}
 	((!L)) &&{	case $a in
 		-x=?*|-xs=?*|-xcs=?*)
-			((Fc))&&{	echo -c or -cp option must be as the last>&2;return;}
+			((Fc))&&{	echo -c or -cp option must be the last>&2;return;}
 			[ ${a:2:1} = = ]&&J=i
 			x=${a#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
-		-c=*|-cv=*|-cc=*|-ccv=*)
+		-c=*|-cv=*|-cu=*|-cuv=*|-cz=*|-czv=*|-m=*|-mv=*)
+			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
 			[ $K$AX ]&&{ S=${K+-exec/execdir};echo Cannot be both ${S:-$AX} and $a option;return;}
 			C=${a#-c*=}
-			[[ $a = -c*v= ]]&&vb=-v
-			[ ${a:2:1} = z ]&&Fz=1;Fc=1
-			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
-			break;; #continue;;
+			[[ $a = -c*v= ]]&&vb=v
+			eval F${a:1:1}=1
+			e=${a:2:1}
+			[[ $e = [uz] ]]&&eval F$e=1
+			break;;
+		-m=*|-mv=*|-mu=*|-muv=*)CM=mv;;
 		-exec|-execdir)
 			[ $Fc$AX ]&&{	S=${Fc+copy};echo Cannot be both ${S:-$AX} and $a option;return;}
 			AX=\ $a;K=1;continue;;
@@ -194,8 +197,8 @@ J=;for a;{	((S))&&{	S=;continue;}
 	a=\"$a\"			# l m -x=i o - -c=m n
 	if((G));then
 		if((F));then	x_a=$x_a$a\ ;else			M=$M$a\ ;fi
-	#elif((Fc)) ;then
-		#((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}C=$C\"$a\"' '
+	elif((Fc+Fu)) ;then
+		((!F))&&{	echo -c or -cp option must be after main path name>&2;return;};C=$C\"$a\"' '
 	elif((K));then
 		XC=$XC\ \"$a\"
 	elif ((L));then
@@ -290,7 +293,7 @@ else
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-((Fc))&&[ ${C#.} ] ||{
+[ ${C#.} ]||((Fc)) &&{
 	if [ "$R" = .* ] ;then C=${p##*/}
 	else [ -e "$R" ] && C=${R##*/}
 	fi
@@ -330,18 +333,20 @@ else
 fi
 }
 if((Fc));then
-	if [ -d "$C" ];then read -n1 -p "Really to delete dir. \"$C\" and replace it with the found result? " o
+	C=${C%/}
+	if [ -d "$C" ];then read -n1 -p "Delete directory \"$C\" to be replaced with the found result? " o
 		echo;[ "$o" = y ]||return;sudo rm -r "$C"
 	elif	[ -f "$C" ];then echo Trying to replace file $C>&2;rm $vb "$C"||{ echo Failed, try again as root>&2;sudo rm $vb "$C";};fi
 	T=${T# };Q=${Q# };U=${U#\|};V=${V# -o };U=${U:+-${I}regex \"$U\"};V=${V:+$V}
-	C=${C%/}
-	eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type d -printf \"$C/%P\n\"" |xargs mkdir -p$vb --
-	cd $C
-	eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type f -printf '%P\n' -exec cp -u$vb '{}' . \;"
-	cd -
-	
-	#2>/dev/null
-	#((Fz))&&	a='bsdtar -cf$vb $C \{\} \; ;cd $C;bsdtar -xf$vb $C' 
+	if((Fu+Fm));then
+		mkdir $C
+		eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type f" |xargs -i $CM -u$vb '{}' "$C"
+	else
+		eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type d -printf \"$C/%P\n\"" |xargs mkdir -p$vb --
+		cd $C;eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type f -printf '%P\n'" |xargs -i $CM -u$vb "$T/{}" '{}'
+		cd ->/dev/null
+	fi
+	#2>/dev/null#((Fz))&&	a='bsdtar -cf$vb $C \{\} \; ;cd $C;bsdtar -xf$vb $C' 
 fi
 }
 set +f;unset IFS;} ##### ENDING OF l, find wrap script #####
