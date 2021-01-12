@@ -159,7 +159,7 @@ esac
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
 while [[ $h =~ ([^\\]|\\\\)[\;\&|\>\<] ]];do	h=${h/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'};done
 IFS=$'\n';set -- $h
-unset IFS F L G K Fc Fu x_a x vb C M Rt X XF IS S
+unset IFS F L G K Fc Fu Fm x_a x vb C M Rt X XF IS S
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
 		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
@@ -176,16 +176,14 @@ J=;for a;{	((S))&&{	S=;continue;}
 			x=${a#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
-		-c=*|-cv=*|-cu=*|-cuv=*|-cz=*|-czv=*|-m=*|-mv=*)
+		-c=*|-cv=*|-cu=*|-cuv=*|-cz=*|-czv=*|-m=*|-mv=*|-mu=*|-muv=*)
 			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
 			[ $K$AX ]&&{ S=${K+-exec/execdir};echo Cannot be both ${S:-$AX} and $a option;return;}
-			C=${a#-c*=}
-			[[ $a = -c*v= ]]&&vb=v
-			eval F${a:1:1}=1
-			e=${a:2:1}
-			[[ $e = [uz] ]]&&eval F$e=1
-			break;;
-		-m=*|-mv=*|-mu=*|-muv=*)CM=mv;;
+			C=${a#-*=}
+			[[ $a = -*v= ]]&&vb=v
+			eval F${a:1:1}=1;	(($Fm))&&CM=mv
+			[[ ${a:2:1} = [uz] ]]&&eval F${a:2:1}=1
+			Fc=1;break;;
 		-exec|-execdir)
 			[ $Fc$AX ]&&{	S=${Fc+copy};echo Cannot be both ${S:-$AX} and $a option;return;}
 			AX=\ $a;K=1;continue;;
@@ -197,7 +195,7 @@ J=;for a;{	((S))&&{	S=;continue;}
 	a=\"$a\"			# l m -x=i o - -c=m n
 	if((G));then
 		if((F));then	x_a=$x_a$a\ ;else			M=$M$a\ ;fi
-	elif((Fc+Fu)) ;then
+	elif((Fc)) ;then
 		((!F))&&{	echo -c or -cp option must be after main path name>&2;return;};C=$C\"$a\"' '
 	elif((K));then
 		XC=$XC\ \"$a\"
@@ -319,8 +317,7 @@ else
 	if((F));then
 		CL="find $po$S -regextype posix-extended $Rt $opt\( -${I}path \"$G/*\" \( ${X[@]} $Z \)${p:+" -o -${I}path \"$G\" -type f $P -o -${I}regex \".{${#s}}/.+$p\" \\( $PD -o $P \\)"} \)$AX"
 	else
-		CL="find $po$S \! -ipath $N -regextype posix-extended $opt$Rt -${I}regex $R \( ${X[@]} $Z \)$AX"
-	fi
+		CL="find $po$S \! -ipath $N -regextype posix-extended $opt$Rt -${I}regex $R \( ${X[@]} $Z \)$AX";fi
 	if((de))&&[[ $z != / ]];then
 		export -f fid;eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 	elif((if))&&[[ $z != / ]];then
@@ -338,13 +335,13 @@ if((Fc));then
 		echo;[ "$o" = y ]||return;sudo rm -r "$C"
 	elif	[ -f "$C" ];then echo Trying to replace file $C>&2;rm $vb "$C"||{ echo Failed, try again as root>&2;sudo rm $vb "$C";};fi
 	T=${T# };Q=${Q# };U=${U#\|};V=${V# -o };U=${U:+-${I}regex \"$U\"};V=${V:+$V}
-	if((Fu+Fm));then
-		mkdir $C
+	if((Fu));then
+		mkdir -p$vb $C
 		eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type f" |xargs -i $CM -u$vb '{}' "$C"
 	else
-		eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type d -printf \"$C/%P\n\"" |xargs mkdir -p$vb --
+		eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type d -printf \"$C/%P\n\"" |xargs mkdir -p$vb -- 2>/dev/null &&{
 		cd $C;eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type f -printf '%P\n'" |xargs -i $CM -u$vb "$T/{}" '{}'
-		cd ->/dev/null
+		cd ->/dev/null;}
 	fi
 	#2>/dev/null#((Fz))&&	a='bsdtar -cf$vb $C \{\} \; ;cd $C;bsdtar -xf$vb $C' 
 fi
