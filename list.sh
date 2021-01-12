@@ -95,7 +95,7 @@ fd(){	local a e A E
 }
 fx(){	local D F L G H x r Rt RE IFS S=$1;shift
 for a;{
-eval set -- $a
+eval set -- \"$a\"
 unset F L G H r;for e;{
 case $e in
 	-[cam][0-9]*|-[cam]-[0-9]*)	((L))&&continue;L=1
