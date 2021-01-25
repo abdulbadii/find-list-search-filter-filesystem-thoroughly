@@ -2,15 +2,10 @@ Run InstallUpdate2.bashrc.sh script to quickly copy **list.sh** above to ~/.bash
 Should do too is clicking it, and copy Bash functions inside then paste into ~/.bashrc   
 **list-su.sh** differs only in having superuser request; `sudo` command prefix. However it cannot be applied with -in, -de option   
 
-Find and list specific file, directory, link or any filesystem type recursively while keep utilizing **find** utility useful options. The options to print out found file's:  
-<pre>- Size								-z   
-- Last modification time					-t   
-- Information on file found (whether 64/32 bit binary etc)	-in   
-- Dependencies of file found in one level depth			-de</pre>
-To narrow down search   
+Find and list specific file, directory, link or any filesystem type recursively while keep utilizing **find** utility useful options. To narrow down search:   
 <pre>
 - To find only directory, file, executable or link type, suffix path with /, //, /// or ////    
-- To have better control by regular expression				-E or -re   
+- To get better control in search by regular expression				-E or -re   
 - To search in case sensitive			-cs. (Defaults to insensitive, -ci)   
 - to filter by creation, acces or, modification pass time, use -c, -a, -m an easier use than find (the found number is rounded up to the given)   
 	-a-7m last access is less than or equal to 7 minutes ago   
@@ -35,15 +30,14 @@ To narrow down search
 	l -4.r /usr : search exactly in 4 plies before the last depth of /usr dir.
 - To filter out by path name i.e. to exclude certain path(s) from the main search results -x=   
 </pre>
-Most of `find` test or action options may also be passed and made use of   
-
-Simply type l   
+Most of `find` test or action options may also be passed and made use of. Simply type:   
+   
 $ l   
 list every file, directory, and other kind of filesystem under current directory entirely   
 $ l /   
-list just directory type under current directory recursively   
+list every directory only under current directory recursively   
 $ l //   
-list every regular file only under current directory... so on, which suggests:  
+list every regular file only under current directory, etc, which suggests:  
 put suffix / to search for directory only,  
 put suffix // to search for file only,   
 put suffix /// to search for executable file only  
@@ -128,8 +122,14 @@ To change separator other than \\\\ use **-s=** option, it'd be any 1 or 2 chara
 Below is to search for o, c and so type files everywhere under usr directory path   
 $ l -s=:: /usr/\*\*.o::*\*.c::*\*.so   
 
-Can search in POSIX-extended regular expression by -E or -re option   
-$ l -E '/a/*/m\w{1,2}\\.[c-h]'   
+Can search in POSIX-extended regular expression by -E or -re option e.g.   
+$ l -E '/a/*/m\w{1,2}\\.[c-h]'
+
+Printout option:  
+<pre>- Size								-s   
+- Last modification time					-t   
+- Information on file found (whether 64/32 bit binary etc)	-in   
+- Dependencies of file found in one level depth			-de</pre>
 
 One of the most useful feature of this tool are its recognized standard format of both input and output which could be used/piped as input of another utility, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
 E.g. search under **lib** being under **dev** being under **qt** dir. instead of in **src** or **core**, any **c** file:   

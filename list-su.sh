@@ -18,14 +18,14 @@ case $e in
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
 -x=?*|-xs=?*|-xcs=?*|-c=?*|-cv=?*|-cu=?*|-cuv=?*|-cz=?*|-czv=?*|-m=?*|-mv=?*);;
 -exec|-execdir)xc=1;F=1;;
--z)	sz=\ %s;;
+-s)	sz=\ %s;;
 -E|-re) RX=1;;
 -|--)	break;;
 -rm)	AX=\ -delete;;
--s=*) echo "Separator must be 1 or 2 characters. Ignoring to let it default to \\">&2;;
 -de)de=1;;
 -in)if=1;;
 -c)co=1;;
+-s=*) echo "Separator must be 1 or 2 characters. Ignoring and let it default to \\">&2;;
 -ci)I=i;;
 -t)	tm=" %Tr %Tx";;
 -h|--help) man find;return;;
