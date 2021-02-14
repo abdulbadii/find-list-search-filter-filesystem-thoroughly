@@ -1,7 +1,128 @@
+fxr(){ ##### BEGINNING OF l, find wrap script #####
+local B a b e i p re r z R Z m=path
+[[ $1 =~ ^\./ ]]||re=1;e=${1#./}
+[[ $e =~ ^\.?\.?/ ]]&&{ echo Exclusion must not be upward/.. nor absolute path, it is relative to \'$S\'>&2;return 1;}
+e=${e//$se/$'\n'}
+IFS=$'\n';set -- $e
+[[ $1 =~ ^(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[2]};p=/${BASH_REMATCH[1]}
+B=${p%/*}
+r=("${p##*/}$z" ${@:2})
+(($#>1))&&p=$p$'\n'${e#*$'\n'}
+p=${p//\/..\//$'\t/'}
+p=${p//\{/\\\\\{};p=${p//\}/\\\\\}};p=${p//\(/\\\\\(};p=${p//\)/\\\\\)}
+while [[ $p =~ ([^$'\f']|^)\? ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}[^/]"};done
+while [[ $p =~ ([^$'\f']\[)! ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"};done
+p=${p//./\\\\.};p=${p//\//$'\v'}
+p=${p//$'\v**\v'/$'\v(.\r/)?'}
+p=${p//\*\*/.$'\r'}
+while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'};done;p=${p//$'\r'/*}
+b=${p%%$'\n'*}
+p=${b##*$'\v'}$z${p#"$b"}
+b=${b%$'\v'*}
+set -- ${p:-\"\"};i=;for a;{
+if((!RE))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then
+	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[3]}
+	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
+	[[ ${BASH_REMATCH[1]} ]]&&{
+		Z=${Z-$S}${BASH_REMATCH[1]};[[ $Z =~ ^$'\t'($'\v'|$) ]]&&{ eval $E;continue;}
+		while [[ $Z =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do Z=${Z/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $Z =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
+	}
+	while [[ $p =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
+	R=-${J}regex\ \"$Z${re+.*}${p//$'\v'/\/}\"
+else
+	[[ $B/${r[i++]} =~ ^((/\.\.)*)/(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[4]}
+	p=${BASH_REMATCH[3]};p=${p:+/$p}
+	[ ${BASH_REMATCH[1]} ]&&{
+		Z=${Z-$S}${BASH_REMATCH[1]};[[ $Z =~ ^/\.\.(/|$) ]]&&{ eval $E:continue;}
+		while [[ $Z =~ /[^/]+/\.\.(/|$) ]];do Z=${Z/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $Z =~ ^/\.\.(/|$) ]]&&eval $E2;done;}
+	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
+	((RE))&&m=regex
+	R=-${J}$m\ \"$Z${re+${RE+.}*}$p\"
+fi
+case $z in /) z=-type\ d;;//) z=-type\ f;;///) z="\! -type d -executable";;////) z=-type\ l;esac
+while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
+Rt="$z $R"
+}
+}
+ftm(){	local d f a e z x
+	d=${1:2};f=-${1:1:1}
+	a=${d%-*};e=${a##*[0-9]}
+	: ${e:=m};a=${a%[mhdM]}
+	[ $e = h ] && let a*=60
+	[ $e = M ] && let a*=30
+	e=${e/[mh]/min};e="${e/[dM]/time} "
+	if [[ $d = *-* ]] ;then
+		z=${d#*-};x=${z##*[0-9]}
+		: ${x:=m};z=${z%[mhdM]}
+		[ $x = h ] &&let z*=60;[ $x = M ] &&let z*=30
+		x="${x/[mh]/min} ";x="${x/[dM]/time}"
+		if((!a)) ;then	Rt="\( $f$x-$z -o $f$x$z \)"
+		elif((!z)) ;then	Rt="\( $f$e+$a -o $f$e$a \)"
+		else	Rt="\( $f$e+$a $f$x-$z -o $f$e$a -o $f$x$z \)";fi
+	else	Rt=$f$e$a;fi
+}
+fsz(){	local d f a e z x
+	d=${1:2};f='-size '
+	a=${d%-*};e=${a##*[0-9]}
+	: ${e:=k};e=${e//m/M};e=${e//g/G}
+	a=${a%[cwbkmMgG]}
+	if [[ $d = *-* ]] ;then
+		z=${d#*-};x=${z#*[0-9]}
+		: ${x:=k};x=${x/m/M};x=${x/g/G}
+		z=${z%[cwbkmMgG]}
+		if((!a)) ;then	Rt="\( $f-$z$x -o $f$z$x \)"
+		elif((!z)) ;then	Rt="\( $f+$a$e -o $f$a$e \)"
+		else	Rt="\( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x \)";fi
+	else	Rt=$f$a$e\ ;fi
+}
+fd(){	local a e A E
+	E=${D#*-}
+	if [[ $D =~ - ]];then	A=${D%-*}
+	elif [[ $D = *. ]];then	E=${D%.};A=$E;fi
+	if((Rd));then
+		a=\ $(eval echo {1..$((DM-A+1))})
+		a=${a// ?[! ]/ .};a=${a// ?/\/*}/*
+		e=\ $(eval echo {1..$((DM-E+1))})
+		e=${e// ?[! ]/ .};e=${e// ?/\/*}
+		Rt="${E+-path \"${1-$S}$e\"}${A:+ \! -path \"${1-$S}$a\"}"
+	else
+		a=\ $(eval echo {1..$A})
+		a=${a// ?[! ]/ .};a=${a// ?/\/*}
+		e=\ $(eval echo {1..$E})
+		e=${e// ?[! ]/ .};e=${e// ?/\/*}/*
+		Rt="${A+-path \"${1-$S}$a\"}${E:+ \! -path \"${1-$S}$e\"}"
+	fi
+}
+fx(){
+local D F L G H x r Rt RE IFS S=$1;shift
+for a;{
+eval set -- \"$a\"
+unset F L G H r;for e;{
+case $e in
+	-[cam][0-9]*|-[cam]-[0-9]*)	((L))&&continue;L=1
+		ftm $e;r=$Rt\ $r;;
+	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	((G))&&continue;G=1
+		fsz $e;r=$Rt\ $r;;
+	-[1-9]|-[1-9][0-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])
+		((H))&&continue;H=1
+		D=${e:1};[[ $e =~ [r/]$ ]]&&{	D=${D%?};Rd=1;}
+		fd;	r=$Rt\ $r
+		dtx="exclusion option \"$e\" is${Rd+ reversedly depth '$D' to max $DM,}";;
+	-E|-re)	RE=1;;
+	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be as an excluded path>&2
+		((F))&&continue;F=1
+		fxr "$e"	;(($?))&&return 1
+		r=$r\ $Rt
+esac
+}
+X=(${X[@]} "$r" '\(' ${F+-type d -prune -o }-true '\)' -o)
+}
+}
 fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
+
 l(){
 unset IFS F RX xc co po opt se sz tm AX D Dt Rd DM dtx de if ld;I=i;CM=cp
 shopt -s nocaseglob;set -f;trap 'set +f;unset IFS' 1 2
@@ -18,14 +139,14 @@ case $e in
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
 -x=?*|-xs=?*|-xcs=?*|-c=?*|-cv=?*|-cu=?*|-cuv=?*|-cz=?*|-czv=?*|-m=?*|-mv=?*);;
 -exec|-execdir)xc=1;F=1;;
--s)	sz=\ %s;;
+-z)	sz=\ %s;;
 -E|-re) RX=1;;
 -|--)	break;;
 -rm)	AX=\ -delete;;
+-s=*) echo "Separator must be 1 or 2 characters. Ignoring to let it default to \\">&2;;
 -de)de=1;;
 -in)if=1;;
 -c)co=1;;
--s=*) echo "Separator must be 1 or 2 characters. Ignoring and let it default to \\">&2;;
 -ci)I=i;;
 -t)	tm=" %Tr %Tx";;
 -h|--help) man find;return;;
@@ -40,7 +161,7 @@ esac
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
 while [[ $h =~ ([^\\]|\\\\)[\;\&|\>\<] ]];do	h=${h/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'};done
 IFS=$'\n';set -- $h
-unset IFS F L G K Fc Fu Fm x_a x vb C M Rt X XF IS S
+unset IFS F L G K Fc Fu Fm x_a x vb C M Rt X XF IS S J
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
 		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
@@ -49,7 +170,7 @@ for c;{
 	}
 	set --
 }
-J=;for a;{	((S))&&{	S=;continue;}
+for a;{	((S))&&{	S=;continue;}
 	((!L)) &&{	case $a in
 		-x=?*|-xs=?*|-xcs=?*)
 			((Fc))&&{	echo -c or -cp option must be the last>&2;return;}
@@ -103,7 +224,8 @@ if [ "${a:0:1}" = / ];then re=;p=$a;[[ $p =~ ^/\.\.(/|$) ]]&&eval $E 2
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 else
 	[[ $a =~ ^\.(/|$) ]]	&&{		# if . or prefixed by ./ needn't to insert recursive .*
-		a=${a#.};re=; if [ "$a" ];then	a=${a#/};	else	Rt=-maxdepth\ 1;fi;}
+		a=${a#.};re=; if [ "$a" ]; then	a=${a#/};	else	Rt=-maxdepth\ 1;fi
+	}
 	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
 	p=${BASH_REMATCH[3]};s=~+
 	[ ${BASH_REMATCH[1]} ]&&{	[ $s = / ]&&eval $E 2
@@ -122,8 +244,7 @@ else
 	done		
 	s=${s%/}
 fi
-p=${p%/}
-B=${p%/*}					# common base dir. of names as literal is in B, they're in array
+p=${p%/};B=${p%/*}					# common base dir. of names as literal is in B, they'd be an array
 r=("${p##*/}$z" ${@:2})
 (($#>1))&&p=$p$'\n'${e#*$'\n'}			# else the regex-converted array are put in p, delimited by \n...
 p=${p//\/..\//$'\t/'}
@@ -145,15 +266,14 @@ if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
-	[ ${BASH_REMATCH[1]} ]&&{
+	[[ ${BASH_REMATCH[1]} ]]&&{
 		S=$s${BASH_REMATCH[1]};[[ $S =~ ^$'\t'($'\v'|$) ]]&&{ eval $E;continue;}
 		while [[ $S =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do S=${S/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $S =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
 	}
 	while [[ $p =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
 	if((re));then	p=.*$p;S=$s
 	else
-		[[ $p =~ [^$'\f']([]*?[].*)$ ]]
-		S=${p%$'\v'*"${BASH_REMATCH[1]}"};	p=${p#$S}
+		[[ $p =~ [^$'\f']([]*?[].*)$ ]];	S=${p%$'\v'*"${BASH_REMATCH[1]}"};	p=${p#$S}
 		S=$s${S//$'\v'/\/};	IS=$I
 	fi
 	R=\".{${#S}}${p//$'\v'/\/}\"
@@ -166,10 +286,10 @@ else
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 	: ${S=${s-~+}}
 	if((RX));then	L=$ld;R=\".{${#S}}${re+.*}$p\"
-	elif((re));then	F=1;N=\"$S$p\";	G=$S$p
-		while [[ $G =~ ([^\\]|^)\* ]];do G=${G/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\*"};done;
-	else	IS=$I;S=$s$p;R=.*
-		[ -d "$S" ]||{	N=\'\';x_a=;}
+	elif((re));then
+		F=1;	G=$S$p;N=$G
+		while [[ $G =~ ([^\\]|^)\* ]];do G=${G/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\*"};done
+	else	IS=$I;S=$s$p;R=.*;	[ -d "$S" ]||{	N=\'\';x_a=;}
 	fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
@@ -187,7 +307,7 @@ case $z in
 ////)	Z="-type l \( -path '* *' -printf \"'%p' '%l'\n\" -o -printf \"%p %l\n\" \)";;
 *)	Z="\( $PD -o $P \)"
 esac
-: ${N=\"$S\"}
+N=\"${N=$S}\"
 [ $IS ]&&[ -d "${S%/}" ]&&{ c=${S: -1};set +f;printf -v S "%q" ${S/$c/[$c]};set -f;}
 
 ((Rd))&&{	[[ `eval "find $S -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
@@ -196,9 +316,9 @@ eval ${D+fd $N}
 [ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $N}${D+${dtx+ and }}${dtx+$dtx of $N}">&2
 LC_ALL=C
 if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
-else		: ${S:=/}
+else
 	if((F));then
-		CL="find $po$S $Rt -regextype posix-extended $opt\( -${I}path \"$G/*\" \( ${X[@]} $Z \)${p:+" -o -${I}path \"$G\" -type f $P -o -${I}regex \".{${#s}}/.+$p\" \\( $PD -o $P \\)"} \)$AX"
+		CL="find $po$S $Rt -regextype posix-extended $opt\( -${I}path \"$G/*\" \( ${X[@]} $Z \)${p:+" -o -${I}path \"$G\" -type f $P -o -${I}regex \".{${#s}}/.+$p\" $Z"} \)$AX"
 	else
 		CL="find $po$S $Rt \! -ipath $N -regextype posix-extended $opt-${I}regex $R \( ${X[@]} $Z \)$AX";fi
 	if((de))&&[[ $z != / ]];then
@@ -230,521 +350,3 @@ if((Fc));then
 fi
 }
 set +f;unset IFS;} ##### ENDING OF l, find wrap script #####
-
-
-up(){
-p=$FAT32
-n=SoftScreen
-p=$p/$n
-x=zip;
-z=$n.$x;pf=$p/$z
-on=manifest.json
-if [ -f "$pf" ] ;then
-	k=`7z x $pf $on -so |sed -En '/^.*"version"/ {s/.*:\s*"([0-9.]+[0-9])",\s*/\1/p;q}'`
-else
-	k=`sed -En '/^.*"version"/ {s/.*:\s*"([0-9.]+[0-9])",\s*/\1/p;q}' $p/$on`
-fi
-echo -ne "\nVersion now: $k"
-read  -n 1 -p 'Increment on second level? ' o
-[[ $k =~ ([0-9]+)\.([0-9]+)\.([0-9]+) ]]
-j=${BASH_REMATCH[1]}
-k=${BASH_REMATCH[2]}
-l=${BASH_REMATCH[3]}
-if [ "$o" = y ] ;then
-	((++k))
-	[[ $k =~ 10+ ]] &&{ ((++j)); k=0; }
-elif [[ $((++l)) =~ 10+ ]] ;then
-	((++l))
-	[[ $k =~ 10+ ]] &&{ ((++j)); k=0; }
-	k=${k//.}
-	k=$((10#$k+1)) #Remove leading '0' and increment
-	printf -v k "%04d\n" $k # pad 0 back
-	[[ $k =~ ${k//?/(.)} ]]
-	printf -v k ".%s" ${BASH_REMATCH[@]:2}
-	k=${BASH_REMATCH[1]}$k.0
-else 
-	k=$k.$l
-fi
-
-echo -e "\twill be updated to: $k"
-sed -Ei "/^.*\"version\"/s/(.*:\s*\")([0-9].)+[0-9]/\1${k%.}/" $p/$on
-cd $p
-rm $z 2>/dev/nul
-7z a $z . -mx=9
-cd -
-}
-
-rn(){
-[[ "$1" =~ -h|--help ]]&&{ echo -e "\nFor more help go to https://github.com/abdulbadii/GNU-ext-regex-rename/blob/master/README.md"
-	mv --help|sed -Ee 's/\bmv\b/ren/;8a\ \ -c\t\t\t\tCase sensitive search' -e '14a\ \ -N\t\t\t\tNot to really execute only tell what it will do. It is useful as a test' ;}
-unset f N i o
-c=-iregex;I=i;
-if [[ "${@: -1}" =~ ' ;;' ]];then
-for a
-{
-case ${a:0:6} in
--f????) f=${a:2};f=${f#=};;
--N) N=1;;
--c) c=-regex;I=;;
--[HLPRSTabdfilnpstuvxz]) o=$o$a\ ;;
--*) echo Unrecognized option \'$a\';return;;
-*)
-if [ -n "$f" ] && [ ! -f "$f" ];then
-	f=$(echo $f| sed -E 's~\\\\~\\~g ;s~\\~/~g ;s~\b([a-z]):(/|\W)~/\1/~i')
-	[ -f $f ]||{ echo file does not exist;return;}
-fi
-[[ $a =~ ^(.+)\;\;[\ ]*(.+)$ ]]
-x=${BASH_REMATCH[1]};y=${BASH_REMATCH[2]}
-
-# PCRE --> GNU-ext regex
-x=$(echo $x |sed -E 's/(\[.*?)\\\w([^]]*\])/\1a-z0-9\2/g; s/(\[.*?)\\\d([^]]*\])/\10-9\2/g ;s/\\\d/[0-9]/g; s/([^\])\.\*/\1[^\/]*/g; s/\.?\*\*/.*/g ;s/\s+$//')
-v=${x#.\*}
-if [[ "$x" =~ ^\(*(/|[a-z]:) ]] ;then
-	s=$(echo $x |sed -E 's/([^[|*+\\{.]+).*/\1/;s~(.+)/.*~\1~;s/[()]//g')	#the first longest literal
-else s=~+;x=$PWD/$x
-fi
-IFS=$'\n';LC_ALL=C
-if((N));then
-	if [ "$f" ];then	while read -r F
-	do	[ -e $F ] ||{ F=$(echo $F|sed -E 's/[^!#-~]*([!#-~]+)[^!#-~]*/\1/;s~(\\+|//+)~/~g;s~\b([a-z]):(/|\W)~/\1/~i')
-			[ -e $F ] ||continue;}
-		t=`echo $F | sed -E "s!$v!$y!$I"`
-		[ $F = $t ]||{
-		echo -ne '\033[0;36m'Would\ 
-		if [ ${F%/*} = ${t%/*} ];then	echo -n Rename
-		elif [ ${F##*/} = ${t##*/} ];then	echo -n Move
-		else	echo -n Move then rename
-		fi
-		echo -e ' \033[0m'"$F -> $t\n"
-		}
-	done<$f
-	else	for F in `find $s -regextype posix-extended $c "$x" |head -n499`
-	{	t=`echo $F | sed -E "s!$v!$y!$I"`
-		[ $F = $t ]||{
-		echo -ne '\033[0;36m'Would\ 
-		if [ ${F%/*} = ${t%/*} ];then	echo -n Rename
-		elif [ ${F##*/} = ${t##*/} ];then	echo -n Move
-		else	echo -n Move then rename
-		fi
-		echo -e ' \033[0m'"$F -> $t"
-		}
-	}
-	fi
-else
-	B='-bS .old'
-	if [ "$f" ];then	while read -r F
-	do	[ -e $F ] ||{ F=$(echo $F|sed -E 's/[^!#-~]*([!#-~]+)[^!#-~]*/\1/;s~(\\+|//+)~/~g;s~\b([a-z]):(/|\W)~/\1/~i')
-			[ -e $F ] ||continue;}
-		t=`echo $F | sed -E "s!$v!$y!$I"`
-		[ $F = $t ]||{
-		mkdir -p "${t%/*}"
-		command mv  $o "$F" "$t" &&{
-		echo -ne '\033[0;36m'
-		if [ ${F%/*} = ${t%/*} ];then	echo -e Renaming'\033[0m' $F -\> $t
-		elif [ ${F##*/} = ${t##*/} ];then	echo -e Moving'\033[0m' $F -\> $t
-		else	echo -e Moving and renaming'\033[0m' $F -\> $t
-		fi; }
-		}
-	done<$f
-	else F==
-		while([ "$F" ])
-		do F=
-		for F in `find $s -regextype posix-extended $c "$x" |head -n499`
-		{
-		t=`echo $F | sed -E "s|$v|$y|$I"`
-		[ $F = $t ]||{
-		mkdir -p "${t%/*}"
-		command mv $o "$F" "$t" &&{
-		echo -ne '\033[0;36m'
-		if [ ${F%/*} = ${t%/*} ];then	echo -e Renaming'\033[0m' $F -\> $t
-		elif [ ${F##*/} = ${t##*/} ];then	echo -e Moving'\033[0m' $F -\> $t
-		else	echo -e Moving and renaming'\033[0m' $F -\> $t
-		fi; }
-		}; }
-		done
-	fi
-fi
-unset IFS;;esac
-}
-else	t=${@: -1};mkdir -p "${t%/*}";mv -v $o ${@: -2} $t
-fi
-}
-
-cpr(){
-[[ "$1" =~ -h|--help ]]&&{ echo -e "\nFor more help go to https://github.com/abdulbadii/GNU-ext-regex-rename/blob/master/README.md"
-	cp --help|sed -Ee 's/\bmv\b/ren/;8a\ \ -c\t\t\t\tCase sensitive search' -e '14a\ \ -N\t\t\t\tNot to really execute only tell what it will do. It is useful as a test' ;}
-unset f N i o
-c=-iregex;I=i;
-if [[ "${@: -1}" =~ ' ;;' ]];then
-for a
-{
-case ${a:0:6} in
--f????) f=${a:2};f=${f#=};;
--N) N=1;;
--c) c=-regex;I=;;
--[HLPRSTabdfilnpstuvxz]) o=$o$a\ ;;
--*) echo Unrecognized option \'$a\';return;;
-*)
-if [ -n "$f" ] && [ ! -f "$f" ];then
-	f=$(echo $f| sed -E 's~\\\\~\\~g ;s~\\~/~g ;s~\b([a-z]):(/|\W)~/\1/~i')
-	[ -f $f ]||{ echo file does not exist;return;}
-fi
-[[ $a =~ ^(.+)\;\;[\ ]*(.+)$ ]]
-x=${BASH_REMATCH[1]};y=${BASH_REMATCH[2]}
-
-# PCRE --> GNU-ext regex
-x=$(echo $x |sed -E 's/(\[.*?)\\\w([^]]*\])/\1a-z0-9\2/g; s/(\[.*?)\\\d([^]]*\])/\10-9\2/g ;s/\\\d/[0-9]/g; s/([^\])\.\*/\1[^\/]*/g; s/\.?\*\*/.*/g ;s/\s+$//')
-v=${x#.\*}
-if [[ "$x" =~ ^\(*(/|[a-z]:) ]] ;then
-	s=$(echo $x |sed -E 's/([^[|*+\\{.]+).*/\1/;s~(.+)/.*~\1~;s/[()]//g')	#the first longest literal
-else s=~+;x=$PWD/$x
-fi
-IFS=$'\n';LC_ALL=C
-if((N));then
-	if [ "$f" ];then	while read -r F
-	do	[ -e $F ] ||{ F=$(echo $F|sed -E 's/[^!#-~]*([!#-~]+)[^!#-~]*/\1/;s~(\\+|//+)~/~g;s~\b([a-z]):(/|\W)~/\1/~i')
-			[ -e $F ] ||continue;}
-		t=`echo $F | sed -E "s!$v!$y!$I"`
-		[ $F = $t ]||{
-		echo -ne '\033[0;36m'Would\ 
-		if [ ${F%/*} = ${t%/*} ];then	echo -n Rename
-		elif [ ${F##*/} = ${t##*/} ];then	echo -n Move
-		else	echo -n Move then rename
-		fi
-		echo -e ' \033[0m'"$F -> $t\n"
-		}
-	done<$f
-	else	for F in `find $s -regextype posix-extended $c "$x" |head -n499`
-	{	t=`echo $F | sed -E "s!$v!$y!$I"`
-		[ $F = $t ]||{
-		echo -ne '\033[0;36m'Would\ 
-		if [ ${F%/*} = ${t%/*} ];then	echo -n Rename
-		elif [ ${F##*/} = ${t##*/} ];then	echo -n Move
-		else	echo -n Move then rename
-		fi
-		echo -e ' \033[0m'"$F -> $t"
-		}
-	}
-	fi
-else
-	B='-bS .old'
-	if [ "$f" ];then	while read -r F
-	do	[ -e $F ] ||{ F=$(echo $F|sed -E 's/[^!#-~]*([!#-~]+)[^!#-~]*/\1/;s~(\\+|//+)~/~g;s~\b([a-z]):(/|\W)~/\1/~i')
-			[ -e $F ] ||continue;}
-		t=`echo $F | sed -E "s!$v!$y!$I"`
-		[ $F = $t ]||{
-		mkdir -p "${t%/*}"
-		command cp  $o "$F" "$t" &&{
-		echo -ne '\033[0;36m'
-		if [ ${F%/*} = ${t%/*} ];then	echo -e Renaming'\033[0m' $F -\> $t
-		elif [ ${F##*/} = ${t##*/} ];then	echo -e Moving'\033[0m' $F -\> $t
-		else	echo -e Moving and renaming'\033[0m' $F -\> $t
-		fi; }
-		}
-	done<$f
-	else F==
-		while([ "$F" ])
-		do F=
-		for F in `find $s -regextype posix-extended $c "$x" |head -n499`
-		{
-		t=`echo $F | sed -E "s|$v|$y|$I"`
-		[ $F = $t ]||{
-		mkdir -p "${t%/*}"
-		command cp $o "$F" "$t" &&{
-		echo -ne '\033[0;36m'
-		if [ ${F%/*} = ${t%/*} ];then	echo -e Renaming'\033[0m' $F -\> $t
-		elif [ ${F##*/} = ${t##*/} ];then	echo -e Moving'\033[0m' $F -\> $t
-		else	echo -e Moving and renaming'\033[0m' $F -\> $t
-		fi; }
-		}; }
-		done
-	fi
-fi
-unset IFS;;esac
-}
-else	t=${@: -1};mkdir -p "${t%/*}";cp -v $o ${@: -2} $t
-fi
-}
-
-
-
-copy(){
-(($#<2))&&return
-N=;i=;o=;c=-iregex;I=i;
-for a
-{
-case ${a:0:6} in
--f????) f=${a:2};f=${f#=};;
--N) N=1;;
--c) c=-regex;I=;;
--[HLPRSTabdfilnpstuvxz]) o="$o $a";;
---h|-h) echo -e For more help go to'\nhttps://github.com/abdulbadii/GNU-ext-regex-copy/blob/master/README.md\n'
-	cp --help|sed -Ee 's/\bmv\b/ren/;8a\ \ -c\t\t\t\tCase sensitive search' -e '14a\ \ -N\t\t\t\tNot to really execute only tell what it will do. It is useful as a test';return;;
--*) echo Unrecognized option \'$a\';return;;
-*)
-if [ ! -f $f ];then
-	f=$(echo $f| sed -E 's~\\\\~\\~g ;s~\\~/~g ;s~\b([a-z]):(/|\W)~/\1/~i')
-	[ -f $f ]||{ echo file $f does not exist;return;}
-fi
-if [[ "${@: -1}" =~ ' ;;' ]];then
-y=${a#* ;;}
-x=${a%[^ ]*;;*};x=$x${a:${#x}:1}
-# PCRE --> GNU-ext regex
-x=$(echo $x |sed -E 's/(\[.*?)\\\w([^]]*\])/\1a-z0-9\2/g; s/(\[.*?)\\\d([^]]*\])/\10-9\2/g ;s/\\\d/[0-9]/g; s/([^\])\.\*/\1[^\/]*/g; s/\.?\*\*/.*/g')
-v=${x#.\*}
-if [[ "$x" =~ ^\(*(/|[a-z]:) ]] ;then
-	s=$(echo $x |sed -E 's/([^[|*+\\{.]+).*/\1/;s~(.+)/.*~\1~;s/[()]//g')	#the first longest literal
-else s=~+;x=$PWD/$x
-fi
-IFS=$'\n';LC_ALL=C
-if((N==1));then
-	if [ "$f" ];then	while read -r F
-	do	[ -e $F ] ||{ F=$(echo $F|sed -E 's/[^!#-~]*([!#-~]+)[^!#-~]*/\1/;s~(\\+|//+)~/~g;s~\b([a-z]):(/|\W)~/\1/~i')
-			[ -e $F ] ||continue;}
-		t=`echo $F | sed -E "s|$v|$y|$I"`
-		[ $F = $t ]||{
-		echo -ne '\033[0;36m'Would\ 
-		if [ ${F%/*} = ${t%/*} ];then	echo copy as different name on the same folder
-		elif [ ${F##*/} = ${t##*/} ];then	echo copy to different folder
-		else	echo copy to different name and folder
-		fi
-		echo -e '\033[0m'"$F -> $t\n"
-		}
-	done<$f
-	else	for F in `find $s -regextype posix-extended $c "$x" |head -n499`
-	{	t=`echo $F | sed -E "s|$v|$y|$I"`
-		[ $F = $t ]||{
-		echo -ne '\033[0;36m'Would\ 
-		if [ ${F%/*} = ${t%/*} ];then	echo copy as a new name at the same folder
-		elif [ ${F##*/} = ${t##*/} ];then	echo copy into different folder
-		else	echo copy to different name and folder
-		fi
-		echo -e '\033[0m'"$F -> $t\n"
-		}
-	}
-	fi
-else
-	if [ "$f" ];then	while read -r F
-	do	[ -e $F ] ||{ F=$(echo $F|sed -E 's/[^!#-~]*([!#-~]+)[^!#-~]*/\1/;s~(\\+|//+)~/~g;s~\b([a-z]):(/|\W)~/\1/~i')
-			[ -e $F ] ||continue;}
-		t=`echo $F | sed -E "s|$v|$y|$I"`
-		[ $F = $t ]||{
-		if [ ${F%/*} = ${t%/*} ];then	echo -e '\033[0;36m'Copying to different name on the same folder'\033[0m' 
-		elif [ ${F##*/} = ${t##*/} ];then	echo -e '\033[0;36m'Copying to different folder'\033[0m' 
-		else	echo -e '\033[0;36m'Copying to different name and folder'\033[0m' 
-		fi
-		mkdir -p "${t%/*}";cp -vbS .old $o "$F" "$t";}
-	done<$f
-	else F==
-		while([ "$F" ])
-		do F=
-		for F in `find $s -regextype posix-extended $c "$x" |head -n499`
-		{
-		t=`echo $F | sed -E "s|$v|$y|$I"`
-		[ $F = $t ]||{
-		if [ ${F%/*} = ${t%/*} ];then	echo -e '\033[0;36m'Copying as new name of the same folder'\033[0m'
-		elif [ ${F##*/} = ${t##*/} ];then	echo -e '\033[0;36m'Copying into different folder'\033[0m'
-		else	echo -e '\033[0;36m'Copying to different folder and name'\033[0m'
-		fi
-		mkdir -p "${t%/*}";cp -vbS .old $o "$F" "$t";}
-		}
-		done
-		fi
-fi
-unset IFS
-else
-	t=xv${@: -1};mkdir -p "${t%/*}";cp -bvS .old $o ${@: -2} $t
-fi;;
-esac
-}
-}
-
-filsz(){
-e=;d=;w=v;x='tmp,bak';p=~+
-for o
-{
-case ${o:0:3} in
--x*)	
-	x=${o#-x};x=${x#=};;
--d*)
-	o=${o#-d[= ]/}
-	a=${o%,*};b=${o#*,}
-	o=${a:+"-mindepth $a "}${b:+"-maxdepth $b "};;
--nv)	w=;;
-/[a-z]*)
-	if [ -d "$o" ] ;then
-		p=$o
-	elif [ -e $o ] ;then
-		p=${o%/*}
-		e=${o##*/}
-	else	echo Directory/file \'$o\' does not exist;return 1
-	fi;;
--?*) echo Invalid option;return 1;;
-*)
-	if [ -f ~+/$o ] ;then	e=$o
-	elif [ -d ~+/$o ] ;then p=~+/$o
-	else echo Directory/file  \'$PWD/$o\' does not exist;return 1
-	fi;;
-esac
-}
-xt="(${x//,/|})"
-if [ $e ] ;then
-	f="($(echo "$e.$xt|${e%%.*}[-_][0-9]${e#*.}"| sed -E 's/[{}\.$]/\\\&/g; s/\*/.*/g; s/\?/./'))"
-else
-	f="[^/]+(\.$xt|[-_][0-9]\.[^./]+)"
-fi
-IFS=$'\n'
-s==;while [ "$s" ]
-do
-y=0;a=;b=;d=;s=
-for s in `find $p $d -type f -regextype posix-extended -iregex ^.*/$f\$ -printf '%p %s\n' |head -n199`
-{
-	fx=${s% *};h=${fx%/*};z=${s##* }
-	if [[ ${fx: -4} =~ $xt ]] ;then e=${fx:0:-4}
-	else
-		e=`echo $fx|sed -E 's/[-_][0-9](\.[^./]+)$/\1/'`
-	fi
-	if [ "$h" = "$d" ] &&[ $e = $a ];then
-		if [ $z -lt $y ]	;then
-			rm -f$w $fx
-			continue
-		elif [ $z -gt $y ]|| [ `find $h -noleaf -maxdepth 1 -type f -iname "${e##*/}" -newer "$b"` ];then
-			rm -f$w $b
-		fi
-	elif [ "$d" ] ;then
-		if [ -f $a ]&&[ `find $d -noleaf -maxdepth 1 -type f -iname "${a##*/}" -printf %s` -gt $y ];then rm -f$w $b
-		else mv -f$w $b $a
-		fi
-	fi
-	d=$h
-	a=$e
-	b=$fx
-	y=$z
-}
-done
-unset IFS
-}
-
-# access remotely checked-out files over passwordless ssh for CVS
-# COMP_CVS_REMOTE=1
-# Define to avoid stripping description in --option=description of './configure --help'
-# COMP_CONFIGURE_HINTS=1
-#
-# Define to avoid flattening internal contents of tar files
-# COMP_TAR_INTERNAL_PATHS=1
-#
-# Uncomment to turn on programmable completion enhancements.
-# Any completions you add in ~/.bash_completion are sourced last.
-# [[ -f /etc/bash_completion ]] && . /etc/bash_completion
-
-# The '&' is a special pattern which suppresses duplicate entries.
-# export HISTIGNORE=$'[ \t]*:&:[fb]g:exit'
-#
-# Whenever displaying the prompt, write the previous line to disk
-# export PROMPT_COMMAND="history -a"
-# Aliases - Some people use a different file for aliases
-# if test -f "${HOME}/.bash_aliases" ; then
-#   source "${HOME}/.bash_aliases"
-# fi
-
-# Umask
-# /etc/profile sets 022, removing write perms to group + others.
-# Set a more restrictive umask: i.e. no exec perms for others:
-# umask 027
-# Paranoid: neither group nor others have any perms:
-# umask 077
-# Functions
-#
-# Some people use a different file for functions
-# if test -f "${HOME}/.bash_functions" ; then
-#   source "${HOME}/.bash_functions"
-# fi
-#functions:
-# a) function settitle
-# settitle ()
-# {
-#   echo -ne "\e]2;$@\a\e]1;$@\a";
-# }
-#
-# b) function cd_func
-# This function defines a 'cd' replacement function capable of keeping,
-# displaying and accessing history of visited directories, up to 10 entries.
-# To use it, uncomment it, source this file and try 'cd --'.
-# acd_func 1.0.5, 10-nov-2004
-# Petar Marinov, http:/geocities.com/h2428, this is public domain
-# cd_func ()
-# {
-#   local x2 the_new_dir adir index
-#   local -i cnt
-#
-#   if [[ $1 ==  "--" ]]; then
-#     dirs -v
-#     return 0
-#   fi
-#
-#   the_new_dir=$1
-#   [[ -z $1 ]] && the_new_dir=$HOME
-#
-#   if [[ ${the_new_dir:0:1} == '-' ]]; then
-#     #
-#     # Extract dir N from dirs
-#     index=${the_new_dir:1}
-#     [[ -z $index ]] && index=1
-#     adir=$(dirs +$index)
-#     [[ -z $adir ]] && return 1
-#     the_new_dir=$adir
-#   fi
-#
-#   #
-#   # '~' has to be substituted by ${HOME}
-#   [[ ${the_new_dir:0:1} == '~' ]] && the_new_dir="${HOME}${the_new_dir:1}"
-#
-#   #
-#   # Now change to the new dir and add to the top of the stack
-#   pushd "${the_new_dir}" > /dev/null
-#   [[ $? -ne 0 ]] && return 1
-#   the_new_dir=$(pwd)
-#
-#   #
-#   # Trim down everything beyond 11th entry
-#   popd -n +11 2>/dev/null 1>/dev/null
-#
-#   #
-#   # Remove any other occurence of this dir, skipping the top of the stack
-#   for ((cnt=1; cnt <= 10; cnt++)); do
-#     x2=$(dirs +${cnt} 2>/dev/null)
-#     [[ $? -ne 0 ]] && return 0
-#     [[ ${x2:0:1} == '~' ]] && x2="${HOME}${x2:1}"
-#     if [[ "${x2}" == "${the_new_dir}" ]]; then
-#       popd -n +$cnt 2>/dev/null 1>/dev/null
-#       cnt=cnt-1
-#     fi
-#   done
-#   return 0
-# }
-#
-# alias cd=cd_func
-# mvc() {
-# if [[ $@ =~ ^- ]] ;then
-	# r=;l=
-	# for f
-	# {
-		# [[ $f =~ ^- ]] || break
-		# [[ $f =~ -(64|32) ]] &&{ r=$f ;shift; }
-	# }
-	# if test $r = -64 ;then 
-		# for f
-		# {
-		# a=`head -c512 $f | od -xAn  | gre -Moe '4550( \w{4}\s*){12}'` 2>/dev/nul&&{ test ${a: -4} = 20b &&l="$l$f "; }
-		# }
-	# elif test $r = -32 ;then
-		# for f
-		# {
-		# a=`head -c512 $f | od -xAn  | gre -Moe '4550( \w{4}\s*){12}'` 2>/dev/nul&&{ test ${a: -4} = 10b &&l="$l$f "; }
-		# }
-	# fi
-	# mv -bv $l $f
-# else	mv -bv "$@"
-# fi
-# }
-source "$HOME/.cargo/env"

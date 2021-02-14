@@ -5,7 +5,7 @@ for o;{ [ $o = -s ] &&s=-su ;}
 n=`sed -En '/\s#{5,}\s*BEGINNING OF l, find wrap script #{5,}/{=;q}' ~/.bashrc`
 if((n));then
 	echo -e "Warning:\n\t\t##### BEGINNING OF l, find wrap script #####\n\npattern was found in ~.bashrc at line number $n\n"
-	echo -e "\nCommand to remove/uninstall it:   $0 -r)"
+	echo -e "\nCommand to remove or uninstall:   $0 -r"
 	if [ "$1" = -r ] ;then
 		echo removing l function script from that header pattern
 		sed -i -Ee '/\s+#{5,}\s*BEGINNING OF l, find wrap script #{5,}/,/^\}\s+#{5,}\s*ENDING OF l, find /d' ~/.bashrc
