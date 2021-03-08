@@ -139,11 +139,11 @@ case $e in
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
 -x=?*|-xs=?*|-xcs=?*|-c=?*|-cv=?*|-cu=?*|-cuv=?*|-cz=?*|-czv=?*|-m=?*|-mv=?*);;
 -exec|-execdir)xc=1;F=1;;
--z)	sz=\ %s;;
+-s)	sz=\ %s;;
 -E|-re) RX=1;;
 -|--)	break;;
 -rm)	AX=\ -delete;;
--s=*) echo "Separator must be 1 or 2 characters. Ignoring to let it default to \\">&2;;
+-s=*) echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
 -de)de=1;;
 -in)if=1;;
 -c)co=1;;
@@ -220,7 +220,7 @@ for a;{									# fake 'For Loop' to apart of no path argument, once then breaks
 [[ $a =~ ^(\./|.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}
-if [ "${a:0:1}" = / ];then re=;p=$a;[[ $p =~ ^/\.\.(/|$) ]]&&eval $E 2
+if [ "${a:0:1}" = / ];then re=;p=$a;[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 else
 	[[ $a =~ ^\.(/|$) ]]	&&{		# if . or prefixed by ./ needn't to insert recursive .*
@@ -244,7 +244,7 @@ else
 	done		
 	s=${s%/}
 fi
-p=${p%/};B=${p%/*}					# common base dir. of names as literal is in B, they'd be an array
+p=${p%/};B=${p%/*}					# if common base dir. of names is literal, it'd be in B, they're as array
 r=("${p##*/}$z" ${@:2})
 (($#>1))&&p=$p$'\n'${e#*$'\n'}			# else the regex-converted array are put in p, delimited by \n...
 p=${p//\/..\//$'\t/'}
@@ -253,7 +253,7 @@ while [[ $p =~ ([^$'\f']|^)\? ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[
 while [[ $p =~ ([^$'\f']\[)! ]] ;do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}^"};done
 p=${p//./\\\\.};p=${p//\//$'\v'}
 p=${p//$'\v**\v'/$'\v(.\r/)?'}
-p=${p//\*\*/.$'\r'}
+p=${p//\*\*/$'.\r'}
 while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"[^/]$'\r'};done;p=${p//$'\r'/*}
 b=${p%%$'\n'*}							# ... and common head/base dir. is b
 p=${b##*$'\v'}$z${p#"$b"}
@@ -261,22 +261,23 @@ b=${b%$'\v'*}
 break;}
 fi
 unset i L T Q U V dt;set -- ${p:-\"\"};for a;{
-unset F N IS R S G
+unset F N IS R S G NP
 if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*[] ]];then L=$ld
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
-	[[ ${BASH_REMATCH[1]} ]]&&{
+	[ ${BASH_REMATCH[1]} ]&&{
 		S=$s${BASH_REMATCH[1]};[[ $S =~ ^$'\t'($'\v'|$) ]]&&{ eval $E;continue;}
 		while [[ $S =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do S=${S/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $S =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
 	}
 	while [[ $p =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
 	if((re));then	p=.*$p;S=$s
-	else
-		[[ $p =~ [^$'\f']([]*?[].*)$ ]];	S=${p%$'\v'*"${BASH_REMATCH[1]}"};	p=${p#$S}
-		S=$s${S//$'\v'/\/};	IS=$I
+	else	IS=$I
+		[[ $p =~ [^$'\f']([][*?].*)$ ]]
+		S=${p%$'\v'*"${BASH_REMATCH[1]}"};p=${p#$S}
+		S=$s${S//$'\v'/\/};: ${S:=/}
 	fi
-	R=\".{${#S}}${p//$'\v'/\/}\"
+	R=${p//$'\v'/\/}
 else
 	[[ $B/${r[i++]} =~ ^((/\.\.)*)/(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[4]}
 	p=${BASH_REMATCH[3]};p=${p:+/$p}
@@ -285,19 +286,19 @@ else
 		while [[ $S =~ /[^/]+/\.\.(/|$) ]];do S=${S/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $S =~ ^/\.\.(/|$) ]]&&eval $E2;done;}
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 	: ${S=${s-~+}}
-	if((RX));then	L=$ld;R=\".{${#S}}${re+.*}$p\"
+	if((RX));then	L=$ld;R=${re+.*}$p
 	elif((re));then
 		F=1;	G=$S$p;N=$G
 		while [[ $G =~ ([^\\]|^)\* ]];do G=${G/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}\*"};done
-	else	IS=$I;S=$s$p;R=.*;	[ -d "$S" ]||{	N=\'\';x_a=;}
+	else	IS=$I
+		S=$s$p;R=.*;	[ -d "$S" ]||{	N=\'\';x_a=;}
 	fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 [ ${C#.} ]||((Fc)) &&{
 	if [ "$R" = .* ] ;then C=${p##*/}
-	else [ -e "$R" ] && C=${R##*/}
-	fi
+	else [ -e "$R" ] && C=${R##*/};fi
 }
 P="\( -path '* *' -printf \"$dp'%p'$sz$tm\n\" -o -printf '$dp%p$sz$tm\n' \)"
 PD="-type d \( -path '* *' -printf \"$dp$tm'%p/'\n\" -o -printf '$dp$tm%p/\n' \)"
@@ -308,6 +309,8 @@ case $z in
 *)	Z="\( $PD -o $P \)"
 esac
 N=\"${N=$S}\"
+[ $S = / ] || { R=.{${#S}}$R;NP='\! -ipath $N';}
+
 [ $IS ]&&[ -d "${S%/}" ]&&{ c=${S: -1};set +f;printf -v S "%q" ${S/$c/[$c]};set -f;}
 
 ((Rd))&&{	[[ `eval "find $S -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
@@ -320,7 +323,7 @@ else
 	if((F));then
 		CL="find $po$S $Rt -regextype posix-extended $opt\( -${I}path \"$G/*\" \( ${X[@]} $Z \)${p:+" -o -${I}path \"$G\" -type f $P -o -${I}regex \".{${#s}}/.+$p\" $Z"} \)$AX"
 	else
-		CL="find $po$S $Rt \! -ipath $N -regextype posix-extended $opt-${I}regex $R \( ${X[@]} $Z \)$AX";fi
+		CL="find $po$S $Rt $NP -regextype posix-extended $opt-${I}regex \"$R\" \( ${X[@]} $Z \)$AX";fi
 	if((de))&&[[ $z != / ]];then
 		export -f fid;eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 	elif((if))&&[[ $z != / ]];then
