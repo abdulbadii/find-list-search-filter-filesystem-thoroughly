@@ -124,12 +124,13 @@ fid(){
 }
 
 l(){
-unset IFS F RX xc co po opt se sz tm AX D Dt Rd DM dtx de if ld;I=i;CM=cp
+unset IFS F RX EP co po opt se sz tm AX D Dt Rd DM dtx de if ld;I=i;CM=cp
 shopt -s nocaseglob;set -f;trap 'set +f;unset IFS' 1 2
 for e;{
-((F)) &&{	F=;((xc))||opt=$opt$e\ ;continue;}
+((F)) &&{	opt=$opt$e' '
+		((EP))&&{ AX=$opt;break;}
+		continue;}
 case $e in
--cs) I=;;
 -[cam][0-9]*|-[cam]-[0-9]*)	ftm $e;opt=$opt$Rt\ ;;
 -[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])
 	Dt=$e;D=${e:1};[[ ${e: -1} = [r/] ]]&&{	D=${D%?};Rd=1;};;
@@ -138,22 +139,27 @@ case $e in
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
 -x=?*|-xs=?*|-xcs=?*|-c=?*|-cv=?*|-cu=?*|-cuv=?*|-cz=?*|-czv=?*|-m=?*|-mv=?*);;
--exec|-execdir)xc=1;F=1;;
--s)	sz=\ %s;;
+-ls) AX=-ls;;
+-rm) AX=-delete;;
+-exec|-execdir) AX=-$e;EP=1;F=1;;
+-s) sz=\ %s;;
 -E|-re) RX=1;;
 -|--)	break;;
--rm)	AX=\ -delete;;
 -s=*) echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
--de)de=1;;
--in)if=1;;
--c)co=1;;
--ci)I=i;;
--t)	tm=" %Tr %Tx";;
+-de)de=1;;-in)if=1;;
+-cs)I=;;
+-c) co=1;;-ci)I=i;;
+-t) tm=" %Tx";;
+-th) tm=" %Tr %Tx";;
+-ta) tm=" %Ax";;
+-tah) tm=" %Ar %Ax";;
+-tc) tm=" %Cx";;
+-tch) tm=" %Cr %Cx";;
 -h|--help) man find;return;;
 -[HDLPO]) po=$e\ ;;
 -[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
 \!|-[ac-il-x]?*)
-	if [[ $e =~ ^!|-(delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]];then opt=$opt$e' '
+	if [[ $e =~ ^!|^-(ls|delete|depth|daystart|follow|fprint|fls|group|gid|o|xstype)$ ]];then opt=$opt$e' '
 	else	read -n1 -p "Option '$e' seems unrecognized, ignore and continue? " k>&2;echo;[ "$k" = y ]||return;fi;;
 -*)	echo \'$e\': unknown option, ignoring. To let it be a path name, put it after - or -- then space>&2
 esac
@@ -179,16 +185,16 @@ for a;{	((S))&&{	S=;continue;}
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
 		-c=*|-cv=*|-cu=*|-cuv=*|-cz=*|-czv=*|-m=*|-mv=*|-mu=*|-muv=*)
+			[ $AX ]&&{ echo Cannot be both copy and $AX option;return;}
 			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
-			[ $K$AX ]&&{ S=${K+-exec/execdir};echo Cannot be both ${S:-$AX} and $a option;return;}
 			C=${a#-*=}
 			[[ $a = -*v= ]]&&vb=v
 			eval F${a:1:1}=1;	(($Fm))&&CM=mv
 			[[ ${a:2:1} = [uz] ]]&&eval F${a:2:1}=1
 			Fc=1;break;;
-		-exec|-execdir)
-			[ $Fc$AX ]&&{	S=${Fc+copy};echo Cannot be both ${S:-$AX} and $a option;return;}
-			AX=\ $a;K=1;continue;;
+		-ls|-rm|-exec|-execdir)
+			[ $Fc ]&&{	echo Cannot be both copy and $a option;return;}
+			continue;;
 		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
 		-|--)	L=1;continue;;
 		-\!|-*)continue
@@ -321,9 +327,9 @@ LC_ALL=C
 if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
 else
 	if((F));then
-		CL="find $po$S $Rt -regextype posix-extended $opt\( -${I}path \"$G/*\" \( ${X[@]} $Z \)${p:+" -o -${I}path \"$G\" -type f $P -o -${I}regex \".{${#s}}/.+$p\" $Z"} \)$AX"
+		CL="find $po$S $Rt -regextype posix-extended $opt\( -${I}path \"$G/*\" \( ${X[@]} $Z \)${p:+" -o -${I}path \"$G\" -type f $P -o -${I}regex \".{${#s}}/.+$p\" $Z"} \) $AX"
 	else
-		CL="find $po$S $Rt $NP -regextype posix-extended $opt-${I}regex \"$R\" \( ${X[@]} $Z \)$AX";fi
+		CL="find $po$S $Rt $NP -regextype posix-extended $opt-${I}regex \"$R\" \( ${X[@]} $Z \) $AX";fi
 	if((de))&&[[ $z != / ]];then
 		export -f fid;eval "$CL ! -type d -executable -exec /bin/bash -c 'fid \"\$0\" \"\$@\"' '{}' \;"
 	elif((if))&&[[ $z != / ]];then
