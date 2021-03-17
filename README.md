@@ -5,8 +5,8 @@ Should do too is clicking it, and copy Bash functions inside then paste into ~/.
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing **find** utility useful options. To narrow down search:   
 <pre>
 - To find only directory, file, executable, or link type, suffix path with /, //, /// or ////    
-- To get better control in search by regular expression				-E or -re   
-- To search in case sensitive			-cs. (Defaults to insensitive, -ci)   
+- To get better control in search by using regular expression  
+- To search in case sensitive, (Defaults to insensitive)   
 - to filter by creation, acces or, modification pass time, use -c, -a, -m an easier use than find (the found number is rounded up to the given)   
 	-a-7m last access is less than or equal to 7 minutes ago   
 	-c7d last creation equals to 7 days ago  
@@ -19,14 +19,14 @@ Find and list specific file, directory, link or any filesystem type recursively 
 	-s7-10 : size is between 7 to 10 kibibyte inclusively. No unit means in kibibyte 
 	-s70c-50 : size is between 70 byte to 50 kibibyte inclusively 
 - To filter certain depths :		-1..99[-1..99][r|/], e.g.   
-	l -5 /usr	: search only up to 5th depths counted from /usr dir.
+	l -5 /usr	: search up only to 5th depths based on /usr dir.
 	l -5-7	: search only within the 5th to 7th depths of current dir.
 	l -7.		: search in the exact 7th depths from current dir.
 	l -5- /usr : search in the 5th depth or deeper up to the last, counted from /usr dir.
-	Suffix it with r e.g. l -1r  is depth in reverse direction (or / for r)
+	Suffix it with r, e.g. l -1r,  is searching depth in reverse direction (/ may be used instead)
 	l -1r /usr :
 	l -1/ /usr : search in the last/deepest depth of /usr dir.
-	l -3r /usr : search in 3 plies before the last up to the last depth of /usr dir.
+	l -3r /usr : search in the last 3 plies up to the last depth of /usr dir.
 	l -4.r /usr : search exactly in 4 plies before the last depth of /usr dir.
 - To filter out by path name i.e. to exclude certain path(s) from the main search results -x=   
 </pre>
@@ -41,12 +41,12 @@ list every regular file only under current directory, etc, which suggests:
 put suffix / to search for directory only,  
 put suffix // to search for file only,   
 put suffix /// to search for executable file only  
-or put suffix //// to search for link only   
+put suffix //// to search for link only   
 
 $ l \\\\/   
-list any filesystem type under "/" (root) directory entirely, the prepended \\\\ is to differentiate it with second usage above: list every directory type under current directory   
+list any filesystem type under "/" (root) directory entirely, the prefixed **\\\\** is to differentiate it from second usage above: list every directory type under current directory   
 
-As absolute path, it always searchs in directories depths as explicitly specified, either with or without wildcard such as:   
+The absolute path-input search, will target in the directory depth as explicitly specified, either with or without wildcard such as:   
 
 l /qt/build/core/meta   
 means searching for any object type namedly **meta** under **core** under **build** within **qt** directory in root dir.   
@@ -118,15 +118,15 @@ e.g. this will search for /qt/src/dev/\*.h, /qt/src/dev/\*.c, and /qt/src/dev/\*
 $ cd /qt
 $ l src/dev/*.h\\\\\*.c\\\\\*.cpp   
 
-To change separator other than \\\\ use **-s=** option, it'd be any 1 or 2 characters (not guaranteed robust if the character is regarded as special one by Bash)   
+To change separator other than **\\\\** use **-s=** option, it'd be any 1 or 2 characters (not guaranteed robust if the character is regarded as special one by Bash)   
 Below is to search for o, c and so type files everywhere under usr directory path   
 $ l -s=:: /usr/\*\*.o::*\*.c::*\*.so   
 
-Can search in POSIX-extended regular expression by -E or -re option e.g.   
+Can search in POSIX-extended regular expression by `-E` or `-re` option e.g.   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'
 
 Printout option:  
-<pre>- Size								-s   
+<pre>- Size								-s   or with extra info of similar to command ls -l
 - Last modification, change/creation, and access date time				-m, -c, -a  
 - Last modification, change/creation, and access hour time				-mh, -ch, -ah  
 - Information on the file found (whether 64/32 bit binary etc)	-i  
@@ -157,10 +157,11 @@ $ l -m5d
 
 ## AUTOMATED REMOVAL
 
-Removal is readily guarded nicely, needn't to test it first by omitting options below as it'll prompt the user to confirm the deletion process if there is any find result
--no  :  to remove all orphan link of the main find result
+Removal is readily guarded nicely. One needn't to test it first by a usual search without options below, as it'll prompt him/her to confirm the deletion process as final decision, if there is any find result
 -0    :  to remove all zero size file or empty directory of the find result
--rm  :  to remove all of the main find result
+-no  :  to remove all orphan link of the main find result
+-rm       :
+-delete : to remove all of the main find result
 
 ## EXCLUSION
 
