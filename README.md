@@ -1,10 +1,10 @@
 Run InstallUpdate2.bashrc.sh script to quickly copy **list.sh** above to ~/.bashrc    
 Should do too is clicking it, and copy Bash functions inside then paste into ~/.bashrc   
-**list-su.sh** differs only in having superuser request; `sudo` command prefix. However it cannot be applied with -in, -de option   
+**list-su.sh** differs only in having superuser request; `sudo` command prefix. However it cannot be applied with de, -i option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing **find** utility useful options. To narrow down search:   
 <pre>
-- To find only directory, file, executable or link type, suffix path with /, //, /// or ////    
+- To find only directory, file, executable, or link type, suffix path with /, //, /// or ////    
 - To get better control in search by regular expression				-E or -re   
 - To search in case sensitive			-cs. (Defaults to insensitive, -ci)   
 - to filter by creation, acces or, modification pass time, use -c, -a, -m an easier use than find (the found number is rounded up to the given)   
@@ -54,7 +54,7 @@ means searching for any object type namedly **meta** under **core** under **buil
 /qt/\*/\*/core/\*.c//   
 search for any file having extension name ".c" under **core** directory under any directory being under any directory under **qt** directory on root of filesystem.   
 
-To search somewhere deeper than such up to maximum, add "\*\*", double wildcard asterisks, in the context of intended depth, e.g.   
+To search somewhere deeper than such up to maximum, add **\*\*** i.e. double wildcard asterisks, in the context of intended depth, e.g.   
 $ l /qt/\*/\*/core/\*\*/meta   
 
 Will find   
@@ -66,12 +66,12 @@ Will find
 
 I.e. it will search in two plies depth between **qt** and **core** directory, and indefinite number of ply depth between **core** and **meta** directory   
 
-If navigating in way of relative path i.e. not started with slash character (/), then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
+If navigating in way of relative path, i.e. not started with slash character (/), then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it with ./   
 
 Suppose previous explicit part of path exists only where it's specified i.e. **meta** exists only under **core** directory being under any directory being under any dir. under qt directory.   
 
-Prefixing a relative path with ./ characters will search for at current dir., i.e. as if the CLI path is concatenated directly to current dir.   
+Prefixing a relative path with ./ characters will search for at current dir.,as if the CLI path is concatenated directly to current dir.   
 
 $ cd /qt   
 $ l core/meta   
@@ -85,24 +85,24 @@ will not find it since there is no /qt/core/meta
 More e.g. if current working dir. is **/usr**,   
 	l lib   
 
-Defaults to search recursively under **/usr**, so it'd mean (in way of shell global star) searching for:   
+Defaults to search recursively under **/usr**, so it'd mean ) searching for:   
 	/usr/lib   
-	/usr/*/lib   
-	/usr/*/*/lib   
-	/usr/*/*/*/lib   
-	or as shell globstar: 	/usr/**/lib   
+	/usr/\*/lib   
+	/usr/\*/\*/lib   
+	/usr/\*/\*/\*/lib   
+	or in way of shell global star: 	/usr/\*\*/lib   
 So prefixing the relative path with ./ to become l ./lib, will ensure only search /usr/lib (the first)  
 
-In this way of having relative path explicitly stated, i.e. there's no any wildcard in the string, if being searched and a **directory is found** in current working dir, precisely there, then that directory content entirely will be listed automatically, while it'll be otherwise listed normally in place deeper regardless of its type.      
+In this way of having relative path explicitly stated, i.e. there's no any wildcard in the string, if being searched and **a directory is found** in current working dir, precisely there, then that directory content will entirely be listed automatically, while it'll be otherwise listed normally in deeper place else regardless of its type.      
 If the purpose is needed as another way of path specification above, e.g. in searching by wildcard pattern or some depth searches, put -l option or -l followed by number of depth contained in a directory found.   
 E.g to have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. l -l0 lib* 
 
 Control the limited search depth by option -1..99[-1..99],  e.g:
    
-search for only on current directory and one below it put -2   
+To search only on current directory and another one below it, put -2   
 $ l -2   
 
-to search for only from 3rd ply from current up to 5th    
+To search for only from 3rd ply from current up to 5th    
 $ l -3-5 src/dev   
 
 to search only from 5th ply of current directory until the last, under src/dev dir. relative to PWD, of size between 40 and 50 kibibyte inclusively:   
@@ -128,7 +128,7 @@ $ l -E '/a/*/m\w{1,2}\\.[c-h]'
 Printout option:  
 <pre>- Size								-s   
 - Last modification, change/creation, and access date time				-m, -c, -a  
-- Last modification, change/creation, and access hour time					-mh, -ch, -ah  
+- Last modification, change/creation, and access hour time				-mh, -ch, -ah  
 - Information on the file found (whether 64/32 bit binary etc)	-i  
 - Dependencies of file found in one level depth			-de</pre>
 
