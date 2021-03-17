@@ -93,8 +93,8 @@ Defaults to search recursively under **/usr**, so it'd mean (in way of shell glo
 	or as shell globstar: 	/usr/**/lib   
 So prefixing the relative path with ./ to become l ./lib, will ensure only search /usr/lib (the first)  
 
-In this way of having relative path explicitly stated, i.e. there's no any wildcard in the string, if being searched and a **directory is found** in current working dir (precisely there), then that directory content entirely will be listed automatically, while otherwise place in deeper depth, it'll be just listed normally regardless of the type.      
-If this purpose is needed in another way of path specification mentioned above, ie. in wildcard pattern or some depth searches, put -l option or -l followed by number of depth contained in a directory found.   
+In this way of having relative path explicitly stated, i.e. there's no any wildcard in the string, if being searched and a **directory is found** in current working dir, precisely there, then that directory content entirely will be listed automatically, while it'll be otherwise listed normally in place deeper regardless of its type.      
+If the purpose is needed as another way of path specification above, e.g. in searching by wildcard pattern or some depth searches, put -l option or -l followed by number of depth contained in a directory found.   
 E.g to have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. l -l0 lib* 
 
 Control the limited search depth by option -1..99[-1..99],  e.g:
@@ -127,8 +127,9 @@ $ l -E '/a/*/m\w{1,2}\\.[c-h]'
 
 Printout option:  
 <pre>- Size								-s   
-- Last modification time					-t   
-- Information on file found (whether 64/32 bit binary etc)	-in   
+- Last modification, change/creation, and access date time				-m, -c, -a  
+- Last modification, change/creation, and access hour time					-mh, -ch, -ah  
+- Information on the file found (whether 64/32 bit binary etc)	-i  
 - Dependencies of file found in one level depth			-de</pre>
 
 One of the most useful feature of this tool are its recognized standard format of both input and output which could be used/piped as input of another utility, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
@@ -152,7 +153,14 @@ $ l -a5h-7h
 $ l -m-5d   
    find object modified 5 days ago or earlier   
 $ l -m5d   
-   find object modified exactly 5 days ago   
+   find object modified exactly 5 days ago
+
+## AUTOMATED REMOVAL
+
+Removal is readily guarded nicely, needn't to test it first by omitting options below as it'll prompt the user to confirm the deletion process if there is any find result
+-no  :  to remove all orphan link of the main find result
+-0    :  to remove all zero size file or empty directory of the find result
+-rm  :  to remove all of the main find result
 
 ## EXCLUSION
 
