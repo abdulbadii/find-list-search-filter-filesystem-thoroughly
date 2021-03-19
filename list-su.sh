@@ -243,7 +243,7 @@ else
 	}
 	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
 	p=${BASH_REMATCH[3]};s=~+
-	[ ${BASH_REMATCH[1]} ]&&{	[ $s = / ]&&eval $E 2
+	[ ${BASH_REMATCH[1]} ]&&{	[ $s = / ]&&eval $E2
 		s=$s${BASH_REMATCH[1]}
 		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/};[[ $s =~ ^/\.\.(/|$) ]]&&eval $E2;done
 	}
@@ -251,7 +251,7 @@ else
 		[[ $p =~ ^/\.\.(/|$) ]]&&{
 			[[ $p =~ ^((/\.\.)*)(/.+)?$ ]]
 			p=${BASH_REMATCH[3]}
-			((re))||{	[ $s = / ]&&eval $E 2;	s=$s${BASH_REMATCH[1]}
+			((re))||{	[ $s = / ]&&eval $E2;	s=$s${BASH_REMATCH[1]}
 				while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/}
 					[[ $s =~ ^/\.\.(/|$) ]]&&{ eval $E;return;}
 				done;}
@@ -282,7 +282,7 @@ if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then L=$ld
 	z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
 	[ ${BASH_REMATCH[1]} ]&&{
-		S=$s${BASH_REMATCH[1]};[[ $S =~ ^$'\t'($'\v'|$) ]]&&{ eval $E;continue;}
+		S=$s${BASH_REMATCH[1]};[[ $S =~ ^$'\t'($'\v'|$) ]]&&{ eval $E1;continue;}
 		while [[ $S =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do S=${S/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $S =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
 	}
 	while [[ $p =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
