@@ -124,11 +124,11 @@ fid(){
 }
 
 l(){
-unset IFS F N0 OL RM RX EP EO co po opt se sz tm D Dt Rd DM dtx de if ld CM;I=i
+unset IFS F N0 OL RM RX EP E co po opt se sz tm D Dt Rd DM dtx de if ld CM;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	opt=$opt$e' '
-		((EP))&&{ EO=$opt;break;}
+		((EP))&&{ E=$opt;break;}
 		continue;}
 case $e in
 -[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=$opt$Rt\ ;;
@@ -139,12 +139,12 @@ case $e in
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
 	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
 -x=?*|-xs=?*|-xcs=?*|-c=?*|-cv=?*|-cu=?*|-cuv=?*|-cz=?*|-czv=?*|-m=?*|-mv=?*);;
--ls) EO=-ls\ $EO;;
+-ls) E=-ls\ $E;;
 -rm|-delete)RM=1
 	((EP)) && { echo cannot both rm and exec option;return;};;
 -exec|-execdir)
 	((RM+OL+N0)) && { echo cannot both exec and rm, no, 0 option;return;}
-	EO=$EO\ $e;EP=1;F=1;;
+	E=$E\ $e;EP=1;F=1;;
 -s) sz=\ %s;;
 -E|-re) RX=1;;
 -no)OL=1
@@ -191,7 +191,7 @@ for a;{	((S))&&{	S=;continue;}
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
 		-c=*|-cv=*|-cu=*|-cuv=*|-cz=*|-czv=*|-m=*|-mv=*|-mu=*|-muv=*)
-			((EP+RM+if+de+OL+N0))&& { echo Cannot be both copy and removal, dependency, info, or $EO option;return;}
+			((EP+RM+if+de+OL+N0))&& { echo Cannot be both copy and removal, dependency, info, or $E option;return;}
 			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
 			C=${a#-*=}
 			[[ $a = -*v= ]]&&vb=v
@@ -218,7 +218,7 @@ for a;{	((S))&&{	S=;continue;}
 		fi;G=0
 	else	M=$M$a\ ;F=1;fi
 }
-E="echo Path \'\$a\' is invalid, it\'d be up beyond root. Ignoring>&2";E2="{ $E;continue 2;}"
+E1="echo Path \'\$a\' is invalid, it\'d be up beyond root. Ignoring>&2";E2="{ $E1;continue 2;}"
 [ "${M//\*}" ]||M=;M=${M//\\/\\\\}
 eval set -- ${M:-\"\"}
 for e;{
@@ -297,7 +297,7 @@ else
 	[[ $B/${r[i++]} =~ ^((/\.\.)*)/(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[4]}
 	p=${BASH_REMATCH[3]};p=${p:+/$p}
 	[ ${BASH_REMATCH[1]} ]&&{
-		S=$s${BASH_REMATCH[1]};[[ $S =~ ^/\.\.(/|$) ]]&&{ eval $E;continue;}
+		S=$s${BASH_REMATCH[1]};[[ $S =~ ^/\.\.(/|$) ]]&&{ eval $E1;continue;}
 		while [[ $S =~ /[^/]+/\.\.(/|$) ]];do S=${S/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $S =~ ^/\.\.(/|$) ]]&&eval $E2;done;}
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 	: ${S=${s-~+}}
@@ -346,19 +346,19 @@ eval ${D+fd $M}
 		IFS=/;while read -r l;do
 			l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
 			for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
-			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find ${C[@]} $EO
+			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find ${C[@]} $E
 	else
 		((OL+N0))&&{
-			EO=;((OL))&&{ L=-L;	EO="-type l $PL";}
-			((N0))&&	EO="${EO:+$EO -o }-empty ( -type f $PT -o $PD )"
+			E=;((OL))&&{ L=-L;	E="-type l $PL";}
+			((N0))&&	E="${E:+$E -o }-empty ( -type f $PT -o $PD )"
 			if((F)) ;then
 				unset C[2] C[4];	[ "$p" ]&&	C[6]=${C[5]}/*
 			else		C[2]="-o ${C[1]}/*"
 			fi
 		}
-		2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find $L ${C[@]} $EO
+		2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find $L ${C[@]} $E
 		((OL+N0+RM))&&{
-			find $L ${C[@]} $EO |read -rn1 || { echo Nothing was found and deleted>&2;return;}
+			find $L ${C[@]} $E |read -rn1 || { echo Nothing was found and deleted>&2;return;}
 			read -sN1 -p 'Remove all the objects listed above (Enter: yes) ? ' o;echo
 			[ "$o" = $'\x0a' ]&&{
 				((OL))&&	Z=-type\ l

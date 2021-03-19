@@ -2,9 +2,7 @@ Run the InstallUpdate2.bashrc.sh to quickly copy **list.sh** above to ~/.bashrc
 Should do too is clicking it, copy Bash functions inside and then paste it into ~/.bashrc   
 **list-su.sh** differs only in having superuser request: `sudo` command prefix. However it cannot be applied with de, -i option   
 
-Find and list specific file, directory, link or any filesystem type recursively while keep utilizing **find** utility useful options. To narrow down search:   
-
-Most of `find` test or action options may also be passed and made use of. Simply type:   
+Find and list specific file, directory, link or any filesystem type recursively while keep utilizing most`find` test or action options that may be passed and made use of. Simply type:   
    
 $ l   
 list every file, directory, and other kind of filesystem under current directory entirely   
@@ -20,6 +18,7 @@ put suffix //// to search for link only
 $ l \\\\/   
 list any filesystem type under **/** (root) directory entirely, the prefixed **\\\\** is to differentiate it from second usage above: list every directory type under current directory   
 
+ To narrow down search:   
 <pre>
 - To find only directory, file, executable, or link type, suffix path with /, //, /// or ////    
 - To get better control in search by using regular expression  
