@@ -191,7 +191,7 @@ for a;{	((S))&&{	S=;continue;}
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
 		-c=*|-cv=*|-cu=*|-cuv=*|-cz=*|-czv=*|-m=*|-mv=*|-mu=*|-muv=*)
-			((EP+RM+i+de+OL+N0))&& { echo Cannot be both copy and $EO option;return;}
+			((EP+RM+if+de+OL+N0))&& { echo Cannot be both copy and removal, dependency, info, or $EO option;return;}
 			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
 			C=${a#-*=}
 			[[ $a = -*v= ]]&&vb=v
@@ -314,12 +314,12 @@ while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATC
 #}
 PT="( -regex .*\s.* -printf '%p'$sz$tm\n -o -printf %p$sz$tm\n )"
 PD="-type d ( -regex .*\s.* -printf '%p/'$tm\n -o -printf %p$tm/\n )"
+PL="-type l ( -regex .*\s.* -printf '%p'->'%l'\n -o -printf %p->%l\n )"
 ((ld))&& PD="( -type d -prune -exec find {} $lx ( $PD -o $PT ) ; -o $PT )"
 case $z in
-/)	Z="$PD";;//)	Z="-type f $PT";;
-///)	Z="\! -type d -executable $PT";;
-////)	Z="-type l ( -regex .*\s.* -printf '%p %l'\n -o -printf %p %l\n )";;
-*)	Z="( $PD -o $PT )"
+/)	P="$PD";;//)	P="-type f $PT";;
+///)	P="\! -type d -executable $PT";;
+////)P=$PL;;	*)P="( $PD -o $PT )"
 esac
 M=\"${M=$S}\";[ $S = / ] ||{ R=.{${#S}}$R; ((OL+N0))|| N="! -ipath $M";}
 
@@ -331,36 +331,41 @@ eval ${D+fd $M}
 [ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $M}${D+${dtx+ and }}${dtx+$dtx of $M}">&2
 #if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
 #else
-	LC_ALL=C;unset IFS E L
+	LC_ALL=C;unset IFS E L Z
 	if((F)) ;then
-		C=("$po$S $Rt -regextype posix-extended $opt(" '' "-${I}path $S$p/*" "( ${X[@]} $Z )" ${p:+"-o -${I}path $S$p -type f $PT" -o "-${I}path $S/*$p" "( $PD -o $PT )"} \) )
+		C=("$po$S $Rt -regextype posix-extended $opt(" "-${I}path $S$p/*" "( ${X[@]} $P )"
+		 ${p:+"-o -${I}path $S$p" "-type f $PT" "-o -${I}path $S/*$p" "( $PD -o $PT )"} \))
 	else
-		C=("$po$S $Rt -regextype posix-extended $N $opt" '' "-${I}regex $R" "( ${X[@]} $Z )" )
+		C=("$po$S $Rt -regextype posix-extended $N $opt(" "-${I}regex $R" "( ${X[@]} $P )" \))
 	fi
 	if((de))&&[[ $z != / ]];then	export -f fid;find ${C[@]} ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
 	elif((if))&&[[ $z != / ]];then
 		find ${C[@]} ! -type d -exec bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;
-	elif((co));then	command> >(x=;F=;IFS=/;while read -r l;do
-		l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
-		for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
-		echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	eval find ${C[@]} $EO
+	elif((co));then	> >(x=;F=
+		IFS=/;while read -r l;do
+			l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
+			for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
+			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	find ${C[@]} $EO
 	else
-		((OL)) &&{ L=-L; C[1]=-type\ l;}
-		((N0)) && C[1]='( -type f -size 0 -o -type d -empty )'
+		((OL+N0))&&{
+			((OL))&&{ L=-L;	EO="-type l $PL";}
+			((N0))&&	EO="-empty ( -type f $PT -o $PD )"
+			if((F)) ;then
+				unset C[2] C[4];	[ "$p" ]&&	C[6]=${C[5]}/*
+			else	
+				C[2]="-o ${C[1]}/*";fi
+		}
 		exec 3>&1 4>&2
-		E=$(2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $L ${C[@]} $EO |tee >(read -rN1;echo $?)>&3 2>&4)
-		if((OL+N0+RM));then
-			((E)) &&{ echo Nothing was found and deleted>&2;return 1;}
-			read -sN1 -p 'Remove all the object(s) above (Enter: yes) ? ' o;[ "$o" = $'\x0a' ]&&{
-			if((OL+N0));then	C[3]=;((F))&&[ "$p" ]&&C[7]=
-			else
-				C[1]=\(
-				if((F)) ;then	C[3]="-o -${I}path $S$p )"; [ $p ] &&{ C[5]='-o ('; C[7]="-o -${I}path */*$p/* )";}				
-				else	C[3]="-o -${I}regex $R/.+ )";fi
-			fi
-			find $L ${C[@]} -delete
+		E=$(2> >(while read s;do echo -e "\e[1;31m$s\e[m">&4;done) find $L ${C[@]} $EO |tee >(read -rN1;echo $?)>&3)
+		((OL+N0+RM))&&{
+			((E)) &&{ echo Nothing was found and deleted>&2;return;}
+			read -sN1 -p 'Remove all the objects listed above (Enter: yes) ? ' o
+			[ "$o" = $'\x0a' ]&&{
+				((OL))&&	Z=-type l
+				((N0))&&	Z=-empty
+				find $L ${C[@]} $Z -delete
 			}
-		fi
+		}
 	fi
 #fi
 }

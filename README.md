@@ -66,7 +66,7 @@ Will find
 
 I.e. it will search in two plies depth between **qt** and **core** directory, and indefinite number of ply depth between **core** and **meta** directory   
 
-If navigating in way of relative path, i.e. not started with slash character (/), then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
+If navigating in way of relative path, i.e. not started with **/**, a slash character, then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it with ./   
 
 Suppose previous explicit part of path exists only where it's specified i.e. **meta** exists only under **core** directory being under any directory being under any dir. under qt directory.   
@@ -118,9 +118,9 @@ e.g. this will search for /qt/src/dev/\*.h, /qt/src/dev/\*.c, and /qt/src/dev/\*
 $ cd /qt
 $ l src/dev/*.h\\\\\*.c\\\\\*.cpp   
 
-To change separator other than **\\\\** use **-s=** option, it'd be any 1 or 2 characters (not guaranteed robust if the character is regarded as special one by Bash)   
+To change separator to other than **\\\\**, use **-s=** option, it'd be any one or two characters (no guaranteed robust consisent result if the character is regarded as the special one by Bash)   
 Below is to search for o, c and so type files everywhere under usr directory path   
-$ l -s=:: /usr/\*\*.o::*\*.c::*\*.so   
+$ l -s=:: /usr/\*/\*.o::\*.c::\*.so   
 
 Can search in POSIX-extended regular expression by `-E` or `-re` option e.g.   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'
@@ -157,11 +157,11 @@ $ l -m5d
 
 ## AUTOMATED REMOVAL
 
-Removal is readily guarded nicely. One needn't to test it first by a usual search without options below, as it'll prompt him/her to confirm the deletion process as final decision, if there is any find result
--0    :  to remove all zero size file or empty directory of the find result
--no  :  to remove all orphan link of the main find result
+Removal is readily guarded nicely. One needn't to test it first by a usual search without options below, as it'll prompt him/her to confirm the deletion process as final decision, if there is any find result   
+<pre>-0    :  to remove all zero size files or empty directory of the find result
+-no  :  to remove all orphan links of the main find result
 -rm       :
--delete : to remove all of the main find result
+-delete : to remove all of the main find result</pre>
 
 ## EXCLUSION
 
