@@ -349,8 +349,8 @@ eval ${D+fd $M}
 			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find ${C[@]} $EO
 	else
 		((OL+N0))&&{
-			((OL))&&{ L=-L;	EO="-type l $PL";}
-			((N0))&&	EO="$EO -empty ( -type f $PT -o $PD )"
+			EO=;((OL))&&{ L=-L;	EO="-type l $PL";}
+			((N0))&&	EO="${EO:+$EO -o }-empty ( -type f $PT -o $PD )"
 			if((F)) ;then
 				unset C[2] C[4];	[ "$p" ]&&	C[6]=${C[5]}/*
 			else		C[2]="-o ${C[1]}/*"
@@ -362,7 +362,7 @@ eval ${D+fd $M}
 			read -sN1 -p 'Remove all the objects listed above (Enter: yes) ? ' o;echo
 			[ "$o" = $'\x0a' ]&&{
 				((OL))&&	Z=-type\ l
-				((N0))&&	Z="$Z -o -empty"
+				((N0))&&	Z="${Z+$Z -o }-empty"
 				sudo find $L ${C[@]} $Z -delete &&echo All above has been deleted
 			}
 		}
