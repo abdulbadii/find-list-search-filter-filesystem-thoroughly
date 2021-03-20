@@ -348,8 +348,8 @@ eval ${D+fd $M}
 			for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
 			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find ${C[@]} $E
 	else
-		((OL+N0))&&{
-			E=;((OL))&&{ L=-L;	E="-type l $PL";}
+		((OL+N0))&&{	E=
+			((OL))&&{ L=-L;	E="-type l $PL";}
 			((N0))&&	E="${E:+$E -o }-empty ( -type f $PT -o $PD )"
 			if((F)) ;then
 				unset C[2] C[4];	[ "$p" ]&&	C[6]=${C[5]}/*
@@ -361,9 +361,9 @@ eval ${D+fd $M}
 			find $L ${C[@]} $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
 			read -sN1 -p 'Remove all the objects listed above (Enter: yes)? ' o
 			[ "$o" = $'\x0a' ]&&{
-				((OL))&&	Z=-type\ l
-				((N0))&&	Z="${Z+$Z -o }-empty"
-				sudo find $L ${C[@]} $Z -delete &&echo Those above has been deleted;echo
+				((N0))&&	Z=-empty
+				((OL))&&	Z="${Z+$Z -o }-type l"
+				sudo find $L ${C[@]} $Z -delete &&echo Those above have been deleted;echo
 			}
 		}
 	fi
