@@ -56,9 +56,9 @@ ftm(){	local d f a e z x
 		: ${x:=m};z=${z%[mhdM]}
 		[ $x = h ] &&let z*=60;[ $x = M ] &&let z*=30
 		x="${x/[mh]/min} ";x="${x/[dM]/time}"
-		if((!a)) ;then	Rt="\( $f$x-$z -o $f$x$z \)"
-		elif((!z)) ;then	Rt="\( $f$e+$a -o $f$e$a \)"
-		else	Rt="\( $f$e+$a $f$x-$z -o $f$e$a -o $f$x$z \)";fi
+		if((!a)) ;then	Rt="( $f$x-$z -o $f$x$z )"
+		elif((!z)) ;then	Rt="( $f$e+$a -o $f$e$a )"
+		else	Rt="( $f$e+$a $f$x-$z -o $f$e$a -o $f$x$z )";fi
 	else	Rt=$f$e$a;fi
 }
 fsz(){	local d f a e z x
@@ -70,9 +70,9 @@ fsz(){	local d f a e z x
 		z=${d#*-};x=${z#*[0-9]}
 		: ${x:=k};x=${x/m/M};x=${x/g/G}
 		z=${z%[cwbkmMgG]}
-		if((!a)) ;then	Rt="\( $f-$z$x -o $f$z$x \)"
-		elif((!z)) ;then	Rt="\( $f+$a$e -o $f$a$e \)"
-		else	Rt="\( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x \)";fi
+		if((!a)) ;then	Rt="( $f-$z$x -o $f$z$x )"
+		elif((!z)) ;then	Rt="( $f+$a$e -o $f$a$e )"
+		else	Rt="( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x )";fi
 	else	Rt=$f$a$e\ ;fi
 }
 fd(){	local a e A E
@@ -226,8 +226,8 @@ unset F a b B p z r re s
 if [ "${e:0:2}" = \\/ ];then	z=${e:2};s=/			# start with \\, means root dir search
 else
 e=${e//${se='\\'}/$'\n'}
-re=1;IFS=$'\n'
-set -- $e			# break down to paths of same base, separated by \\ or $se
+W=.;re=1
+IFS=$'\n';set -- $e			# break down to paths of same base, separated by \\ or $se
 for a;{									# fake for-loop to apart of no path argument, once then breaks
 [[ $a =~ ^(.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
@@ -237,7 +237,7 @@ if [ "${a:0:1}" = / ];then	re= # if absolute or...
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 else
 	[[ $a =~ ^\./|^\.$ ]]	&&{	# ..prefixed by ./ , needn't to insert recursive .*
-		re=;W=.;a=${a#.};[ "$a" ]|| W=[^/]
+		re=;a=${a#.};[ "$a" ]|| W=[^/]
 		a=${a#/}
 	}
 	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
@@ -322,21 +322,23 @@ case $z in
 esac
 M=\"${M=$S}\"
 [ $S = / ] ||{ R=.{${#S}}$R; ((OL+N0))|| N="! -ipath $M";}
-[ $IS ]&&[ -d "${S%/}" ]&&{ shopt -s nocaseglob;c=${S: -1};set +f;printf -vS "%q" ${S/$c/[$c]};set -f;}
+[ $IS ]&&[ -d "${S%/}" ]&&{
+	shopt -s nocaseglob;c=${S: -1};set +f;printf -vS "%q" ${S/$c/[$c]};set -f;}
 
-((Rd))&&{	[[ `eval "find $S -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
+((Rd))&&{
+	[[ `eval "find $S -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a+fx $M $x_a};(($?))&&return;XF=1;}
-
 eval ${D+fd $M}
+opt=$opt$Rt' '
 [ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $M}${D+${dtx+ and }}${dtx+$dtx of $M}">&2
 #if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
 #else
 	LC_ALL=C;unset IFS E L Z
 	if((F)) ;then
-		C=("$po$S $Rt -regextype posix-extended $opt(" "-${I}path $S$p/*" "( ${X[@]} $P )"
+		C=("$po$S -regextype posix-extended $opt(" "-${I}path $S$p/*" "( ${X[@]} $P )"
 		 ${p:+"-o -${I}path $S$p" "-type f $PT" "-o -${I}path $S/*$p" "( $PD -o $PT )"} \))
 	else
-		C=("$po$S $Rt -regextype posix-extended $N $opt(" "-${I}regex $R" "( ${X[@]} $P )" \))
+		C=("$po$S -regextype posix-extended $N $opt(" "-${I}regex $R" "( ${X[@]} $P )" \))
 	fi
 	if((de))&&[[ $z != / ]];then	export -f fid;find ${C[@]} ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
 	elif((if))&&[[ $z != / ]];then
@@ -352,8 +354,7 @@ eval ${D+fd $M}
 			((N0))&&	E="${E:+$E -o }-empty ( -type f $PT -o $PD )"
 			if((F)) ;then
 				unset C[2] C[4];	[ "$p" ]&&	C[6]=${C[5]}/*
-			else		C[2]="-o ${C[1]}/*"
-			fi
+			else		C[2]="-o ${C[1]}/*";	fi
 		}
 		2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $L ${C[@]} $E
 		((OL+N0+RM))&&{
