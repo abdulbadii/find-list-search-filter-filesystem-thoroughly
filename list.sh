@@ -84,13 +84,13 @@ fd(){	local a e A E
 		a=${a// ?[! ]/ .};a=${a// ?/\/*}/*
 		e=\ $(eval echo {1..$((DM-E+1))})
 		e=${e// ?[! ]/ .};e=${e// ?/\/*}
-		Rt="${E+-path \"${1-$S}$e\"}${A:+ \! -path \"${1-$S}$a\"}"
+		Rt="${E+-path ${1-$S}$e}${A:+ ! -path ${1-$S}$a}"
 	else
 		a=\ $(eval echo {1..$A})
 		a=${a// ?[! ]/ .};a=${a// ?/\/*}
 		e=\ $(eval echo {1..$E})
 		e=${e// ?[! ]/ .};e=${e// ?/\/*}/*
-		Rt="${A+-path \"${1-$S}$a\"}${E:+ \! -path \"${1-$S}$e\"}"
+		Rt="${A+-path ${1-$S}$a}${E:+ ! -path ${1-$S}$e}"
 	fi
 }
 fx(){
@@ -162,7 +162,7 @@ case $e in
 -ah) tm=' %Ar %Ax';;
 -c) tm=\ %Cx;;
 -ch) tm=' %Cr %Cx';;
--h|--help) man find;return;;
+-h|--help)man find;return;;
 -[HDLPO])po=$e\ ;;
 -[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
 \!|-ls|-d|-delete|-depth|-daystart|-follow|-fprint|-fls|-group|-gid|-o|-xstype) opt=$opt$e\ ;;
@@ -175,7 +175,7 @@ while [[ $h =~ ([^\\]|\\\\)[\;\&|\>\<] ]];do	h=${h/"${BASH_REMATCH[0]}"/"${BASH_
 IFS=$'\n';set -- $h
 unset IFS F L G K Fc Fu Fm x_a x vb C M X XF IS S J
 for c;{
-	[[ $c =~ ^.+[[:space:]]*\$\(\ *$FUNCNAME[[:space:]]+(.*)\)|.+[[:space:]]*\`[[:space:]]*$FUNCNAME[[:space:]]+(.*)\`|[[:space:]]*$FUNCNAME[[:space:]]+(.*) ]]&&{	
+	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME[[:space:]]+(.*)\)|.+[[:space:]]*\`[[:space:]]*$FUNCNAME[[:space:]]+(.*)\`|[[:space:]]*$FUNCNAME[[:space:]]+(.*) ]]&&{	
 		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
 		while [[ $c =~ ([^\\])\\([]*?[]) ]];do	c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"};done
 		eval set -- $c;break;
@@ -236,9 +236,8 @@ if [ "${a:0:1}" = / ];then	re= # if absolute or...
 	p=$a;[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 else
-	[[ $a =~ ^\./|^\.$ ]]	&&{ re=	# ..prefixed by ./ , needn't to insert recursive .*
-		W=.
-		a=${a#.};[ "$a" ] || W=[^/]
+	[[ $a =~ ^\./|^\.$ ]]	&&{	# ..prefixed by ./ , needn't to insert recursive .*
+		re=;W=.;a=${a#.};[ "$a" ]|| W=[^/]
 		a=${a#/}
 	}
 	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
@@ -249,14 +248,13 @@ else
 	}
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/}
 		[[ $p =~ ^/\.\.(/|$) ]]&&{
-			[[ $p =~ ^((/\.\.)*)(/.+)?$ ]]
-			p=${BASH_REMATCH[3]}
-			((re))||{	[ $s = / ]&&eval $E2;	s=$s${BASH_REMATCH[1]}
-				while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/}
-					[[ $s =~ ^/\.\.(/|$) ]]&&{ eval $E;return;}
-				done;}
+			[[ $p =~ ^((/\.\.)*)(/.+)?$ ]]; p=${BASH_REMATCH[3]}
+			((re))||{
+			[ $s = / ]&&eval $E2;	s=$s${BASH_REMATCH[1]}
+			while [[ $s =~ /[^/]+/\.\.(/|$) ]];do
+				s=${s/"${BASH_REMATCH[0]}"/\/}; [[ $s =~ ^/\.\.(/|$) ]]&&{ eval $E1;return;};done;}
 			break;}
-	done		
+	done
 	s=${s%/}
 fi
 p=${p%/};B=${p%/*}					# if common base dir. of names is literal, it'd be in B, they're as array
@@ -322,22 +320,23 @@ case $z in
 ///)	P="\! -type d -executable $PT";;
 ////) P=$PL;;	*) P="( $PD -o $PT )"
 esac
-M=\"${M=$S}\";[ $S = / ] ||{ R=.{${#S}}$R; ((OL+N0))|| N="! -ipath $M";}
-
+M=\"${M=$S}\"
+[ $S = / ] ||{ R=.{${#S}}$R; ((OL+N0))|| N="! -ipath $M";}
 [ $IS ]&&[ -d "${S%/}" ]&&{ shopt -s nocaseglob;c=${S: -1};set +f;printf -vS "%q" ${S/$c/[$c]};set -f;}
 
 ((Rd))&&{	[[ `eval "find $S -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a+fx $M $x_a};(($?))&&return;XF=1;}
+
 eval ${D+fd $M}
 [ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $M}${D+${dtx+ and }}${dtx+$dtx of $M}">&2
 #if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
 #else
 	LC_ALL=C;unset IFS E L Z
 	if((F)) ;then
-		C=("$po$S -regextype posix-extended $opt(" "-${I}path $S$p/*" "( ${X[@]} $P )"
+		C=("$po$S $Rt -regextype posix-extended $opt(" "-${I}path $S$p/*" "( ${X[@]} $P )"
 		 ${p:+"-o -${I}path $S$p" "-type f $PT" "-o -${I}path $S/*$p" "( $PD -o $PT )"} \))
 	else
-		C=("$po$S -regextype posix-extended $N $opt(" "-${I}regex $R" "( ${X[@]} $P )" \))
+		C=("$po$S $Rt -regextype posix-extended $N $opt(" "-${I}regex $R" "( ${X[@]} $P )" \))
 	fi
 	if((de))&&[[ $z != / ]];then	export -f fid;find ${C[@]} ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
 	elif((if))&&[[ $z != / ]];then
