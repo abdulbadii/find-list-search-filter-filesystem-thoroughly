@@ -175,7 +175,7 @@ while [[ $h =~ ([^\\]|\\\\)[\;\&|\>\<] ]];do	h=${h/"${BASH_REMATCH[0]}"/"${BASH_
 IFS=$'\n';set -- $h
 unset IFS F L G K Fc Fu Fm x_a x vb C M X XF IS S J
 for c;{
-	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME\ +(.*)\)|.+\ *\`\ *$FUNCNAME\ +(.*)\`|\ *$FUNCNAME\ +(.*) ]]&&{	
+	[[ $c =~ ^.+[[:space:]]*\$\(\ *$FUNCNAME[[:space:]]+(.*)\)|.+[[:space:]]*\`[[:space:]]*$FUNCNAME[[:space:]]+(.*)\`|[[:space:]]*$FUNCNAME[[:space:]]+(.*) ]]&&{	
 		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
 		while [[ $c =~ ([^\\])\\([]*?[]) ]];do	c=${c/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\f'"${BASH_REMATCH[2]}"};done
 		eval set -- $c;break;
@@ -358,12 +358,12 @@ eval ${D+fd $M}
 		}
 		2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $L ${C[@]} $E
 		((OL+N0+RM))&&{
-			find $L ${C[@]} $E |read -rn1 || { echo Nothing was found and deleted>&2;return;}
-			read -sN1 -p 'Remove all the objects listed above (Enter: yes) ? ' o;echo
+			find $L ${C[@]} $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
+			read -sN1 -p 'Remove all the objects listed above (Enter: yes)? ' o
 			[ "$o" = $'\x0a' ]&&{
 				((OL))&&	Z=-type\ l
 				((N0))&&	Z="${Z+$Z -o }-empty"
-				find $L ${C[@]} $Z -delete &&echo All above has been deleted
+				find $L ${C[@]} $Z -delete &&echo Those above has been deleted;echo
 			}
 		}
 	fi
