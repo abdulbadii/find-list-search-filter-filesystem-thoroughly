@@ -54,12 +54,12 @@ ftm(){	local d f a e z x
 	if [[ $d = *-* ]] ;then
 		z=${d#*-};x=${z##*[0-9]}
 		: ${x:=m};z=${z%[mhdM]}
-		[ $x = h ] &&let z*=60;[ $x = M ] &&let z*=30
-		x="${x/[mh]/min} ";x="${x/[dM]/time}"
-		if((!a)) ;then	Rt="( $f$x-$z -o $f$x$z )"
-		elif((!z)) ;then	Rt="( $f$e+$a -o $f$e$a )"
-		else	Rt="( $f$e+$a $f$x-$z -o $f$e$a -o $f$x$z )";fi
-	else	Rt=$f$e$a;fi
+		[ $x = h ]&&let z*=60; [ $x = M ]&&let z*=30
+		x="${x/[mh]/min}";x="${x/[dM]/time}"
+		if((!a)) ;then	Rt=(\( $f$x -$z -o $f$x $z \))
+		elif((!z)) ;then	Rt=(\( $f$e +$a -o $f$e $a \))
+		else	Rt=(\( $f$e +$a $f$x -$z -o $f$e $a -o $f$x $z \));fi
+	else	Rt=($f$e $a);fi
 }
 fsz(){	local d f a e z x
 	d=${1:2};f='-size '
@@ -70,27 +70,27 @@ fsz(){	local d f a e z x
 		z=${d#*-};x=${z#*[0-9]}
 		: ${x:=k};x=${x/m/M};x=${x/g/G}
 		z=${z%[cwbkmMgG]}
-		if((!a)) ;then	Rt="( $f-$z$x -o $f$z$x )"
-		elif((!z)) ;then	Rt="( $f+$a$e -o $f$a$e )"
-		else	Rt="( $f+$a$e $f-$z$x -o $f$a$e -o $f$z$x )";fi
-	else	Rt=$f$a$e\ ;fi
+		if((!a)) ;then	Rt=(\( $f -$z$x -o $f $z$x \))
+		elif((!z)) ;then	Rt=(\( $f+ $a$e -o $f $a$e \))
+		else	Rt=(\( $f +$a$e $f- $z$x -o $f $a$e -o $f $z$x \));fi
+	else	Rt=($f $a$e);fi
 }
 fd(){	local a e A E
-	E=${D#*-}
-	if [[ $D =~ - ]];then	A=${D%-*}
-	elif [[ $D = *. ]];then	E=${D%.};A=$E;fi
+	E=${1#*-}
+	if [[ $1 =~ - ]];then	A=${1%-*}
+	elif [[ $1 = *. ]];then	E=${1%.};A=$E;fi
 	if((Rd));then
 		a=\ $(eval echo {1..$((DM-A+1))})
 		a=${a// ?[! ]/ .};a=${a// ?/\/*}/*
 		e=\ $(eval echo {1..$((DM-E+1))})
 		e=${e// ?[! ]/ .};e=${e// ?/\/*}
-		Rt="${E+-path ${1-$S}$e}${A:+ ! -path ${1-$S}$a}"
+		Rt=(${E+-${I}path ${2-$S}$e}${A:+ ! -${I}path ${2-$S}$a})
 	else
 		a=\ $(eval echo {1..$A})
 		a=${a// ?[! ]/ .};a=${a// ?/\/*}
 		e=\ $(eval echo {1..$E})
 		e=${e// ?[! ]/ .};e=${e// ?/\/*}/*
-		Rt="${A+-path ${1-$S}$a}${E:+ ! -path ${1-$S}$e}"
+		Rt=(${A+-${I}path "${2-$S}$a"}${E:+ ! -${I}path "${2-$S}$e"})
 	fi
 }
 fx(){
@@ -106,8 +106,8 @@ case $e in
 	-[1-9]|-[1-9][0-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])
 		((H))&&continue;H=1
 		D=${e:1};[[ $e =~ [r/]$ ]]&&{	D=${D%?};Rd=1;}
-		fd;	r=$Rt\ $r
-		dtx="exclusion option \"$e\" is${Rd+ reversedly depth '$D' to max $DM,}";;
+		fd $D;	r=$Rt\ $r
+		dtx="exclusion option \"$e\" is${Rd+ reversed depth '$D' from max $DM,}";;
 	-E|-re)	RE=1;;
 	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be as an excluded path>&2
 		((F))&&continue;F=1
@@ -124,38 +124,39 @@ fid(){
 }
 
 l(){
-unset IFS F N0 OL RM RX EP E co po opt se sz tm D Dt Rd DM dtx de if ld CM;I=i
+unset IFS F EM OL RM RX EP E co po opt se sz tm Dn Rd DM dtx de if ld CM;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	opt=$opt$e' '
 		((EP))&&{ E=$opt;break;}
 		continue;}
 case $e in
--[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=$opt$Rt\ ;;
+-[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=(${opt[@]} ${Rt[@]});;
 -[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])
-	Dt=$e;D=${e:1};[[ ${e: -1} = [r/] ]]&&{	D=${D%?};Rd=1;};;
--s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=$opt$Rt\ ;;
+	Dn=${e:1};[[ ${e: -1} = [r/] ]]&&{	Dn=${Dn%?};Rd=1;};;
+-s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
 -s=?|-s=??) se=${e:5};;
 -l|-l[0-9]|-l[1-9][0-9])	ld=1;n=${e:2}
-	lx=-maxdepth\ ${n:=1};	((n))||lx=;;
+	((n)) ||: ${n:=1};
+	((n)) && lx=-maxdepth\ $n;;
 -x=?*|-xs=?*|-xcs=?*|-c=?*|-cv=?*|-cu=?*|-cuv=?*|-cz=?*|-czv=?*|-m=?*|-mv=?*);;
 -ls) E=-ls\ $E;;
 -rm|-delete)RM=1
 	((EP)) && { echo cannot both rm and exec option;return;};;
 -exec|-execdir)
-	((RM+OL+N0)) && { echo cannot both exec and rm, no, 0 option;return;}
+	((RM+OL+EM)) && { echo cannot both exec and rm, no, 0 option;return;}
 	E=$E\ $e;EP=1;F=1;;
 -s) sz=\ %s;;
 -E|-re) RX=1;;
 -no)OL=1
 	((EP)) && { echo cannot both no and exec option;return;};;
--0)N0=1
+-0)EM=1
 	((EP)) && { echo cannot both 0 and exec option;return;};;
 -|--)	break;;
 -s=*) echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
 -de)de=1;;-i)if=1;;
 -cs)I=;;
--c) co=1;;-ci)I=i;;
+-co) co=1;;-ci)I=i;;
 -m) tm=\ %Tx;;
 -mh) tm=' %Tr %Tx';;
 -a) tm=\ %Ax;;
@@ -163,7 +164,7 @@ case $e in
 -c) tm=\ %Cx;;
 -ch) tm=' %Cr %Cx';;
 -h|--help)man find;return;;
--[HDLPO])po=$e\ ;;
+-[HDLPO])po=$e;;
 -[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
 \!|-ls|-d|-delete|-depth|-daystart|-follow|-fprint|-fls|-group|-gid|-o|-xstype) opt=$opt$e\ ;;
 -*)	echo -e "\e[1;33m$e\e[m unknown option, if it\'d be a path name, put it after - or -- then space. "
@@ -191,7 +192,7 @@ for a;{	((S))&&{	S=;continue;}
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
 		-c=*|-cv=*|-cu=*|-cuv=*|-cz=*|-czv=*|-m=*|-mv=*|-mu=*|-muv=*)
-			((EP+RM+if+de+OL+N0))&& { echo Cannot be both copy and removal, dependency, info, or $E option;return;}
+			((EP+RM+if+de+OL+EM))&& { echo Cannot be both copy and removal, dependency, info, or $E option;return;}
 			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
 			C=${a#-*=}
 			[[ $a = -*v= ]]&&vb=v
@@ -226,7 +227,7 @@ unset F a b B p z r re s
 if [ "${e:0:2}" = \\/ ];then	z=${e:2};s=/			# start with \\, means root dir search
 else
 e=${e//${se='\\'}/$'\n'}
-W=.;re=1
+re=1;W=.
 IFS=$'\n';set -- $e			# break down to paths of same base, separated by \\ or $se
 for a;{									# fake for-loop to apart of no path argument, once then breaks
 [[ $a =~ ^(.*[^/])?(/*)$ ]]
@@ -237,8 +238,8 @@ if [ "${a:0:1}" = / ];then	re= # if absolute or...
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 else
 	[[ $a =~ ^\./|^\.$ ]]	&&{	# ..prefixed by ./ , needn't to insert recursive .*
-		re=;a=${a#.};[ "$a" ]|| W=[^/]
-		a=${a#/}
+		re=;a=${a#.}
+		[ "$a" ]|| W=[^/];	a=${a#/}
 	}
 	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
 	p=${BASH_REMATCH[3]};s=~+
@@ -274,7 +275,7 @@ b=${b%$'\v'*}
 break;}
 fi
 unset i L T Q U V dt;set -- ${p:-\"\"};for a;{
-unset F IS R S G M N
+unset F IS G R S M N PLD
 if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then L=$ld
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[3]}
@@ -302,8 +303,9 @@ else
 	if((RX));then
 		L=$ld;R=${re+.*}$p
 	elif((re));then		F=1;M=$S$p
-	else	IS=$I
-		S=$s$p;R=/$W*;	[ -d "$S" ]||{	M=\'\';x_a=;}
+	else
+		IS=$I;R=/$W*
+		S=$s$p;M=$S;	[ -d "$S" ] ||{	R=.*;x_a=;M=;}
 	fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
@@ -311,57 +313,60 @@ while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATC
 #[ ${C#.} ]||((Fc)) &&{
 	#if [ "$R" = .* ] ;then C=${p##*/}	else [ -e "$R" ] && C=${R##*/};fi
 #}
-PT="( -regex .*\s.* -printf '%p'$sz$tm\n -o -printf %p$sz$tm\n )"
-PD="-type d ( -regex .*\s.* -printf '%p/'$tm\n -o -printf %p$tm/\n )"
-PL="-type l ( -regex .*\s.* -printf '%p'->'%l'\n -o -printf %p->%l\n )"
-((ld))&& PD="( -type d -prune -exec find {} $lx ( $PD -o $PT ) ; -o $PT )"
+LC_ALL=C;unset IFS D L Z
+PT=(\( -path '* *' -printf "'%p'$sz$tm\n" -o -printf "%p$sz$tm\n" \))
+PL=(-type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \))
+PD=(-type d \( -path '* *' -printf "'%p/'$tm\n" -o -printf "%p$tm/\n" \))
+PE=(\( "${PL[@]}" -o "${PD[@]}" -o "${PT[@]}" \))
 case $z in
-/)	P="$PD";;//)	P="-type f $PT";;
-///)	P="\! -type d -executable $PT";;
-////) P=$PL;;	*) P="( $PD -o $PT )"
+	/)	P=("${PD[@]}");;//)	P=(-type f "${PT[@]}");;
+	///)	P=(! -type d -executable "${PD[@]}");;
+	////) P=("${PL[@]}");;*) P=("${PE[@]}")
 esac
-M=\"${M=$S}\"
-[ $S = / ] ||{ R=.{${#S}}$R; ((OL+N0))|| N="! -ipath $M";}
-[ $IS ]&&[ -d "${S%/}" ]&&{
-	shopt -s nocaseglob;c=${S: -1};set +f;printf -vS "%q" ${S/$c/[$c]};set -f;}
+((ld)) &&{
+	P=(-type d -prune -exec find {} $lx "$P" \; -o "${PL[@]}" -o "${PT[@]}");PE=(${P[@]})
+	[ $z ]&&	echo $z selective suffix when use with -l option is applied on content listed from every directory found
+}
+M=${M-$S}
+((Dn))&& [ "$M" ]&&{ fd $Dn "$M";opt=(${opt[@]} "${Rt[@]}");}
 
-((Rd))&&{
-	[[ `eval "find $S -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
-((XF))||{	eval ${x_a+fx $M $x_a};(($?))&&return;XF=1;}
-eval ${D+fd $M}
-opt=$opt$Rt' '
-[ "$D$dtx" ]&&echo "${D+Option \"$Dt\" is depth '$D'${Rd+ reversed from max $DM} of $M}${D+${dtx+ and }}${dtx+$dtx of $M}">&2
-#if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}
-#else
-	LC_ALL=C;unset IFS E L Z
+[ "$S" = / ] ||{	R=.{${#S}}$R; N=(! -ipath "$M")
+	[ $IS ]&&{ shopt -s nocaseglob;set +f;	printf -vS %s "${S:0: -1}"[${S: -1}];set -f;}
+}
+((Rd))&&{	[[ `eval "find $S -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
+
+((XF))||{	eval ${x_a:+fx $M $x_a};(($?))&&return;XF=1;}
+[ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $Dn${Rd+ reversed from max $DM} of $M}${Dn+${dtx+ and }}${dtx+$dtx of $M}">&2
+#if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}#else
 	if((F)) ;then
-		C=("$po$S -regextype posix-extended $opt(" "-${I}path $S$p/*" "( ${X[@]} $P )"
-		 ${p:+"-o -${I}path $S$p" "-type f $PT" "-o -${I}path $S/*$p" "( $PD -o $PT )"} \))
+		C=($po "$S" $opt \( -${I}path "$M"/* \( ${X[@]} "${P[@]}" \)
+		 ${p:+-o -${I}path "$M" -type f "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"} -${I}path '' \))
 	else
-		C=("$po$S -regextype posix-extended $N $opt(" "-${I}regex $R" "( ${X[@]} $P )" \))
+		C=($po "$S" -regextype posix-extended "${N[@]}" "${opt[@]}" \( -${I}regex $R \( ${X[@]} "${P[@]}" \) \))
 	fi
 	if((de))&&[[ $z != / ]];then	export -f fid;find ${C[@]} ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
 	elif((if))&&[[ $z != / ]];then
-		find ${C[@]} ! -type d -exec bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \  \${BASH_REMATCH[1]}' \;
+		find ${C[@]} ! -type d -exec bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \ \${BASH_REMATCH[1]}' \;
 	elif((co));then	> >(x=;F=
 		IFS=/;while read -r l;do
 			l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
 			for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
-			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find ${C[@]} $E
+			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find "${C[@]}" $E
 	else
-		((OL+N0))&&{	E=
+		((RM+OL+EM))&&{
+			((RM))&& D=${C[@]}
 			((OL))&&{ L=-L;	E="-type l $PL";}
-			((N0))&&	E="${E:+$E -o }-empty ( -type f $PT -o $PD )"
+			((EM))&&	E="${E:+$E -o }-empty ( -type f $PT -o $PD )"
 			if((F)) ;then
-				unset C[2] C[4];	[ "$p" ]&&	C[6]=${C[5]}/*
-			else		C[2]="-o ${C[1]}/*";	fi
+				unset C[8] C[9] C[10] C[11] C[15] C[16] C[17];	[ "$p" ]&&C[21]=-o;C[23]="$S/*$p/*"
+			else	C[8]="$R(/.*)?";fi
 		}
-		2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find $L ${C[@]} $E
-		((OL+N0+RM))&&{
-			find $L ${C[@]} $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
+		2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find $L "${D-${C[@]}}" $E
+		((RM+OL+EM))&&{
+			find $L "${C[@]}" $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
 			read -sN1 -p 'Remove all the objects listed above (Enter: yes)? ' o
 			[ "$o" = $'\x0a' ]&&{
-				((N0))&&	Z=-empty
+				((EM))&&	Z=-empty
 				((OL))&&	Z="${Z+$Z -o }-type l"
 				sudo find $L ${C[@]} $Z -delete &&echo Those above have been deleted;echo
 			}
