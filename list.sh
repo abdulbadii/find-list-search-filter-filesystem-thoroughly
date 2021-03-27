@@ -233,14 +233,12 @@ for a;{									# fake for-loop to apart of no path argument, once then breaks
 [[ $a =~ ^(.*[^/])?(/*)$ ]]
 z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}
-if [ "${a:0:1}" = / ];then	re= # if absolute or...
+if [ "${a:0:1}" = / ];then	re= #			if absolute or...
 	p=$a;[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 else
-	[[ $a =~ ^\./|^\.$ ]]	&&{	# ..prefixed by ./ , needn't to insert recursive .*
-		re=;a=${a#.}
-		[ "$a" ]|| W=[^/];	a=${a#/}
-	}
+	[[ $a =~ ^\./|^\.$ ]]&&{			# ..prefixed by ./ , needn't to insert recursive .*
+		re=;a=${a#.};	[ "$a" ]|| W=[^/];	a=${a#/};}
 	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
 	p=${BASH_REMATCH[3]};s=~+
 	[ ${BASH_REMATCH[1]} ]&&{	[ $s = / ]&&eval $E2
@@ -274,8 +272,8 @@ p=${b##*$'\v'}$z${p#"$b"}
 b=${b%$'\v'*}
 break;}
 fi
-unset i L T Q U V dt;set -- ${p:-\"\"};for a;{
-unset IFS F IS G R S Q N B C L Z
+unset i dt;set -- ${p:-\"\"};for a;{
+unset IFS F IS G R S Q N C L Z
 if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then L=$LD
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[3]}
@@ -302,17 +300,13 @@ else
 	: ${S=${s-~+}}
 	if((RX));then
 		L=$LD;R=${re+.*}$p
-	else
-		S=$S$p;Q=$S
-		F=$re
-		((re)) ||{	IS=$I;R=/$W*;	[ -d "$S" ] ||{	R=.*;x_a=;Q=;};}
+	elif((re));then	F=1;Q=$S$p
+	else			IS=$I;S=$s$p;R=/$W*;	[ -d "$S" ]||{ R=.*;x_a=;Q=;}
 	fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-#[ ${C#.} ]||((Fc)) &&{
-	#if [ "$R" = .* ] ;then C=${p##*/}	else [ -e "$R" ] && C=${R##*/};fi
-#}
+#[ ${C#.} ]||((Fc)) &&{#if [ "$R" = .* ] ;then C=${p##*/}	else [ -e "$R" ] && C=${R##*/};fi#}
 LC_ALL=C
 PT=(\( -path '* *' -printf "'%p'$sz$tm\n" -o -printf "%p$sz$tm\n" \))
 PL=(-type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \))
@@ -326,7 +320,7 @@ esac
 P=("${P[@]}" "${pt[@]}")
 ((LD)) &&{
 	P=(-type d -prune -exec find {} $lx "$P" \; -o "${PL[@]}" -o "${PT[@]}");PE=(${P[@]})
-	[ $z ]&&	echo $z selective suffix when use with -l option is applied on content listed from every directory found
+	[ $z ]&&	echo $z selective suffix when use with -l option is applied on the content of every directory found
 }
 Q=${Q-$S};	((Dn))&& [ "$Q" ]&&{ fd $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
 [ "$S" = / ] ||{
@@ -340,9 +334,9 @@ Q=${Q-$S};	((Dn))&& [ "$Q" ]&&{ fd $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
 	B=("${X[@]}" "${P[@]}")
 	if((F)) ;then
 		A="$po $S ${opt[@]} ( -${I}path"; [ "$p" ]&& C=(-o -${I}path "$Q" -type f "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}")
-		M=$Q/*
+		R=$Q/*
 	else
-		A="$po $S -regextype posix-extended ${N[@]} ${opt[@]} ( -${I}regex"; M=$R
+		A="$po $S -regextype posix-extended ${N[@]} ${opt[@]} ( -${I}regex"
 	fi
 	if((de));then	export -f fid;find ${C[@]} ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
 	elif((if));then	find ${C[@]} ! -type d -exec bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \ \${BASH_REMATCH[1]}' \;
@@ -352,23 +346,23 @@ Q=${Q-$S};	((Dn))&& [ "$Q" ]&&{ fd $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
 			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	find "${C[@]}" $E
 	else
 		((RM+OL+EM))&&{
-			((RM))&&2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $A "$M" "${B[@]}" "${C[@]}" \) $E
-			((OL))&&{ L=-L;	E=(-type l "${PL[@]}");}
-			((EM))&&	E=(${E:+"${E[@]}" -o }-empty \( ${PE[@]} \))
-			if((F)) ;then
-				B=(-o -${I}path "$Q")
-			else
-				unset B=;M=$M$(/.*)?;fi
+			((RM))&&2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $A "$R" "${B[@]}" "${C[@]}" \) $E
+			((EM))&& E=(-empty ${PE[@]})
+			((OL))&&{ L=-L;E=(${E:+"${E[@]}" -o }-type l "${PL[@]}");}
+			unset B
+			if((F)) ;then	C=(-o -${I}path "$Q" -o -${I}path "$S/*$p" -o -${I}path "$S/*$p/*")
+			else			R="$R(/.*)?";fi
 		}
-		((RM)) ||2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $L $A "$M" "${B[@]}" "${C[@]}" \) $E
+		((RM)) ||2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $L $A "$R" "${B[@]}" "${C[@]}" \) $E
 		((RM+OL+EM))&&{
-			find $L "$M" "${B[@]}" "${C[@]}" \) $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
-			read -sN1 -p 'Remove all the objects listed above (Enter: yes)? ' o
+			find $L $A "$R" "${B[@]}" "${C[@]}" \) $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
+			read -sN1 -p 'Remove all the objects listed above (Enter: yes)? ' o>&2
 			[ "$o" = $'\x0a' ]&&{
 				((EM))&&	Z=-empty
 				((OL))&&	Z="${Z+$Z -o }-type l"
-				find $L ${C[@]} $Z -delete &&echo Those above have been deleted;echo
+				find $L  $A "$R" "${B[@]}" ${C[@]} \) $Z -delete &&echo Those above have been deleted>&2
 			}
+		echo
 		}
 	fi
 #fi
