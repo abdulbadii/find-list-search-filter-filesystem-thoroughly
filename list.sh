@@ -341,15 +341,15 @@ Q=${Q-$S}
 	else
 		A="$po $S -regextype posix-extended ${N[@]} ${opt[@]} ( -${I}regex"
 	fi
-	if((de));then	export -f fid;find ${C[@]} ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
-	elif((if));then	find ${C[@]} ! -type d -exec bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \ \${BASH_REMATCH[1]}' \;
+	if((de));then	export -f fid;find $L $A "$R" "${B[@]}" "${C[@]}" \) ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
+	elif((if));then	find $L $A "$R" "${B[@]}" "${C[@]}" \) ! -type d -exec bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \ \${BASH_REMATCH[1]}' \;
 	elif((co));then	> >(x=;F=;IFS=/;while read -r l;do
 			l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
 			for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
-			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	find "${C[@]}" $E
+			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	find $L $A "$R" "${B[@]}" "${C[@]}" \) $E
 	else
 		((RM+OL+EM))&&{
-			((RM))&&2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $A "$R" "${B[@]}" "${C[@]}" \) $E
+			((RM)) &&2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $A "$R" "${B[@]}" "${C[@]}" \) $E
 			((EM))&& E=(-empty ${PE[@]})
 			((OL))&&{ L=-L;E=(${E:+"${E[@]}" -o }-type l "${PL[@]}");}
 			unset B
