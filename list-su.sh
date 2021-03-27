@@ -124,15 +124,17 @@ fid(){
 }
 
 l(){
-unset IFS F EM OL RM RX EP E pt co po opt se sz tm Dn Rd DM dtx de if LD CM;I=i
+unset IFS F EM OL RM RX EP E pt co po opt se sz tm Dn DF Du Rd DM dtx de if LD CM;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=$opt$e\ ;fi;F=;continue;}
 ((EP))&&{ $E=$E$e\ ;EP=;continue;}
 case $e in
 -[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=(${opt[@]} ${Rt[@]});;
--[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])
-	Dn=${e:1};[[ ${e: -1} = [r/] ]]&&{	Dn=${Dn%?};Rd=1;};;
+-[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])	Dn=${e:1}
+	[[ ${e: -1} = [r/] ]]&&{	Dn=${Dn%?};Rd=1;}
+	DF=${Dn%-*};Du=${Dn#*-}
+	((Du==Dn))&&Du=;;
 -s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
 -s=?|-s=??) se=${e:5};;
 -l|-l[0-9]|-l[1-9][0-9])	LD=1;n=${e:2}
@@ -322,18 +324,19 @@ P=("${P[@]}" "${pt[@]}")
 	P=(-type d -prune -exec find {} $lx "$P" \; -o "${PL[@]}" -o "${PT[@]}");PE=(${P[@]})
 	[ $z ]&&	echo $z selective suffix when use with -l option is applied on the content of every directory found
 }
-Q=${Q-$S};	((Dn))&& [ "$Q" ]&&{ fd $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
+Q=${Q-$S}
 [ "$S" = / ] ||{
 	((F)) ||{	R=.{${#S}}$R; N=(! -ipath "$Q");}
 	[ $IS ] &&{ shopt -s nocaseglob;set +f;	printf -vS %s "${S:0: -1}"[${S: -1}];set -f;}
 }
-((Rd))&&{	[[ `eval "find $S -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
+((Rd))&&{	[[ `eval "find $Q -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a:+fx $Q $x_a};(($?))&&return;XF=1;}
-[ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $Dn${Rd+ reversed from max $DM} of $Q}${Dn+${dtx+ and }}${dtx+$dtx of $Q}">&2
+((DF))&& [ "$Q" ]&&{ fd $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
+[ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $DF${Du:+ to ${Du:-the last}}${Rd+ reversed from max $DM} of $Q}${Dn+${dtx+ and }}${dtx+$dtx of $Q}">&2
 #if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}#else
 	B=("${X[@]}" "${P[@]}")
 	if((F)) ;then
-		A="$po $S ${opt[@]} ( -${I}path"; [ "$p" ]&& C=(-o -${I}path "$Q" -type f "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}")
+		A="$po $S ${opt[@]} ( -${I}path";C=(${p:+-o -${I}path "$Q" -type f "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"})
 		R=$Q/*
 	else
 		A="$po $S -regextype posix-extended ${N[@]} ${opt[@]} ( -${I}regex"
