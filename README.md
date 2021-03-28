@@ -4,16 +4,16 @@ Should do too, clicking it, copy Bash functions inside and then paste it into ~/
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing most`find` test or action options that may be passed and made use of
 ## Requirement  
-  - Bash (tested/developed in version 5)
+  - Bash (tested/developed using version 5)
   - Find (Linux utility, tested/developed using GNU findutils 4.6)
-  - Default setting of history, which is enabled and not prevented by HISTIGNORE maskin this tool's function name. So not screwing up this default settings is required
+  - Default setting of history, which is enabled and not prevented by HISTIGNORE masking this tool's function name. So not screwing up this default settings is required
   - Optional, as required by optional feature:
     - `file` needed for -i (information) option 
     - `ldd` needed for -de (dependencies) option 
 ## Limitation  
   - Can't be used multiply in one-liner shell CLI by separating them with `;` Bash command terminator, only first invocation can work  
   - Can't be used as alias  
-  - Default setting off globstar must not be screwed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search. Of course it's completely fine if invoke in other search pattern  
+  - Default setting off globstar must not be screwed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search. Of course it's completely fine if invoking it in other search pattern  
 
 Simply type:   
 $ l   
@@ -77,7 +77,7 @@ Will find
 /qt/lib/sys/core/c/obj/meta   
 /qt/lib/sys/core/src/c/obj/meta  
 
-Will search exactly two plies depth between **qt** and **core** directory, and indefinite number of ply depth between **core** and **meta** directory   
+Will search exactly two plies depth between **qt** and **core** directory, and indefinite number of ply between **core** and **meta** directory   
 
 If navigating in way of relative path, i.e. not started with **/**, a slash character, then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it in the start with **./**   
@@ -172,7 +172,7 @@ $ l -m5d
 
 ## AUTOMATED REMOVAL
 
-Removal is readily guarded nicely. One needn't to test it first by a usual search without removal options below, as it'll prompt user to confirm to execute the deletion as final decision, if there is a find result   
+Removal is readily guarded nicely. One needn't to test it first by a usual search without removal options below, instead go using it straight as it'll prompt user to confirm to execute the deletion as final decision, if there is a find result   
 <pre>-0    :  to remove every zero size file and empty directory sits under any directory found in the main search result
 -no  :  to remove all orphan links  sits under any directory found in the main search result
 -rm  or -delete : to remove all objects of the main find result</pre>
