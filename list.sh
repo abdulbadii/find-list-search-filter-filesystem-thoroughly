@@ -1,9 +1,8 @@
 fxr(){ ##### BEGINNING OF l, find wrap script #####
-local IFS B a b e i p re r z R Z m=regex
+local IFS B a b e i p re r z Z Re R m=regex IFS=$'\n'
 [[ $1 =~ ^\./ ]]||re=1;e=${1#./}
-[[ $e =~ ^\.?\.?/ ]]&&{ echo Exclusion cannot be absolute, or upward .., path, it is relative to \'$S\'>&2;return 1;}
-e=${e//$se/$'\n'}
-IFS=$'\n';set -- $e
+[[ $e =~ ^\.?\.?/ ]]&&{ echo Exclusion cannot be absolute, or upward .., path. It is relative to \'$S\'>&2;return 1;}
+e=${e//$se/$'\n'};set -- $e
 [[ $1 =~ ^(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[2]};p=/${BASH_REMATCH[1]}
 B=${p%/*}
 r=("${p##*/}$z" ${@:2})
@@ -41,8 +40,10 @@ else
 fi
 case $z in /) z=-type\ d;;//) z=-type\ f;;///) z="\! -type d -executable";;////) z=-type\ l;esac
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-Rt=($z -${J}$m "$R")
+unset IFS
+Re=(${Re+"${Re[@]}" -o} $z -${J}$m "$R")
 }
+Rt=(\( "${Re[@]}" \))
 }
 ftm(){	local d f a e z x
 	d=${1:2};f=-${1:1:1}
