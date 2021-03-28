@@ -11,9 +11,9 @@ Find and list specific file, directory, link or any filesystem type recursively 
     - file needed in -i (information) option 
     - ldd needed in -de (dependencies) option 
 ## Limitation  
-  Can't be used multiple in shell one-liner by separating with `;` Bash command terminator, only first invocation is to work  
-  Can't be used as alias
-  Default setting off globstar must not be screwed by `shopt -s globstar` as it could cause inefficiency on `**` wildcard path search. Of course it's completely fine as long as not invoking in such way
+  - Can't be used multiply in one-liner shell CLI by separating them with `;` Bash command terminator, only first invocation is to work  
+  - Can't be used as alias  
+  - Default setting off globstar must not be screwed by `shopt -s globstar` as it could cause inefficiency on `**` wildcard path search. Of course it's completely fine as long as not invoking in such way  
 
 Simply type:   
 $ l   
