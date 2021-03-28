@@ -9,14 +9,14 @@ Find and list specific file, directory, link or any filesystem type recursively 
   - The default settings of history.  
      It is enabled and not prevented by HISTIGNORE variable value having this tool/function name. So not screwing up this default settings is required. If any single letter needs to be prevented from command history saving, exclude this tool name, e.g.  
      `HISTIGNORE=[!l]`
-     for name **l**
+     when **l** for this function name
   - Optional, as required by optional feature:
     - `file` needed for -i (information) option 
     - `ldd` needed for -de (dependencies) option 
 ## Limitation  
   - Can't be used multiply in one-liner shell CLI separated by Bash command terminator `;`, only first invocation can work  
   - Can't be used as alias  
-  - Default setting globstar is off must not be screwed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search. Of course it's completely fine if invoking it by other search pattern  
+  - Default setting globstar is off must not be screwed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search. Otherwise it's completely fine invoking it  
 
 Simply type:   
 $ l   
