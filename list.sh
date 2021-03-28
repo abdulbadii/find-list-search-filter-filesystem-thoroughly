@@ -124,7 +124,7 @@ fid(){
 }
 
 l(){
-unset IFS F EM OL RM RX EP E pt co po opt se sz tm Dn DF Du DR DM dtx de if LD CM;I=i
+unset IFS F EM OL RM RX EP E pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=$opt$e\ ;fi;F=;continue;}
@@ -276,8 +276,8 @@ b=${b%$'\v'*}
 break;}
 fi
 unset i dt;set -- ${p:-\"\"};for a;{
-unset IFS F IS G R S Q N C L Z
-if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then L=$LD
+unset IFS F LK IS G R S Q N C L Z
+if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then LK=$LD
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
@@ -302,7 +302,7 @@ else
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 	: ${S=${s-~+}}
 	if((RX));then
-		L=$LD;R=${re+.*}$p
+		LF=$LD;R=${re+.*}$p
 	elif((re));then	F=1;Q=$S$p
 	else			IS=$I;S=$s$p;R=/$W*;	[ -d "$S" ]||{ R=.*;x_a=;Q=;}
 	fi
@@ -322,7 +322,7 @@ case $z in
 esac
 P=("${P[@]}" "${pt[@]}")
 ((LD)) &&{
-	P=(-type d -prune -exec find {} $lx "$P" \; -o "${PL[@]}" -o "${PT[@]}");PE=(${P[@]})
+	P=(-type d -prune -exec find {} $lx "${P[@]}" \; -o "${PL[@]}" -o "${PT[@]}");PE=(${P[@]})
 	[ $z ]&&	echo $z selective suffix when use with -l option is applied on the content of every directory found
 }
 Q=${Q-$S}
@@ -343,8 +343,8 @@ Q=${Q-$S}
 	else
 		A="$po $S -regextype posix-extended ${N[@]} ${opt[@]} ( -${I}regex"
 	fi
-	if((de));then	export -f fid;find $L $A "$R" "${B[@]}" "${C[@]}" \) ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
-	elif((if));then	find $L $A "$R" "${B[@]}" "${C[@]}" \) ! -type d -exec bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \ \${BASH_REMATCH[1]}' \;
+	if((de));then	export -f fid;find $A "$R" "${B[@]}" "${C[@]}" \) ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
+	elif((if));then	find $A "$R" "${B[@]}" "${C[@]}" \) ! -type d -exec bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \ \${BASH_REMATCH[1]}' \;
 	elif((co));then	> >(x=;F=;IFS=/;while read -r l;do
 			l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
 			for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
