@@ -1,7 +1,7 @@
 fxr(){ ##### BEGINNING OF l, find wrap script #####
-local B a b e i p re r z A Z m=path
+local IFS B a b e i p re r z R Z m=regex
 [[ $1 =~ ^\./ ]]||re=1;e=${1#./}
-[[ $e =~ ^\.?\.?/ ]]&&{ echo Exclusion must not be upward/.. nor absolute path, it is relative to \'$S\'>&2;return 1;}
+[[ $e =~ ^\.?\.?/ ]]&&{ echo Exclusion cannot be absolute, or upward .., path, it is relative to \'$S\'>&2;return 1;}
 e=${e//$se/$'\n'}
 IFS=$'\n';set -- $e
 [[ $1 =~ ^(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[2]};p=/${BASH_REMATCH[1]}
@@ -19,29 +19,29 @@ while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1
 b=${p%%$'\n'*}
 p=${b##*$'\v'}$z${p#"$b"}
 b=${b%$'\v'*}
-set -- ${p:-\"\"};i=;for a;{ 
+i=;set -- ${p:-\"\"};for a;{ 
 if((!RE))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
-	[[ ${BASH_REMATCH[1]} ]]&&{
+	[ "${BASH_REMATCH[1]}" ]&&{
 		Z=${Z-$S}${BASH_REMATCH[1]};[[ $Z =~ ^$'\t'($'\v'|$) ]]&&{ eval $E;continue;}
 		while [[ $Z =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do Z=${Z/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $Z =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
 	}
 	while [[ $p =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
-	A=-${J}regex\ \"$Z${re+.*}${p//$'\v'/\/}\"
+	R="$Z${re+.*}${p//$'\v'/\/}"
 else
 	[[ $B/${r[i++]} =~ ^((/\.\.)*)/(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[4]}
 	p=${BASH_REMATCH[3]};p=${p:+/$p}
-	[ ${BASH_REMATCH[1]} ]&&{
+	[ "${BASH_REMATCH[1]}" ]&&{
 		Z=${Z-$S}${BASH_REMATCH[1]};[[ $Z =~ ^/\.\.(/|$) ]]&&{ eval $E:continue;}
 		while [[ $Z =~ /[^/]+/\.\.(/|$) ]];do Z=${Z/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $Z =~ ^/\.\.(/|$) ]]&&eval $E2;done;}
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
-	((RE))&&m=regex
-	A=-${J}$m\ \"$Z${re+${RE+.}*}$p\"
+	((RE)) ||m=path
+	R="$Z${re+${RE+.}*}$p"
 fi
 case $z in /) z=-type\ d;;//) z=-type\ f;;///) z="\! -type d -executable";;////) z=-type\ l;esac
-while [[ $A =~ $'\f'([]*?[]) ]];do A=${A/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-Rt="$z $A"
+while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
+Rt=($z -${J}$m "$R")
 }
 }
 ftm(){	local d f a e z x
@@ -93,8 +93,7 @@ fd(){	local a e A E
 		Rt=(${A+-${I}path "${2-$S}$a"}${E:+ ! -${I}path "${2-$S}$e"})
 	fi
 }
-fx(){
-local IFS D F L G H x r Rt RE S=$1;shift
+fx(){	local D F L G H x r Rt RE S=$1;shift
 for a;{
 eval set -- \"$a\"
 unset F L G H r;for e;{
@@ -102,20 +101,20 @@ case $e in
 	-[cam][0-9]*|-[cam]-[0-9]*)	((L))&&continue;L=1
 		ftm $e;r=$Rt\ $r;;
 	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	((G))&&continue;G=1
-		fsz $e;r=$Rt\ $r;;
+		fsz $e;	r=("${Rt[@]}" "${r[@]}");;
 	-[1-9]|-[1-9][0-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])
 		((H))&&continue;H=1
 		D=${e:1};[[ $e =~ [r/]$ ]]&&{	D=${D%?};Rd=1;}
-		fd $D;	r=$Rt\ $r
-		dtx="exclusion option \"$e\" is${Rd+ reversed depth '$D' from max $DM,}";;
+		fd $D;	r=("${Rt[@]}" "${r[@]}")
+		dtx="exclusion option \"$e\" is${DR+ reversed depth '$D' from max $DM,}";;
 	-E|-re)	RE=1;;
 	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be as an excluded path>&2
 		((F))&&continue;F=1
 		fxr "$e"	;(($?))&&return 1
-		r=$r\ $Rt
+		r=("${r[@]}" "${Rt[@]}")
 esac
 }
-X=(${X[@]} "$r" \( ${F+-type d -prune -o }-true \) -o)
+X=(${X[@]} "${r[@]}" \( ${F+-type d -prune -o }-true \) -o)
 }
 }
 fid(){
@@ -124,7 +123,7 @@ fid(){
 }
 
 l(){
-unset IFS F EM OL RM RX EP E pt co po opt se sz tm Dn DF Du Rd DM dtx de if LD CM;I=i
+unset IFS F EM OL RM RX EP E pt co po opt se sz tm Dn DF Du DR DM dtx de if LD CM;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=$opt$e\ ;fi;F=;continue;}
@@ -132,9 +131,10 @@ for e;{
 case $e in
 -[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=(${opt[@]} ${Rt[@]});;
 -[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])	Dn=${e:1}
-	[[ ${e: -1} = [r/] ]]&&{	Dn=${Dn%?};Rd=1;}
+	[[ ${e: -1} = [r/] ]]&&{	Dn=${Dn%?};DR=1;}
 	DF=${Dn%-*};Du=${Dn#*-}
-	((Du==Dn))&&Du=;;
+	if !((Du)) ;then Du='the max depth'
+	elif((Du==DF)) ;then Du=;fi;;
 -s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
 -s=?|-s=??) se=${e:5};;
 -l|-l[0-9]|-l[1-9][0-9])	LD=1;n=${e:2}
@@ -150,9 +150,9 @@ case $e in
 -s) sz=\ %s;;
 -E|-re) RX=1;;
 -no)OL=1
-	((EP)) && { echo cannot both no and exec option;return;};;
+	((EP)) && { echo cannot both -no and exec option;return;};;
 -0)EM=1
-	((EP)) && { echo cannot both 0 and exec option;return;};;
+	((EP)) && { echo cannot both -0 and exec option;return;};;
 -|--)	break;;
 -s=*) echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
 -de)de=1;;-i)if=1;;
@@ -239,7 +239,7 @@ if [ "${a:0:1}" = / ];then	re= #			if absolute or...
 	p=$a;[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 else
-	[[ $a =~ ^\./|^\.$ ]]&&{			# ..prefixed by ./ , needn't to insert recursive .*
+	[[ $a =~ ^\./|^\.$ ]]&&{			# .. only . or prefixed by ./ then needn't to insert recursive .*
 		re=;a=${a#.};	[ "$a" ]|| W=[^/];	a=${a#/};}
 	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
 	p=${BASH_REMATCH[3]};s=~+
@@ -329,12 +329,13 @@ Q=${Q-$S}
 	((F)) ||{	R=.{${#S}}$R; N=(! -ipath "$Q");}
 	[ $IS ] &&{ shopt -s nocaseglob;set +f;	printf -vS %s "${S:0: -1}"[${S: -1}];set -f;}
 }
-((Rd))&&{	[[ `eval "find $Q -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
+((DR))&&{	[[ `eval "find $Q -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a:+fx $Q $x_a};(($?))&&return;XF=1;}
-((DF))&& [ "$Q" ]&&{ fd $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
-[ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $DF${Du:+ to ${Du:-the last}}${Rd+ reversed from max $DM} of $Q}${Dn+${dtx+ and }}${dtx+$dtx of $Q}">&2
+((DF))&& [ "$Q" ]&&{
+	 fd $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
+[ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $DF${Du:+ to $Du}${DR+ reversed from max $DM} of $Q}${Dn+${dtx+ and }}${dtx+$dtx of $Q}">&2
 #if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}#else
-	B=("${X[@]}" "${P[@]}")
+	B=(\( "${X[@]}" "${P[@]}" \))
 	if((F)) ;then
 		A="$po $S ${opt[@]} ( -${I}path";C=(${p:+-o -${I}path "$Q" -type f "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"})
 		R=$Q/*
