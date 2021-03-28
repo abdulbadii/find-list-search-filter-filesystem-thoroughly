@@ -4,15 +4,16 @@ Should do too, clicking it, copy Bash functions inside and then paste it into ~/
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing most`find` test or action options that may be passed and made use of
 ## Requirement  
-	- Bash (tested/developed in version 5)
-	- Find (Linux utility, tested/developed using GNU findutils 4.6)
-	- Default setting of history which is enabled and not prevented by HISTIGNORE value of this tool's function name.
-	  So not to screw up this default settings is required
+  - Bash (tested/developed in version 5)
+  - Find (Linux utility, tested/developed using GNU findutils 4.6)
+  - Default setting of history which is enabled and not prevented by HISTIGNORE value of this tool's function name. So not to screw up this default settings is required
   - Optional, as required by optional feature:
     - file needed in -i (information) option 
     - ldd needed in -de (dependencies) option 
-# Limitation  
+## Limitation  
   Can't be used multiple in shell one-liner by separating with `;` Bash command terminator, only first invocation is to work  
+  Can't be used as alias
+  Default setting off globstar must not be screwed by `shopt -s globstar` as it could cause inefficiency on `**` wildcard path search. Of course it's completely fine as long as not invoking in such way
 
 Simply type:   
 $ l   
