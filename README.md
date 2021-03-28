@@ -1,11 +1,22 @@
 Run the InstallUpdate2.bashrc.sh to quickly copy **list.sh** above to ~/.bashrc    
-Should do too is clicking it, copy Bash functions inside and then paste it into ~/.bashrc   
-**list-su.sh** differs only in having superuser request: `sudo` command prefix. However it cannot be applied with de, -i option   
+Should do too, clicking it, copy Bash functions inside and then paste it into ~/.bashrc   
+**list-su.sh** differs only in having superuser request: `sudo` command prefix, but it cannot be applied with -de and -i option   
 
-Find and list specific file, directory, link or any filesystem type recursively while keep utilizing most`find` test or action options that may be passed and made use of. Simply type:   
-   
+Find and list specific file, directory, link or any filesystem type recursively while keep utilizing most`find` test or action options that may be passed and made use of
+## Requirement  
+	- Bash (tested/developed in version 5)
+	- Find (Linux utility, tested/developed using GNU findutils 4.6)
+	- Default setting of history which is enabled and not prevented by HISTIGNORE value of this tool's function name.
+	  So not to screw up this default settings is required
+  - Optional, as required by optional feature:
+    - file needed in -i (information) option 
+    - ldd needed in -de (dependencies) option 
+# Limitation  
+  Can't be used multiple in shell one-liner by separating with `;` Bash command terminator, only first invocation is to work  
+
+Simply type:   
 $ l   
-list every file, directory, and other kind of filesystem under current directory entirely   
+list every file, directory, and other kind sof filesystem under current directory entirely   
 $ l /   
 list every directory only under current directory recursively   
 $ l //   
@@ -121,9 +132,9 @@ e.g. this will search for /qt/src/dev/\*.h, /qt/src/dev/\*.c, /qt/src/dev/\*.cp 
 $ cd /qt
 $ l src/dev/*.h\\\\\*.c\\\\\*.cpp\\\\.cs   
 
-To change separator to other than **\\\\**, use **-s=** option, it'd be any one or two characters (no guaranteed robust consisent result if the character is regarded as the special one by Bash)   
-Below is to search for o, c and so type files everywhere under usr directory path   
-$ l -s=:: /usr/\*/\*.o::\*.c::\*.so   
+To change separator to other than **\\\\**, use **-s=** option, it'd be any one or two characters (no guaranteed it has robust consisent result if the character(s) are regarded as special one by Bash)   
+E.g. below is to search for o, c and so type files everywhere under usr directory path   
+$ l -s=: /usr/\*/\*.o:\*.c:\*.so   
 
 Can search in POSIX-extended regular expression by `-E` or `-re` option e.g.   
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'
@@ -160,11 +171,10 @@ $ l -m5d
 
 ## AUTOMATED REMOVAL
 
-Removal is readily guarded nicely. One needn't to test it first by a usual search without options below, as it'll prompt him/her to confirm the deletion process as final decision, if there is any find result   
-<pre>-0    :  to remove all zero size files or empty directory of the find result
--no  :  to remove all orphan links of the main find result
--rm       :
--delete : to remove all of the main find result</pre>
+Removal is readily guarded nicely. One needn't to test it first by a usual search without removal options below, as it'll prompt user to confirm to execute the deletion as final decision, if there is a find result   
+<pre>-0    :  to remove every zero size file and empty directory sits under any directory found in the main search result
+-no  :  to remove all orphan links  sits under any directory found in the main search result
+-rm  or -delete : to remove all objects of the main find result</pre>
 
 ## EXCLUSION
 
