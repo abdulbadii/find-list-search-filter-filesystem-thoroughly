@@ -6,14 +6,14 @@ Find and list specific file, directory, link or any filesystem type recursively 
 ## Requirement  
   - Bash (tested/developed in version 5)
   - Find (Linux utility, tested/developed using GNU findutils 4.6)
-  - Default setting of history, which is enabled and not prevented by HISTIGNORE value of this tool's function name. So not screwing up this default settings is required
+  - Default setting of history, which is enabled and not prevented by HISTIGNORE maskin this tool's function name. So not screwing up this default settings is required
   - Optional, as required by optional feature:
-    - file needed in -i (information) option 
-    - ldd needed in -de (dependencies) option 
+    - `file` needed for -i (information) option 
+    - `ldd` needed for -de (dependencies) option 
 ## Limitation  
   - Can't be used multiply in one-liner shell CLI by separating them with `;` Bash command terminator, only first invocation can work  
   - Can't be used as alias  
-  - Default setting off globstar must not be screwed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search. Of course it's completely fine to invoke it in other search pattern  
+  - Default setting off globstar must not be screwed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search. Of course it's completely fine if invoke in other search pattern  
 
 Simply type:   
 $ l   
@@ -179,9 +179,9 @@ Removal is readily guarded nicely. One needn't to test it first by a usual searc
 
 ## EXCLUSION
 
-Another most useful and powerful feature is the exclusion from the main result found. It's done by specifiying path and/or pattern in `-x=` option ...
+Another most useful and powerful feature is the exclusion from the main result found. It's done by specifiying path and/or pattern in `-x=` option 
 
-.......is being edited and worked
+...wrting is being edited, for now just go on using `-x=` {search pattern}
 
 
 
