@@ -6,18 +6,18 @@ Find and list specific file, directory, link or any filesystem type recursively 
 ## Requirement  
   - Bash (tested/developed in version 5)
   - Find (Linux utility, tested/developed using GNU findutils 4.6)
-  - Default setting of history which is enabled and not prevented by HISTIGNORE value of this tool's function name. So not to screw up this default settings is required
+  - Default setting of history, which is enabled and not prevented by HISTIGNORE value of this tool's function name. So not screwing up this default settings is required
   - Optional, as required by optional feature:
     - file needed in -i (information) option 
     - ldd needed in -de (dependencies) option 
 ## Limitation  
-  - Can't be used multiply in one-liner shell CLI by separating them with `;` Bash command terminator, only first invocation is to work  
+  - Can't be used multiply in one-liner shell CLI by separating them with `;` Bash command terminator, only first invocation can work  
   - Can't be used as alias  
-  - Default setting off globstar must not be screwed by `shopt -s globstar` as it could cause inefficiency on `**` wildcard path search. Of course it's completely fine as long as not invoking in such way  
+  - Default setting off globstar must not be screwed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search. Of course it's completely fine to invoke it in other search pattern  
 
 Simply type:   
 $ l   
-list every file, directory, and other kind sof filesystem under current directory entirely   
+list every file, directory, and other kinds of filesystem under current directory entirely   
 $ l /   
 list every directory only under current directory recursively   
 $ l //   
