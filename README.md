@@ -49,9 +49,9 @@ list any filesystem type under **/** (root) directory entirely, the prefixed **\
 - To filter certain depths :		-1..99[-1..99][r|/], e.g.   
 	$ l -5 /usr	: search up only to 5th depths based on /usr dir.
 	$ l -5-7	: search only within the 5th to 7th depths of current dir.
-	 -7.		: search in the exact 7th depths from current dir.
-	 -5- /usr : search in the 5th depth or deeper up to the last, counted from /usr dir.
-	Suffix it with **r**, like `l -1r`,  would search depth in reverse direction (or use / instead)
+	$ l -7.		: search in the exact 7th depths from current dir.
+	$ l -5- /usr : search in the 5th depth or deeper up to the last, counted from /usr dir.
+	Suffix it with r e.g. l -1r,  would search depth in reverse direction (or / instead of r)
 	$ l -1r /usr : or
 	$ l -1/ /usr : search in the last directory in depth of /usr dir.
 	$ l -3r /usr : search in the last 3 plies up from the max depth of /usr dir.
@@ -62,7 +62,7 @@ list any filesystem type under **/** (root) directory entirely, the prefixed **\
 The absolute path-input search, will target in the directory depth as explicitly specified, either with or without wildcard such as:   
 
 l /qt/build/core/meta   
-means searching for any object type namedly **meta** under **core** under **build** within **qt** directory in root dir.   
+means searching for any object type namedly **meta** under **core** under **build** within **qt** directory in root dir., or e.g:   
 
 /qt/\*/\*/core/\*.c//   
 search for a regular file type only having extension name ".c" under **core** directory under any directory being under any directory under **qt** directory in root of filesystem.   
