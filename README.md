@@ -2,18 +2,21 @@ Run the InstallUpdate2.bashrc.sh to quickly copy **list.sh** above to ~/.bashrc
 Should do too, clicking it, copy Bash functions inside and then paste it into ~/.bashrc   
 **list-su.sh** differs only in having superuser request: `sudo` command prefix, but it cannot be applied with -de and -i option   
 
-Find and list specific file, directory, link or any filesystem type recursively while keep utilizing most`find` test or action options that may be passed and made use of
+Find and list specific file, directory, link or any filesystem type recursively while keep utilizing most`find` test and action options that may be passed and made use of
 ## Requirement  
   - Bash (tested/developed using version 5)
   - Find (Linux utility, tested/developed using GNU findutils 4.6)
-  - Default setting of history, which is enabled and not prevented by HISTIGNORE masking this tool's function name. So not screwing up this default settings is required
+  - The default settings of history.  
+     It is enabled and not prevented by HISTIGNORE variable value having this tool/function name. So not screwing up this default settings is required. If any single letter needs to be prevented from command history saving, exclude this tool name, e.g.  
+     `HISTIGNORE=[!l]`
+     for name **l**
   - Optional, as required by optional feature:
     - `file` needed for -i (information) option 
     - `ldd` needed for -de (dependencies) option 
 ## Limitation  
-  - Can't be used multiply in one-liner shell CLI by separated by Bash command terminator `;`, only first invocation can work  
+  - Can't be used multiply in one-liner shell CLI separated by Bash command terminator `;`, only first invocation can work  
   - Can't be used as alias  
-  - Default setting off globstar must not be screwed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search. Of course it's completely fine if invoking it in other search pattern  
+  - Default setting globstar is off must not be screwed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search. Of course it's completely fine if invoking it by other search pattern  
 
 Simply type:   
 $ l   
