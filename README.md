@@ -43,6 +43,10 @@ list any filesystem type under **/** (root) directory entirely, the prefixed **\
 	-c7d last creation equals to 7 days ago  
 	-m7d- last modification is more than or equals to 7 days ago   
 	-c7-10 last creation is between 7 to 10 minutes inclusively. No unit means in minute   
+	-c5-  find object created more than or equal to 5 minutes ago  
+	-a5h-7h  find object accesed between 5 and 7 hours ago inclusively  
+	-m-5d  find object modified 5 days ago or earlier  
+	-m5d   find object modified exactly 5 days ago
 - to filter by size in byte, kibi-, mebi- and gibi- byte unit which has simpler command than find's   
 	-s7m (or M): size equals to 7 mebibiytes being rounded up  
 	-s-7g (or G): size is less than or equal to 7 gibibytes   
@@ -70,7 +74,7 @@ means searching for any object type namedly **meta** under **core** under **buil
 /qt/\*/\*/core/\*.c//   
 search for a regular file type only having extension name ".c" under **core** directory under any directory being under any directory under **qt** directory in root of filesystem.   
 
-To search somewhere deeper up to maximum, add **\*\*** i.e. double wildcard asterisks, in the context of intended depth, e.g:   
+To search somewhere deeper up to maximum, add **\*\*** i.e. double wildcard asterisks, in the context of depth intended, e.g:   
 $ l /qt/\*/\*/core/\*\*/meta   
 
 Will find   
@@ -107,13 +111,14 @@ Defaults to search recursively under **/usr**, so it'd mean searching for:
 	/usr/lib   
 	/usr/\*/lib   
 	/usr/\*/\*/lib   
-	/usr/\*/\*/\*/lib   ...so on till the max depth
-	or in way of shell global star: 	/usr/\*\*/lib   
-So prefixing the relative path with ./ become l ./lib, will ensure only search /usr/lib (the first)  
+	/usr/\*/\*/\*/lib  
+	...so on till the max depth, or in way of shell global star:  
+	/usr/\*\*/lib   
+So prefixing the relative path with **./** to be **l ./lib**, will ensure only search /usr/lib the first above  
 
-In this way of having relative path explicitly stated, i.e. there's no any wildcard in the string, if being searched and **a directory is found** in current working dir, precisely there, then that directory content will entirely be listed automatically, while it'll be otherwise listed normally in deeper place else regardless of its type.      
-If the purpose is needed as another way of path specification above, e.g. in searching by wildcard pattern or some depth searches, put -l option or -l followed by number of depth contained in a directory found.   
-E.g to have it shown more certain depth add the number, -l3 option will show to 3 directory plies of every  directory found and to show entirely put number 0, e.g. l -l0 lib* 
+In this way of having relative path explicitly put i.e. there's no wildcard in the string, if searching and matches **a directory** in current working dir, precisely there, then the directory content all will entirely be listed automatically, when it'll be otherwise listed itself in else deeper place regardless of its type.      
+If such need arise otherwise way of path specification above; i.e. searching by wildcard pattern or some depth searches, put -l option or -l followed by number of depth of directory found.   
+E.g to have it shown more certain depth add the number, -l3 option will show to 3 directory plies for every  directory found and to show entirely put number 0, e.g. l -l0 lib* 
 
 Control the limited search depth by option -1..99[-1..99],  e.g:
    
@@ -144,34 +149,23 @@ Can search in POSIX-extended regular expression by `-E` or `-re` option e.g.
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'
 
 Printout option:  
-<pre>- Size								-s   or with extra info of similar to command ls -l
-- Last modification, change/creation, and access date time				-m, -c, -a  
-- Last modification, change/creation, and access hour time				-mh, -ch, -ah  
+<pre>- Size					-s   or with extra info: -ls  (similar to command ls -l)
+- Last modification, change/creation, and access date time   -m, -c, -a  
+- Last modification, change/creation, and access hour time   -mh, -ch, -ah  
 - Information on the file found (whether 64/32 bit binary etc)	-i  
 - Dependencies of file found in one level depth			-de</pre>
 
 One of the most useful feature of this tool are its widely recognized, standard format of both the input and output which could later be used or piped as input of another utility, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
 E.g. search under **lib** being under **dev** being under **qt** dir. instead of in **src** or **core**, any **c** file:   
 
-$ l /qt/src/../dev/core/../lib/*.c\\*.cpp\\*.o   
+$ l /qt/src/../dev/core/../lib/*.c\\\\*.cpp\\\\*.o   
 /qt/dev/lib/main.c   
 /qt/dev/lib/edit.c   
 /qt/dev/lib/clear.c   
 /qt/dev/lib/main.cpp   
-/qt/dev/lib/edit.cpp   
+/qt/dev/lib/edit.o  
 
-And the result is recognizable as absolute path, surronded by '' if it contains space, which is ready to be piped correctly by **\| xargs** ...    
-
-$ l -c-5   
-   find object created less than or equal to 5 minutes ago. No unit defaults to be in minute  
-$ l -c5-   
-   find object created more than or equal to 5 minutes ago  
-$ l -a5h-7h   
-   find object accesed between 5 and 7 hours ago inclusively  
-$ l -m-5d   
-   find object modified 5 days ago or earlier   
-$ l -m5d   
-   find object modified exactly 5 days ago
+And the result is recognizable as absolute path, surronded by single quote ('') if it contains space, which is ready to be piped correctly by **\| xargs** ...  
 
 ## AUTOMATED REMOVAL
 
