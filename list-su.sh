@@ -122,8 +122,7 @@ fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
-l(){
-unset IFS F E EM OL RM RX EP pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;I=i
+l(){	unset IFS F E EM OL RM RX EP pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=$opt$e\ ;fi;F=;continue;}
@@ -275,7 +274,7 @@ b=${b%$'\v'*}
 break;}
 fi
 unset i dt;set -- ${p:-\"\"};for a;{
-unset IFS F LK IS G R S Q N C L Z
+unset IFS F LK IS G Q R S N C L Z
 if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then LK=$LD
 	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[3]}
@@ -360,7 +359,7 @@ Q=${Q-$S}
 		((RM)) ||2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find $L $A "$R" "${B[@]}" "${C[@]}" \) $E
 		((RM+OL+EM))&&{
 			find $L $A "$R" "${B[@]}" "${C[@]}" \) $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
-			read -sN1 -p 'Remove all the objects listed above (Enter: yes)? ' o>&2
+			read -sN1 -p 'Remove the objects listed and all other objects under the directories listed above (Enter: yes)? ' o>&2
 			[ "$o" = $'\x0a' ]&&{
 				((EM))&&	Z=-empty
 				((OL))&&	Z="${Z+$Z -o }-type l"
