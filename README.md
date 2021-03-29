@@ -169,7 +169,7 @@ And the result is recognizable as absolute path, surronded by single quote ('') 
 
 ## AUTOMATED REMOVAL
 
-Removal is readily guarded nicely. One needn't to test it first by a usual search without removal options below, instead go using it straight as it'll prompt user to confirm to execute the deletion as final decision, if there is a find result   
+Removal is readily guarded nicely. One needn't to test it first by a usual search without removal options below, instead go straight using it as it'll prompt user to confirm to execute the deletion as final decision, if there is a find result   
 <pre>-0    :  to remove every zero size file and empty directory sits under any directory found in the main search result
 -no  :  to remove all orphan links  sits under any directory found in the main search result
 -rm  or -delete : to remove all objects of the main find result</pre>

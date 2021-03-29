@@ -122,9 +122,8 @@ fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
-
 l(){
-unset IFS F EM OL RM RX EP E pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;I=i
+unset IFS F E EM OL RM RX EP pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=$opt$e\ ;fi;F=;continue;}
