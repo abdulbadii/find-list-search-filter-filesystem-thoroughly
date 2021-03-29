@@ -11,7 +11,7 @@ sn="${BASH_REMATCH[2]}"
 T=list-su.sh
 if((n));then
 	((nn)) ||{ echo But broken as its end mark was not found;return;exit;}
-	echo -e "\nAttention, the pattern:\n\n\'$s\'\n\nwas found in ~.bashrc at line number $n till line $nn:\n\n\t$sn"
+	echo -e "\nAttention, the pattern:\n\n\t\'$s\'\n\nwas found in ~.bashrc at line number $n till line $nn:\n\n\t$sn"
 	if [ "$1" = -r ] ;then
 		echo -e "\nYou commanded to uninstall/remove it from ~/.bashrc. "
 		read -sN1 -p 'Confirm (Enter: yes) ? ' o;[ "$o" = $'\x0a' ]&&{
@@ -22,8 +22,8 @@ if((n));then
 		echo -ne "\nUpdating, copying default $T to replace its previous one starts at line $n of ~/.bashrc...\n\nHit u key in 5s to have installation for user without sudo, otherwise key now or after time is out it'd install with sudo... "
 		read -N1 -t5 o;	[ "$o" = u ]&&T=list.sh
 		if [ "$1" = -n?* ]	;then	n=${1:2}
-			echo -e "\nYou commanded to update, install it as function name $n... "
-			sed -e "$n e sed 's/^l\\(\\)\\{/$n(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo Now it\'s been installed, invoke it by $n
+			echo -ne "\nYou commanded to update, install it as function name $n... "
+			sed -e "$n e sed 's/^l\\(\\)\\{/$n(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo done now, invoke it by $n
 		else
 			sed -i -Ee "${n}r$T" -e "$n,${nn}d" ~/.bashrc;fi
 	fi
@@ -32,7 +32,7 @@ else
 	case "$e" in
 	-n) n=${e:2}
 		echo -e "\nYou commanded to install it as function name $n... "
-		sed -e "$n e sed 's/^l\\(\\)\\{/$n(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo Now it\'s been installed, invoke it by $n;;
+		sed -e "$n e sed 's/^l\\(\\)\\{/$n(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo done now, invoke it by $n;;
 	-[1-9]*)	n=${e:1}
 		if [ $n = 1 ] ;then
 			sed -i -Ee "1{r$T" -e 'h};2{x;G}' ~/.bashrc
@@ -44,7 +44,7 @@ else
 		sed -i -nEe "/$p/{h;r$T" -e 'n;x;G};p'  ~/.bashrc;;# or "/$p/r$T" -e '1x;2,${x;p};${g;p}'
 	-u)T=list.sh;break;;
 	*)
-	echo -e "Not found a line with pattern\n\t\t\"$s\"\nas the header mark\nPlease command with the usage below to insert $T to ~/.bashrc or just hit Enter on next"
+	echo -e "Not found a line with pattern\n\t"$s\"\nas the header mark\nPlease command with the usage below to insert $T to ~/.bashrc or just hit Enter on next"
 	echo -e "\nUsage to copy/insert \"$T\" into \"$HOME/.bashrc\" is to position such:\n"
 	echo -e "\n - At line number:       $N -{1 ..999}\n - At line with pattern:   $N -p{pattern string}"
 	echo -e "\n - Set tool/function name else than 'l':  $N -n{string}\n\t e.g. $N -nfd"
