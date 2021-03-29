@@ -21,21 +21,21 @@ if((n));then
 	else
 		echo -ne "\nUpdating, copying default $T to replace its previous one starts at line $n of ~/.bashrc...\n\nHit u key in 5s to have installation for user without sudo, otherwise key now or after time is out it'd install with sudo... "
 		read -N1 -t5 o;	[ "$o" = u ]&&T=list.sh
-		if [ "$1" = -n?* ]	;then	n=${1:2}
-			echo -ne "\nYou commanded to update, install it as function name $n... "
-			sed -e "$n e sed 's/^l\\(\\)\\{/$n(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo done now, invoke it by $n
+		if [ "$1" = -n?* ]	;then	m=${1:2}
+			echo -ne "\nYou commanded to update, install it as function name $m... "
+			sed -e "$n e sed 's/^l\\(\\)\\{/$m(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo done now, invoke it by $m
 		else
 			sed -i -Ee "${n}r$T" -e "$n,${nn}d" ~/.bashrc;fi
 	fi
 else
 	for e;{
 	case "$e" in
-	-n) n=${e:2}
-		echo -e "\nYou commanded to install it as function name $n... "
-		sed -e "$n e sed 's/^l\\(\\)\\{/$n(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo done now, invoke it by $n;;
+	-n) m=${e:2}
+		echo -e "\nYou commanded to install it as function name $m... "
+		sed -e "$n e sed 's/^l\\(\\)\\{/$m(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo done now, invoke it by $m;;
 	-[1-9]*)	n=${e:1}
 		if [ $n = 1 ] ;then
-			sed -i -Ee "1{r$T" -e 'h};2{x;G}' ~/.bashrc
+			sed -i -Ee "1{r$T" -e 'h;d};2{x;G}' ~/.bashrc
 		else
 			sed -i -Ee "$((n-1))r$T" ~/.bashrc;fi
 		break;;
@@ -51,9 +51,9 @@ else
 	echo -e "\n - The sudo/root privilege is always on when using this, to install one without it, put -u as first option such\n $N -u ...\n\n"
 	read -sN1 -p "Copy $T onto the first line of ~/.bashrc (Enter: yes, else: no)? " o
 	[ "$o" = $'\x0a' ]&&{
-		read -sN1 -t3 -p "Installing at first position of ~/.bashrc. Default to install with sudo, hit Enter to do without sudo " o
-		[ "$o" = $'\x0a' ]&&T=list.sh
-		sed -i -Ee "1{r$T" -e 'h};2{x;G}' ~/.bashrc
+		read -N1 -t5 -p "Installing at first position of ~/.bashrc. Default to install with sudo, hit u key to be user without sudo " o
+		[ "$o" = u ]&&T=list.sh
+		sed -i -Ee "1{r$T" -e 'h;d};2{x;G}' ~/.bashrc
 	}
 	esac
 	}
