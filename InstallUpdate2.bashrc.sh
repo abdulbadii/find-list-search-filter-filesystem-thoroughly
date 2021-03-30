@@ -38,7 +38,7 @@ else
 	-[1-9]*)	n=${e:1}
 		if [ $n = 1 ] ;then
 			echo -ne "\nInstalling at first position of ~/.bashrc... "
-			sed -i -e "1{r$T" -e 'h;d};2{x;G};:o n;bo' ~/.bashrc &&echo done
+			sed -i -ne "r$T" -e 'h;n;x;G;:o p;n;bo' ~/.bashrc &&echo done
 		else
 			echo -ne "\nYou commanded to install it at line number $n... "
 			sed -i -e "$((n-1))r$T" ~/.bashrc &&echo done
