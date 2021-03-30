@@ -19,6 +19,7 @@ if((n));then
 			sed -i -e "$n,${nn}d" ~/.bashrc
 		}
 	else
+		git pull || git -C ../ clone --depth 1 https://github.com/abdulbadii/find-list-search-filter-filesystem-thoroughly
 		echo -ne "\nUpdating, copying default $T to replace its previous one starts at line $n of ~/.bashrc...\n\nHit u key in 5s to have installation for user without sudo, otherwise key now or after time is out it'd install with sudo... "
 		read -N1 -t5 o;	[ "$o" = u ]&&T=list.sh
 		if [ "$1" = -n?* ]	;then	m=${1:2}
