@@ -76,7 +76,7 @@ fsz(){	local d f a e z x
 		else	Rt=(\( $f +$a$e $f- $z$x -o $f $a$e -o $f $z$x \));fi
 	else	Rt=($f $a$e);fi
 }
-fd(){	local a e A E
+fdt(){	local a e A E
 	E=${1#*-}
 	if [[ $1 =~ - ]];then	A=${1%-*}
 	elif [[ $1 = *. ]];then	E=${1%.};A=$E;fi
@@ -106,7 +106,7 @@ case $e in
 	-[1-9]|-[1-9][0-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])
 		((H))&&continue;H=1
 		D=${e:1};[[ $e =~ [r/]$ ]]&&{	D=${D%?};Rd=1;}
-		fd $D;	r=("${Rt[@]}" "${r[@]}")
+		fdt $D;	r=("${Rt[@]}" "${r[@]}")
 		dtx="exclusion option \"$e\" is${DR+ reversed depth '$D' from max $DM,}";;
 	-E|-re)	RE=1;;
 	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be as an excluded path>&2
@@ -331,7 +331,7 @@ Q=${Q-$S}
 ((DR))&&{	[[ `eval "find $Q -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a:+fx $Q $x_a};(($?))&&return;XF=1;}
 ((DF))&& [ "$Q" ]&&{
-	 fd $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
+	 fdt $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
 [ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $DF${Du:+ to $Du}${DR+ reversed from max $DM} of $Q}${Dn+${dtx+ and }}${dtx+$dtx of $Q}">&2
 #if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}#else
 	B=(\( "${X[@]}" "${P[@]}" \))
