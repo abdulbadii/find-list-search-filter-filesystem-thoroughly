@@ -72,8 +72,8 @@ fsz(){	local d f a e z x
 		: ${x:=k};x=${x/m/M};x=${x/g/G}
 		z=${z%[cwbkmMgG]}
 		if((!a)) ;then	Rt=(\( $f -$z$x -o $f $z$x \))
-		elif((!z)) ;then	Rt=(\( $f+ $a$e -o $f $a$e \))
-		else	Rt=(\( $f +$a$e $f- $z$x -o $f $a$e -o $f $z$x \));fi
+		elif((!z)) ;then	Rt=(\( $f +$a$e -o $f $a$e \))
+		else	Rt=(\( $f +$a$e $f -$z$x -o $f $a$e -o $f $z$x \));fi
 	else	Rt=($f $a$e);fi
 }
 fdt(){	local a e A E
@@ -302,7 +302,8 @@ else
 	if((RX));then
 		LF=$LD;R=${re+.*}$p
 	elif((re));then	F=1;Q=$S$p
-	else			IS=$I;S=$s$p;R=/$W*;	[ -d "$S" ]||{ R=.*;x_a=;Q=;}
+	else	S=$s$p
+		[ -e "$S" ]||return;		IS=$I;R=/$W*;	[ -f "$S" ]&&{ R=.*;x_a=;Q=;}
 	fi
 fi
 while [[ $S =~ $'\f'([]*?[]) ]];do S=${S/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"};done
@@ -328,7 +329,7 @@ Q=${Q-$S}
 	((F)) ||{		 Rm=".{${#S}}($R)?";	R=.{${#S}}$R ;}
 	[ $IS ] &&{ shopt -s nocaseglob;set +f;	printf -vS %s "${S:0: -1}"[${S: -1}];set -f;}
 }
-((DR))&&{	[[ `eval "find $Q -printf '%d\n'|sort -nur"` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
+((DR))&&{	[[ `find $Q -printf '%d\n'|sort -nur` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((XF))||{	eval ${x_a:+fx $Q $x_a};(($?))&&return;XF=1;}
 ((DF))&& [ "$Q" ]&&{
 	 fdt $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
@@ -336,10 +337,10 @@ Q=${Q-$S}
 #if((Fc));then T="${T% $S} $S";Q="${Q% \! -ipath $S} \! -ipath $S";	U=$U${R:+\|$R};V=$V${G:+ -o -${I}path \"$G/*\"}#else
 	B=(\( "${X[@]}" "${P[@]}" \))
 	if((F)) ;then
-		A="$po $S ${opt[@]} ( -${I}path";C=(${p:+-o -${I}path "$Q" -type f "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"})
+		A=($po "$S" ${opt[@]} \( -${I}path);C=(${p:+-o -${I}path "$Q" -type f "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"})
 		R=$Q/*
 	else
-		A="$po $S -regextype posix-extended ${opt[@]} ( -${I}regex"
+		A=($po "$S" -regextype posix-extended ${opt[@]} \( -${I}regex)
 	fi
 	if((de));then	export -f fid;find $A "$R" "${B[@]}" "${C[@]}" \) ! -type d -executable -exec bash -c 'fid \"\$0\" \"\$@\"' '{}' \;
 	elif((if));then	find $A "$R" "${B[@]}" "${C[@]}" \) ! -type d -exec bash -c '[[ \`file \"{}\"\` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo \ \${BASH_REMATCH[1]}' \;
@@ -349,24 +350,22 @@ Q=${Q-$S}
 			echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	find $L $A "$R" "${B[@]}" "${C[@]}" \) $E
 	else
 		((RM+OL+EM))&&{
-			((RM)) &&2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $A "$R" "${B[@]}" "${C[@]}" \) $E
+			((RM)) &&2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) $E
 			((EM))&& E=(-empty ${PE[@]})
 			((OL))&&{ L=-L;E=(${E:+"${E[@]}" -o }-type l "${PL[@]}");}
 			unset B
 			if((F)) ;then	C=(-o -${I}path "$Q" -o -${I}path "$S/*$p" -o -${I}path "$S/*$p/*")
 			else			R=$Rm;fi
 		}
-		((RM)) ||2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $L $A "$R" \! -ipath "$Q" "${B[@]}" "${C[@]}" \) $E
+		((RM)) ||2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) find $L "${A[@]}" "$R" \! -ipath "$Q" "${B[@]}" "${C[@]}" \) $E
 		((RM+OL+EM))&&{
-			find $L $A "$R" "${B[@]}" "${C[@]}" \) $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
+			find $L "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
 			read -sN1 -p 'Remove the objects listed and all other objects under directories listed above (Enter: yes)? ' o>&2
 			[ "$o" = $'\x0a' ]&&{
-			((RM))||{
-				((EM))&&	Z=-empty;	((OL))&&	Z="${Z+$Z -o }-type l";	Z=(\( $Z \));}
-				find $L  $A "$R" "${B[@]}" ${C[@]} \) $Z -delete &&echo Above all deleted>&2
+			((RM))	||{		((EM))&&	Z=-empty;	((OL))&&	Z="${Z+$Z -o }-type l";	Z=(\( $Z \));}
+				find $L $A "$R" "${B[@]}" ${C[@]} \) $Z -delete &&echo Above all deleted>&2
 			}
-		echo
-		}
+		echo;}
 	fi
 #fi
 }
