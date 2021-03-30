@@ -6,8 +6,8 @@ Find and list specific file, directory, link or any filesystem type recursively 
 ## Requirement  
   - Bash (tested/developed using version 5)
   - Find (Linux utility, tested/developed using GNU findutils 4.6)
-  - The default settings of history.  
-     It is enabled and not prevented by HISTIGNORE variable value having this tool/function name. So not screwing up this default settings is required. If any single letter needs to be prevented from command history saving, exclude this tool name, e.g.  
+  - The default settings of command history.  
+     It is enabled and this tool (function) name not prevented of saving by HISTIGNORE variable value. So not messing up this default settings is required. If any single letter needs to be prevented from command history saving, exclude this tool name, e.g.  
      `HISTIGNORE=[!l]`
      when **l** for this function name
   - Optional, as required by optional feature:
@@ -15,8 +15,8 @@ Find and list specific file, directory, link or any filesystem type recursively 
     - `ldd` needed for -de (dependencies) option 
 ## Limitation  
   - Can't be used multiply in one-liner shell script only the first invocation can work  
-  - Can't be used as alias  
-  - Default setting globstar is off must not be changed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search of which otherwise search pattern invocation is completely fine
+  - Can't be used as alias. Use `-n` installer script option to change this tool name from `l`, e.g. `-nfd` to invoke it with `fd`  
+  - Default off globstar setting must not be changed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search in which otherwise search pattern invocation is completely fine
 
 Simply type:   
 $ l   
@@ -67,7 +67,6 @@ list any filesystem type under **/** (root) directory entirely, the prefixed **\
 </pre>
 
 The absolute path-input search, will target in the directory depth as explicitly specified, either with or without wildcard such as:   
-
 l /qt/build/core/meta   
 means searching for any object type namedly **meta** under **core** under **build** within **qt** directory in root dir., or e.g:   
 
