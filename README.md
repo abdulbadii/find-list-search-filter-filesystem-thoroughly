@@ -7,7 +7,7 @@ Find and list specific file, directory, link or any filesystem type recursively 
   - Bash (tested/developed using version 5)
   - Find (Linux utility, tested/developed using GNU findutils 4.6)
   - The default settings of command history.  
-     It is enabled and this tool (function) name not prevented of saving by HISTIGNORE variable value. So not messing up this default settings is required. If merely single letter needs to be prevented from command history saving, exclude the name, e.g.  
+     It is enabled and this tool (function) name must not be prevented being saved by HISTIGNORE variable value. So not messing up this default settings is required. If merely single letter needs to be prevented from command history saving, exclude the name, e.g.  
      `HISTIGNORE=[!l]`  
      when **l** is the function name
   - Optional, as required by optional feature:
@@ -113,7 +113,7 @@ Defaults to search recursively under **/usr**, so it'd mean searching for:
 	/usr/\*/\*/\*/lib  
 	...so on till the max depth, or in way of shell global star:  
 	/usr/\*\*/lib   
-So prefixing the relative path with **./** to be **l ./lib**, will ensure only search /usr/lib the first above  
+So prefixing the relative path with **./** to be **l ./lib**, will ensure only search /usr/lib, the first above  
 
 In this way of having relative path explicitly put i.e. there's no wildcard in the string, if searching and matches **a directory** in current working dir, precisely there, then the directory content all will entirely be listed automatically, when it'll be otherwise listed itself in else deeper place regardless of its type.      
 If such need arise otherwise way of path specification above; i.e. searching by wildcard pattern or some depth searches, put -l option or -l followed by number of depth of directory found.   
@@ -164,14 +164,14 @@ $ l /qt/src/../dev/core/../lib/*.c\\\\*.cpp\\\\*.o
 /qt/dev/lib/main.cpp   
 /qt/dev/lib/edit.o  
 
-And the result is recognizable as absolute path, surronded by single quote ('') if it contains space, which is ready to be piped correctly by **\| xargs** ...  
+And the result is as recognizable standard in absolute path, surronded by single quote ('') if containing space which is ready to be piped correctly by **\| xargs** ...  
 
 ## AUTOMATED REMOVAL
 
 Removal is readily guarded nicely. One needn't to test it first by a usual search without removal options below, instead go straight using it as it'll prompt user to confirm to execute the deletion as final decision, if there is a find result   
-<pre>-0    :  to remove every zero size file and empty directory sits under any directory found in the main search result
--no  :  to remove all orphan links  sits under any directory found in the main search result
--rm  or -delete : to remove all objects of the main find result</pre>
+`-0`    :  to remove every zero size file and empty directory sits under any directory found in the main search result
+`-no`  :  to remove all orphan links (no orphan) sits under any directory found in the main search result
+`-rm`  or `-delete` : to remove all objects of the main find result</pre>
 
 ## EXCLUSION
 
