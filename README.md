@@ -1,22 +1,23 @@
 Run the InstallUpdate2.bashrc.sh to quickly copy **list.sh** above to ~/.bashrc    
 Should do too, clicking it, copy Bash functions inside and then paste it into ~/.bashrc   
-**list-su.sh** differs only in having superuser request: `sudo` command prefix, but it cannot be applied with -de and -i option   
+**list-su.sh** differs only in having superuser request: `sudo` command prefix, but will not be applied with -i or -de option   
 
 Find and list specific file, directory, link or any filesystem type recursively while keep utilizing most`find` test and action options that may be passed and made use of
 ## Requirement  
   - Bash (tested/developed using version 5)
   - Find (Linux utility, tested/developed using GNU findutils 4.6)
-  - The default settings of history.  
-     It is enabled and not prevented by HISTIGNORE variable value having this tool/function name. So not screwing up this default settings is required. If any single letter needs to be prevented from command history saving, exclude this tool name, e.g.  
-     `HISTIGNORE=[!l]`
-     when **l** for this function name
+  - The default settings of command history.  
+     It is enabled and this tool (function) name must not be prevented being saved by HISTIGNORE variable value. So not messing up this default settings is required. If merely single letter needs to be prevented from command history saving, exclude the name, e.g.  
+     `HISTIGNORE=[!l]`  
+     when **l** is the function name
   - Optional, as required by optional feature:
     - `file` needed for -i (information) option 
-    - `ldd` needed for -de (dependencies) option 
+    - `ldd` needed for -de (dependencies) option
+    - `sed` needed by the installer script above  
 ## Limitation  
-  - Can't be used multiply in one-liner shell script only the first invocation can work  
-  - Can't be used as alias  
-  - Default setting globstar is off must not be changed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search of which otherwise search pattern invocation is completely fine
+  - Can't be invoked multiply in one-liner shell script only the first invocation can work  
+  - Can't be used as alias. Use `-n` installer script option to change the name invoked, e.g. `-nfd` to invoke it with `fd`  
+  - The default off globstar setting must not be changed by `shopt -s globstar` as it'd cause inefficiency in `**` wildcard path search in which otherwise search pattern invocation is completely fine
 
 Simply type:   
 $ l   
@@ -67,7 +68,6 @@ list any filesystem type under **/** (root) directory entirely, the prefixed **\
 </pre>
 
 The absolute path-input search, will target in the directory depth as explicitly specified, either with or without wildcard such as:   
-
 l /qt/build/core/meta   
 means searching for any object type namedly **meta** under **core** under **build** within **qt** directory in root dir., or e.g:   
 
@@ -89,9 +89,8 @@ Will search exactly two plies depth between **qt** and **core** directory, and i
 If navigating in way of relative path, i.e. not started with **/**, a slash character, then the given relative path will always be searched anywhere in any depth of under current directory, does not have to be directly on current directory.   
 To limit the search on current directory only, precede (prefix) it in the start with **./**   
 
-Suppose previous explicit part of path exists only where it's specified i.e. **meta** exists only under **core** directory being under any directory being under any dir. under qt directory.   
-
-Prefixing a relative path with ./ characters will search for at current dir. only as if the CLI path is concatenated directly to current dir.   
+Suppose previous explicit part of path exists only where it's specified i.e. **meta** exists only under **core** directory being under any directory being under any dir. under **qt** directory.   
+Then prefixing a relative path with ./ characters will search on current directory only as if the CLI path is concatenated directly to current dir.   
 
 $ cd /qt   
 $ l core/meta   
@@ -114,7 +113,7 @@ Defaults to search recursively under **/usr**, so it'd mean searching for:
 	/usr/\*/\*/\*/lib  
 	...so on till the max depth, or in way of shell global star:  
 	/usr/\*\*/lib   
-So prefixing the relative path with **./** to be **l ./lib**, will ensure only search /usr/lib the first above  
+So prefixing the relative path with **./** to be **l ./lib**, will ensure only search /usr/lib, the first above  
 
 In this way of having relative path explicitly put i.e. there's no wildcard in the string, if searching and matches **a directory** in current working dir, precisely there, then the directory content all will entirely be listed automatically, when it'll be otherwise listed itself in else deeper place regardless of its type.      
 If such need arise otherwise way of path specification above; i.e. searching by wildcard pattern or some depth searches, put -l option or -l followed by number of depth of directory found.   
@@ -165,20 +164,20 @@ $ l /qt/src/../dev/core/../lib/*.c\\\\*.cpp\\\\*.o
 /qt/dev/lib/main.cpp   
 /qt/dev/lib/edit.o  
 
-And the result is recognizable as absolute path, surronded by single quote ('') if it contains space, which is ready to be piped correctly by **\| xargs** ...  
+And the result is as recognizable standard in absolute path, surronded by single quote ('') if containing space which is ready to be piped correctly by **\| xargs** ...  
 
 ## AUTOMATED REMOVAL
 
 Removal is readily guarded nicely. One needn't to test it first by a usual search without removal options below, instead go straight using it as it'll prompt user to confirm to execute the deletion as final decision, if there is a find result   
-<pre>-0    :  to remove every zero size file and empty directory sits under any directory found in the main search result
--no  :  to remove all orphan links  sits under any directory found in the main search result
--rm  or -delete : to remove all objects of the main find result</pre>
+`-0`    :  to remove every zero size file and empty directory sits under any directory found in the main search result
+`-no`  :  to remove all orphan links (no orphan) sits under any directory found in the main search result
+`-rm`  or `-delete` : to remove all objects of the main find result</pre>
 
 ## EXCLUSION
 
 Another most useful and powerful feature is the exclusion from the main result found. It's done by specifiying path and/or pattern in `-x=` option 
 
-...wrting is being edited, for now just go on using `-x=` {search pattern}
+...wrting is being edited, for now just go on using `-x=`{search pattern}
 
 
 
