@@ -124,14 +124,10 @@ Control the limited search depth by option -1..99[-1..99],  e.g:
 To search only on current directory and another one below it, put -2   
 $ l -2   
 
-To search for only from 3rd ply from current up to 5th    
+To search in current directory for **src/dev** only within 3rd ply to 5th    
 $ l -3-5 src/dev   
 
-to search only from 5th ply of current directory until the last, under src/dev dir. relative to PWD, of size between 40 and 50 kibibyte inclusively:   
-
-$ l -5- -s40-50 src/dev   
-
-can be navigated by way of one-line multiple paths such as absolute followed by relative path      
+can be navigated by one-liner having multiple paths such as absolute followed by relative path      
 
 $ l /qt/\*/\*/core/\*\*/meta  usr/src/\*.c   tmp/\*.o var/\*.etc
 
@@ -148,11 +144,13 @@ Can search in POSIX-extended regular expression by `-E` or `-re` option e.g.
 $ l -E '/a/*/m\w{1,2}\\.[c-h]'
 
 Printout option:  
-<pre>- Size					-s   or with extra info: -ls  (similar to command ls -l)
+<pre>- Absolute path is surely always printed out   -aa
+- Size					-s   or with extra info: -ls  (similar to command ls -l)
 - Last modification, change/creation, and access date time   -m, -c, -a  
 - Last modification, change/creation, and access hour time   -mh, -ch, -ah  
 - Information on the file found (whether 64/32 bit binary etc)	-i  
-- Dependencies of file found in one level depth			-de</pre>
+- Dependencies of file found in one level depth			-de
+- Interleave colorized list -co</pre>
 
 One of the most useful feature of this tool are its widely recognized, standard format of both the input and output which could later be used or piped as input of another utility, and the -x (or-xs for case-sensitive) exclusion option for excluding some certain files or paths from the main result paths  
 E.g. search under **lib** being under **dev** being under **qt** dir. instead of in **src** or **core**, any **c** file:   
@@ -164,7 +162,7 @@ $ l /qt/src/../dev/core/../lib/*.c\\\\*.cpp\\\\*.o
 /qt/dev/lib/main.cpp   
 /qt/dev/lib/edit.o  
 
-And the result is as recognizable standard in absolute path, surronded by single quote ('') if containing space which is ready to be piped correctly by **\| xargs** ...  
+And the result is as recognizable standard in absolute path, surronded by single quote (e.g. 'go on') if containing space which is ready to be piped correctly by **\| xargs** ...  
 
 ## AUTOMATED REMOVAL
 
