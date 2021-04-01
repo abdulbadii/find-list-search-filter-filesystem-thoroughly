@@ -224,7 +224,7 @@ for a;{	((S))&&{	S=;continue;}
 eval set -- ${M:-\"\"}
 for e;{
 unset F T W a b B p z r re s
-if [ ${e:0:2} = \\/ ];then	z=${e:2};[ $z = *[!/]* ]&&return;s=/			# start with \\, means root dir search
+if [ "${e:0:2}" = \\/ ];then	z=${e:2};[ "$z" = *[!/]* ]&&return;s=/			# start with \\, means root dir search
 else
 re=1;e=${e//${se='\\'}/$'\n'}
 IFS=$'\n';set -- $e			# break down to paths of same base, separated by \\ or $se
