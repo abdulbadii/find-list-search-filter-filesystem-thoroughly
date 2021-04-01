@@ -123,7 +123,7 @@ fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
-l(){	unset IFS AA F E EM OL RM RX EP pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;RL=1;I=i
+l(){	unset IFS F E EM OL RM RX EP pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;RL=1;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 for e;{
 ((F)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=$opt$e\ ;fi;F=;continue;}
@@ -228,7 +228,7 @@ if [ "${e:0:2}" = \\/ ];then	z=${e:2};[ "$z" = *[!/]* ]&&return;s=/			# start wi
 else
 re=1;e=${e//${se='\\'}/$'\n'}
 IFS=$'\n';set -- $e			# break down to paths of same base, separated by \\ or $se
-for a;{									# fake for-loop, diffrentiate with and without path argument, once then breaks
+for a;{									# a fake for-loop to diffrentiate the with and without path argument, once then breaks
 [[ $a =~ ^(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}
 if [ "${a:0:1}" = / ];then	re= #			if absolute or...
@@ -320,20 +320,22 @@ P=("${P[@]}" "${pt[@]}")
 ((LD)) &&{
 	P=(-type d -prune -exec find {} $lx "${P[@]}" \; -o "${PL[@]}" -o "${PT[@]}");PE=(${P[@]})
 	[ $z ]&&{ z=/;echo type selective suffix if used with -l option will always be / \(find directory only\);};}
-Q=${Q-$S}
 [ "$S" = / ] ||{
 	((F)) ||	R=.{${#S}}$R
 	[ $IS ] &&{ shopt -s nocaseglob;set +f;	printf -vS %s "${S:0: -1}"[${S: -1}];set -f;}
 }
+Q=${Q-$S}
 ((DR))&&{	[[ `find $Q -printf '%d\n'|sort -nur` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
+((T))&&((RL))&&{
+	S=.;R=.$p${F+/*}
+	while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
+	Q=.${F+$p}
+}
 ((XF))||{	eval ${x_a:+fx $Q $x_a};(($?))&&return;XF=1;}
 ((DF))&& [ "$Q" ]&&{
-	 fdt $Dn "$Q";opt=(${opt[@]} "${Rt[@]}");}
-[ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $DF${Du:+ to $Du}${DR+ reversed from max $DM} of $Q}${Dn+${dtx+ and }}${dtx+$dtx of $Q}">&2
-((RL))&&((T))&&{
-	S=.;R=.$p;while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-	((F))&&R=$R/*
+	fdt $Dn "$Q";opt=(${opt[@]} "${Rt[@]}")
 }
+[ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $DF${Du:+ to $Du}${DR+ reversed from max $DM} of $Q}${Dn+${dtx+ and }}${dtx+$dtx of $Q}">&2
 if((F)) ;then
 	A=($po "$S" ${opt[@]} \( -${I}path);C=(${p:+-o -${I}path "$Q" -type f "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"})
 else

@@ -24,11 +24,12 @@ if((n));then
 		echo -ne "\nUpdating, copying $T to replace its previous one starts at line $n of ~/.bashrc...\n\nHit u key in 5 s to have installation for user without sudo, otherwise now or after timeout is to install with sudo... "
 		read -N1 -t5 o;	[ "$o" = u ]&&T=list.sh
 		if [ "$1" = -n?* ]	;then	m=${1:2}
-			echo -ne "\nUpdating and setting its name to \'$m\' as commanded... "
+			echo -ne "\nUpdating and setting the tool name to \'$m\' ... "
 			sed -e "$n e sed 's/^l\\(\\)\\{/$m(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo done, now should be invoked by: $m
 		else
 			echo -ne "\nUpdating as default name 'l'... "
 			sed -i -e "${n}r$T" -e "$n,${nn}d" ~/.bashrc&&echo done, now should be invoked by: l;fi
+		cd-
 	fi
 else
 	echo -e "\nNot found a line with pattern\n\t\"$s\"\nas the header mark"
@@ -55,7 +56,7 @@ else
 	echo -e "\nUsage to install or copy/insert \"$T\" into \"$HOME/.bashrc\" is to position such:\n"
 	echo -e "\n - At line number:       $N -{1 ..999}\n - At line with pattern:   $N -p{pattern string}"
 	echo -e "\n - Set this tool name which wil be invoked with, else than 'l' as default\nThe name may not be:fx, fxr, fdt, fsz, ftm and fid\n\t$N -n{string}\n\t e.g. $N -nfd   will let user to invoke this by: fd"
-	echo -e "\n - The sudo/root privilege usage will always be installed, to install one without it, put -u as first option such\n $N -u ...\n\n"
+	echo -e "\n - The sudo/root privilege mode defaults to be installed, to install one without it, put -u as first option such\n $N -u ...\n\n"
 	read -sN1 -p "Copy, insert $T onto the first line of ~/.bashrc (Enter: yes, else: no)? " o
 	[ "$o" = $'\x0a' ]&&{
 		read -N1 -t5 -p "Installing one with sudo... hit u key in 5 s to install one without sudo " o
@@ -64,4 +65,5 @@ else
 	}
 	esac
 	}
-fi;cd -
+fi;. ~/.bashrc
+
