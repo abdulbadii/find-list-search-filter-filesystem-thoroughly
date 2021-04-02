@@ -217,7 +217,8 @@ for e;{
 unset F T W a b B p z r re s
 if [ "${e:0:2}" = \\/ ];then	z=${e:2};[ "$z" = *[!/]* ]&&return;s=/			# start with \\, means root dir search
 else
-re=1;e=${e//${se='\\'}/$'\n'}
+T=1;re=1
+e=${e//${se='\\'}/$'\n'}
 IFS=$'\n';set -- $e			# break down to paths of same base, separated by \\ or $se
 for a;{									# a fake for-loop to diffrentiate the with and without path argument, once then breaks
 [[ $a =~ ^(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[2]}
@@ -225,24 +226,24 @@ a=${BASH_REMATCH[1]}
 if [ "${a:0:1}" = / ];then	re= #			if absolute or...
 	p=$a;[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
-else	T=1
+	T=
+else
 	[[ $a =~ ^\./|^\.$ ]]&&{	re= # .. only . or prefixed by ./ then needn't to insert recursive .*
 		a=${a#.};	[ "$a" ]|| W=[^/];	a=${a#/};}
 	[[ /$a =~ ^((/\.\.)*)(/.+)?$ ]]
 	p=${BASH_REMATCH[3]};s=~+
-	[ ${BASH_REMATCH[1]} ]&&{	[ $s = / ]&&eval $E2
+	[ ${BASH_REMATCH[1]} ]&&	{	T=
+		[ $s = / ]&&eval $E2
 		s=$s${BASH_REMATCH[1]}
 		while [[ $s =~ /[^/]+/\.\.(/|$) ]];do	s=${s/"${BASH_REMATCH[0]}"/\/};[[ $s =~ ^/\.\.(/|$) ]]&&eval $E2;done
-		T=
 	}
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/\/}
-		[[ $p =~ ^((/\.\.)+)(/.+)?$ ]] &&{
-		p=${BASH_REMATCH[3]}
-		((re))||{	[ $s = / ]&&eval $E2
+		[[ $p =~ ^((/\.\.)+)(/.+)?$ ]] &&{	p=${BASH_REMATCH[3]}
+		((re))||	{	T=
+			[ $s = / ]&&eval $E2
 			s=$s${BASH_REMATCH[1]}
 			while [[ $s =~ /[^/]+/\.\.(/|$) ]];do
 				s=${s/"${BASH_REMATCH[0]}"/\/}; [[ $s =~ ^/\.\.(/|$) ]]&&{ eval $E1;return;};done
-			T=
 		};break;}
 	done
 	s=${s%/}
