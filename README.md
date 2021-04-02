@@ -38,7 +38,7 @@ list any filesystem type under **/** (root) directory entirely, the prefixed **\
 - To find only directory, file, executable or link type, suffix path with /, //, /// or ////    
 - To get better control in search by using regular expression  
 - To search in case sensitive. (Defaults to insensitive)   
-- To filter by last creation, acces or modification time, use -c, -a, -m an easier use than find (the found number is rounded up to the given)   
+- To filter by last creation, acces or modification time: `-c`, `-a`, `-m` easier way than find (the found number is rounded up to the given)   
 	-a-7m last access is less than or exactly 7 minutes ago   
 	-c7d last creation is exactly 7 days ago  
 	-m5h-7d last modification is between 5 hours to exactly 7 days ago   

@@ -123,7 +123,7 @@ fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
-l(){	unset IFS D E F L G Fc Fu Fm x_a C M X XF IS S J EM OL RM RX EP pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;RL=1;I=i
+l(){	unset IFS D E F L G FC FM x_a M V X IS S J EM OL RM RX EP pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CN;RL=1;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
 while [[ $h =~ ([^\\]|\\\\)[\;\&|\>\<] ]];do	h=${h/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'};done
@@ -137,7 +137,6 @@ for c;{
 	set --
 }
 for e;{
-((S))&&{	S=;continue;}
 ((D)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=$opt$e\ ;fi;D=;continue;}
 ((EP))&&{ $E=$E$e\ ;EP=;continue;}
 ((!L)) &&{
@@ -184,15 +183,21 @@ for e;{
 		\!|-d|-depth|-daystart|-follow|-fprint|-fls|-group|-gid|-o|-xstype) opt=$opt$e\ ;;
 		-x=?*|-xs=?*)
 			((Fc))&&{	echo -c or -cp option must be the last>&2;return;}
-			[ ${a:2:1} = = ]&&J=i
-			x=${a#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
+			[ ${e:2:1} = = ]&&J=i
+			x=${e#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\"$x\"' ';
 			G=1;continue;;
-		-c=*|-cto=*|-m=*|-mto=*)
+		#|-m=?*|-mto=?*)
+		-c=?*|-cnd=?*|-ch|-chead|-ch=?*|-chead=?*|-cto=?*)
 			((EP+RM+if+de+OL+EM))&& { echo Cannot be both copy and removal, dependency, info, or $E option;return;}
 			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
-			C=${a#-*=}
-			Fc=1;break;;
+			if [[ $e =~ ^-cnd ]];then CN=1
+			elif [[ $e =~ ^-cto ]];then CO=1
+			elif [[ $e =~ ^-ch(ead)?=?(.+)? ]];then ch=${BASH_REMATCH[2]}
+			fi
+			ct=${e#-c*=}
+			FC=1
+			break;;
 		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)	[ $Fc ]&&{	echo Cannot be both copy and $e option;return;}
 			continue;;
 		\!)continue;;
@@ -211,8 +216,7 @@ for e;{
 		fi;G=0
 	else	M=$M$a\ ;F=1;fi
 }
-M=${M//\\/\\\\}
-eval set -- ${M:-\"\"}
+M=${M//\\/\\\\};eval set -- ${M:-\"\"}
 for e;{
 unset F T W a b B p z r re s
 if [ "${e:0:2}" = \\/ ];then	z=${e:2};[ "$z" = *[!/]* ]&&return;s=/			# start with \\, means root dir search
@@ -220,7 +224,7 @@ else
 T=1;re=1
 e=${e//${se='\\'}/$'\n'}
 IFS=$'\n';set -- $e			# break down to paths of same base, separated by \\ or $se
-for a;{									# a fake for-loop to diffrentiate the with and without path argument, once then breaks
+for a;{									# a fake loop to diffrentiate the with and without path argument, once then breaks
 [[ $a =~ ^(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[2]}
 a=${BASH_REMATCH[1]}
 if [ "${a:0:1}" = / ];then	re= #			if absolute or...
@@ -323,7 +327,7 @@ Q=${Q-$S}
 	while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 	Q=.${F+$p}
 }
-((XF))||{	eval ${x_a:+fx $Q $x_a};(($?))&&return;XF=1;}
+((V))||{	eval ${x_a:+fx $Q $x_a};(($?))&&return;V=1;}
 ((DF))&& [ "$Q" ]&&{
 	fdt $Dn "$Q";opt=(${opt[@]} "${Rt[@]}")
 }
@@ -350,30 +354,17 @@ else
 		else			R="$R(/.*)?";fi
 	}
 	((RM)) ||2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find $L "${A[@]}" "$R" \! -ipath "$Q" "${B[@]}" "${C[@]}" \) $E
-	((RM+OL+EM))&&{
+	if((RM+OL+EM));then
 		sudo find $L "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) $E|read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
 		read -sN1 -p 'Remove the objects listed and all other objects under directories listed above (Enter: yes)? ' o>&2
 		[ "$o" = $'\x0a' ]&&{
 		((RM))	||{		((EM))&&	Z=-empty;	((OL))&&	Z="${Z+$Z -o }-type l";	Z=(\( $Z \));}
 			sudo find $L $A "$R" "${B[@]}" ${C[@]} \) $Z -delete &&echo All deleted>&2
-		}
-	echo;}
+		};echo
+	#elif((Fc));then
+		#C=${C%/}
+		#mkdir -p $ct
+	fi
+	
 fi
-}
-#if((Fc));then
-	#C=${C%/}
-	#if [ -d "$C" ];then read -n1 -p "Delete content of directory \"$C\" and replace with the found result? " o
-		#echo;[ "$o" = y ]||return;rm -r "$C"
-	#elif	[ -f "$C" ];then echo Trying to replace file $C>&2;rm $vb "$C"||{ echo Failed, try again as root>&2;};fi
-	#T=${T# };Q=${Q# };U=${U#\|};V=${V# -o };U=${U:+-${I}regex \"$U\"};V=${V:+$V}
-	#if((Fu));then
-		#mkdir -p$vb $C
-		#eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type f" |xargs -i $CM -u$vb '{}' "$C"
-	#else
-		#eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type d -printf \"$C/%P\n\"" |xargs mkdir -p$vb -- 2>/dev/null &&{
-		#cd $C;eval find "$po$T $Q $opt$Rt \( -regextype posix-extended $U $V \) ${X[@]} -type f -printf '%P\n'" |xargs -i $CM -u$vb "$T/{}" '{}'
-		#cd ->/dev/null;}
-	#fi
-#fi
-}
-set +f;} ##### ENDING OF l, find wrap script #####
+};};set +f;} ##### ENDING OF l, find wrap script #####
