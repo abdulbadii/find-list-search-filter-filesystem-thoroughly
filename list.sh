@@ -123,61 +123,11 @@ fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ [^,]+) ]];echo -e " ${BASH_REMATCH[1]}\n DEPs"
 	ldd "$1" 2>/dev/null |sed -E 's/^\s*([^>]+>\s*)?(.+)\s+\(0.+/  \2/'
 }
-l(){	unset IFS F E EM OL RM RX EP pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;RL=1;I=i
+l(){	unset IFS D E F L G Fc Fu Fm x_a C M X XF IS S J EM OL RM RX EP pt co po opt se sz tm Dn DF Du DR DM dtx de if lx LD CM;RL=1;I=i
 set -f;trap 'set +f;unset IFS' 1 2
-for e;{
-((F)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=$opt$e\ ;fi;F=;continue;}
-((EP))&&{ $E=$E$e\ ;EP=;continue;}
-case $e in
--[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=(${opt[@]} ${Rt[@]});;
--[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])	Dn=${e:1}
-	[[ ${e: -1} = [r/] ]]&&{	Dn=${Dn%?};DR=1;}
-	DF=${Dn%-*};Du=${Dn#*-}
-	if((!Du)) ;then Du='the max depth'
-	elif((Du==DF)) ;then Du=;fi;;
--s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
--s=?|-s=??) se=${e:5};;
--aa)RL=;;
--x=?*|-xs=?*|-xcs=?*|-c=?*|-cto=?*|-m=?*|-mto=?*);;
--rm|-delete)RM=1
-	((EP)) && { echo cannot both rm and exec option;return;};;
--exec|-execdir)
-	((RM+OL+EM)) && { echo cannot both -exec and -rm, -no or -0 option;return;}
-	E=$E$e\ ;EP=1;;
--ls) E=-ls\ $E;;
--s) sz=\ %s;;
--l|-l[0-9]|-l[1-9][0-9])	LD=1;n=${e:2}
-	((n)) ||: ${n:=1};
-	((n)) && lx=-maxdepth\ $n;;
--E|-re) RX=1;;
--no)OL=1
-	((EP)) && { echo cannot both -no and exec option;return;};;
--0)EM=1
-	((EP)) && { echo cannot both -0 and exec option;return;};;
--|--)	break;;
--s=*) echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
--de)de=1;;-i)if=1;;
--cs)I=;;
--co) co=1;;-ci)I=i;;
--m) tm=\ %Tx;;
--mh) tm=' %Tr %Tx';;
--a) tm=\ %Ax;;
--ah) tm=' %Ar %Ax';;
--c) tm=\ %Cx;;
--ch) tm=' %Cr %Cx';;
--h|--help)man find;return;;
--[HDLPO])po=$e;;
--printf)pt=("${pt[@]}" "$e");F=1;;
--[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;F=1;;
-\!|-d|-depth|-daystart|-follow|-fprint|-fls|-group|-gid|-o|-xstype) opt=$opt$e\ ;;
--*)	echo -e "\e[1;33m$e\e[m unknown option, if it\'d be a path name, put it after - or -- then space. "
-read -n1 -p 'Ignore and continue (y for yes, else for no)? ' k;[ "$k" = y ]||return
-esac
-}
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
 while [[ $h =~ ([^\\]|\\\\)[\;\&|\>\<] ]];do	h=${h/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1]}"$'\n'};done
 IFS=$'\n';set -- $h
-unset IFS F L G Fc Fu Fm x_a x vb C M X XF IS S J
 for c;{
 	[[ $c =~ ^.+\ *\$\(\ *$FUNCNAME[[:space:]]+(.*)\)|.+[[:space:]]*\`[[:space:]]*$FUNCNAME[[:space:]]+(.*)\`|[[:space:]]*$FUNCNAME[[:space:]]+(.*) ]]&&{	
 		c="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
@@ -186,9 +136,53 @@ for c;{
 	}
 	set --
 }
-for a;{	((S))&&{	S=;continue;}
-	((!L)) &&{	case $a in
-		-x=?*|-xs=?*|-xcs=?*)
+for e;{
+((S))&&{	S=;continue;}
+((D)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=$opt$e\ ;fi;D=;continue;}
+((EP))&&{ $E=$E$e\ ;EP=;continue;}
+((!L)) &&{
+	case $e in
+		-[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=(${opt[@]} ${Rt[@]});;
+		-[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])	Dn=${e:1}
+			[[ ${e: -1} = [r/] ]]&&{	Dn=${Dn%?};DR=1;}
+			DF=${Dn%-*};Du=${Dn#*-}
+			if((!Du)) ;then Du='the max depth'
+			elif((Du==DF)) ;then Du=;fi;;
+		-s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
+		-s=?|-s=??) se=${e:5};;
+		-aa)RL=;;
+		-rm|-delete)RM=1
+			((EP)) && { echo cannot both rm and exec option;return;};;
+		-exec|-execdir)
+			((RM+OL+EM)) && { echo cannot both -exec and -rm, -no or -0 option;return;}
+			E=$E$e\ ;EP=1;;
+		-ls) E=-ls\ $E;;
+		-s) sz=\ %s;;
+		-l|-l[0-9]|-l[1-9][0-9])	LD=1;n=${e:2}
+			((n)) ||: ${n:=1};
+			((n)) && lx=-maxdepth\ $n;;
+		-E|-re) RX=1;;
+		-no)OL=1
+			((EP)) && { echo cannot both -no and exec option;return;};;
+		-0)EM=1
+			((EP)) && { echo cannot both -0 and exec option;return;};;
+		-|--)	break;;
+		-s=*) echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
+		-de)de=1;;-i)if=1;;
+		-cs)I=;;
+		-co) co=1;;-ci)I=i;;
+		-m) tm=\ %Tx;;
+		-mh) tm=' %Tr %Tx';;
+		-a) tm=\ %Ax;;
+		-ah) tm=' %Ar %Ax';;
+		-c) tm=\ %Cx;;
+		-ch) tm=' %Cr %Cx';;
+		-h|--help)man find;return;;
+		-[HDLPO])po=$e;;
+		-printf)pt=("${pt[@]}" "$e");D=1;;
+		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	opt=$opt$e\ ;D=1;;
+		\!|-d|-depth|-daystart|-follow|-fprint|-fls|-group|-gid|-o|-xstype) opt=$opt$e\ ;;
+		-x=?*|-xs=?*)
 			((Fc))&&{	echo -c or -cp option must be the last>&2;return;}
 			[ ${a:2:1} = = ]&&J=i
 			x=${a#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
@@ -198,29 +192,26 @@ for a;{	((S))&&{	S=;continue;}
 			((EP+RM+if+de+OL+EM))&& { echo Cannot be both copy and removal, dependency, info, or $E option;return;}
 			((!F))&&{	echo -c or -cp option must be after main path name>&2;return;}
 			C=${a#-*=}
-			[[ $a = -*v= ]]&&vb=v
-			eval F${a:1:1}=1;	(($Fm))&&CM=mv
-			[[ ${a:2:1} = [uz] ]]&&eval F${a:2:1}=1
 			Fc=1;break;;
-		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)	[ $Fc ]&&{	echo Cannot be both copy and $a option;return;}
+		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)	[ $Fc ]&&{	echo Cannot be both copy and $e option;return;}
 			continue;;
-		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-exec|-execdir|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-D|-O|-ok|-inum|-mindepth|-maxdepth)	S=1;;
+		\!)continue;;
 		-|--)	L=1;continue;;
-		-\!|-*)continue
+		-*)	echo -e "\e[1;33m$e\e[m unknown option, if it\'d be a path name, put it after - or -- then space. ";read -n1 -p 'Ignore and continue (y for yes, else for no)? ' k;[ "$k" = y ]||return
 	esac
 	}
-	a=\"$a\"
+	a=\"$e\"
 	if((G));then
 		if((F));then	x_a=$x_a$a\ ;else			M=$M$a\ ;fi
 	elif((Fc)) ;then
-		((!F))&&{	echo -c or -cp option must be after searched path name>&2;return;};CP=$CP\"$a\"' '
+		((!F))&&{	echo -c or -cp option must be after searched path name>&2;return;};CP=$CP$a' '
 	elif ((L));then
 		if((F));then		M=$M$a
 		else		M=$a;	x_a=$x_a$M
 		fi;G=0
 	else	M=$M$a\ ;F=1;fi
 }
-[ "${M//\*}" ]||M=;M=${M//\\/\\\\}
+M=${M//\\/\\\\}
 eval set -- ${M:-\"\"}
 for e;{
 unset F T W a b B p z r re s
