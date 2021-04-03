@@ -198,7 +198,6 @@ for e;{
 		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)(($Fc))&&{	echo Cannot be both copy and $e option;return;};;
 		-|--)	L=1;;
 		-*)	echo -e "\e[1;33m$e\e[m unknown option, if it\'d be a path name, put it after - or -- then space. ";read -n1 -p 'Ignore and continue (y for yes, else for no)? ' k;[ "$k" = y ]||return;;
-
 		*) M=$M\ \"$e\";F=1
 	esac
 	continue
@@ -213,7 +212,6 @@ for e;{
 		fi;G=0
 	else	M=$M$a\ ;F=1;fi
 }
-
 M=${M//\\/\\\\};eval set -- ${M:-\"\"}
 for e;{
 unset F T W a b B p z r re s
