@@ -1,10 +1,10 @@
 fxr(){ ##### BEGINNING OF l, find wrap script #####
-local IFS B a b e i p re r z Z R r m=regex IFS=$'\n'
+local a b e i p re r z Z R s m=regex IFS=$'\n'
 [[ $1 =~ ^\./ ]]||re=1;e=${1#./}
 [[ $e =~ ^\.?\.?/ ]]&&{ echo Exclusion cannot be absolute, or upward \(..\) path. It\d be relative to \'$S\'>&2;return 1;}
 e=${e//$se/$'\n'};set -- $e
 [[ $1 =~ ^(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[2]};p=/${BASH_REMATCH[1]}
-B=${p%/*}
+a=${p%/*}
 r=("${p##*/}$z" ${@:2})
 (($#>1))&&p=$p$'\n'${e#*$'\n'}
 p=${p//\/..\//$'\t/'}
@@ -18,10 +18,9 @@ while [[ $p =~ ([^$'\f']|^)\* ]];do p=${p/"${BASH_REMATCH[0]}"/"${BASH_REMATCH[1
 b=${p%%$'\n'*}
 p=${b##*$'\v'}$z${p#"$b"}
 b=${b%$'\v'*}
-E1="echo Path \'\$a\' is invalid, it\'d be up beyond root. Ignoring>&2";E2="{ $E1;continue 2;}"
-i=;set -- ${p:-\"\"};for a;{ 
-if((!RE))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then
-	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[3]}
+i=;set -- ${p:-\"\"};for e;{ 
+if((!RE))&& [[ $b$e =~ ([^$'\f']|^)[*?[] ]];then
+	[[ $b$'\v'$e =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
 	[ "${BASH_REMATCH[1]}" ]&&{
 		Z=${Z-$S}${BASH_REMATCH[1]};[[ $Z =~ ^$'\t'($'\v'|$) ]]&&{ eval $E;continue;}
@@ -30,7 +29,7 @@ if((!RE))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then
 	while [[ $p =~ $'\v'[^/]+$'\t'($'\v'|$) ]];do p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^$'\t'($'\v'|$) ]]&&eval $E2;done
 	R="$Z${re+.*}${p//$'\v'/\/}"
 else
-	[[ $B/${r[i++]} =~ ^((/\.\.)*)/(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[4]}
+	[[ $a/${r[i++]} =~ ^((/\.\.)*)/(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[4]}
 	p=${BASH_REMATCH[3]};p=${p:+/$p}
 	[ "${BASH_REMATCH[1]}" ]&&{
 		Z=${Z-$S}${BASH_REMATCH[1]};[[ $Z =~ ^/\.\.(/|$) ]]&&{ eval $E:continue;}
@@ -42,9 +41,9 @@ fi
 case $z in /) z=-type\ d;;//) z=-type\ f;;///) z="\! -type d -executable";;////) z=-type\ l;esac
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 unset IFS
-r="$r $z -${J}$m \"$R\" -o"
+s=($s $z -${J}$m "$R" -o)
 }
-Rt=(\( "${r%-o}" \))
+Rt=(\( "${s[@]:0:((${#s[@]}-1))}" \))
 }
 ftm(){	local d f a e z x
 	d=${1:2};f=-${1:1:1}
@@ -141,8 +140,10 @@ for c;{
 }
 for e;{
 ((D)) &&{	if [ $pt ];then pt=$pt$e\ ;else	opt=(${opt[@]} $e);fi;D=;continue;}
-((EX))&&{	E=$@;E=(-exec ${E#*-exec});echo -exec use is discouraged, use the far better xargs piping, try to run it;break;}
-((EP))&&{	E=$@;E=(-execdir ${E#*-execdir});echo -execdir use is discouraged, use the far better xargs piping, try to run it;break;}
+((EX))&&{
+	echo -exec use is so discouraged relative to the far better xargs piping, try to use it
+	((Ex))&&E=$@;E=(-exec ${E#*-exec})
+	((Ed))&&E=$@;E=(-execdir ${E#*-execdir});break;}
 ((!L)) &&{
 	case $e in
 		-[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=(${opt[@]} ${Rt[@]});;
@@ -154,9 +155,9 @@ for e;{
 		-s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
 		-s=?|-s=??) se=${e:5};;
 		-aa)RL=;;
-		-rm|-delete)RM=1;((EX+EP)) && { echo cannot both rm and exec option;return;};;
-		-exec)EX=1;;
-		-execdir)EP=1;;
+		-rm|-delete)RM=1;((EX)) && { echo cannot both rm and exec option;return;};;
+		-exec)Ex=1;((EX=Ex+Ed));;
+		-execdir)Ed=1;((EX=Ex+Ed));;
 		-ls)E=(-ls "${E[@]}");;
 		-s) sz=\ %s;;
 		-l|-l[0-9]|-l[1-9][0-9])	LD=1;n=${e:2}
@@ -186,7 +187,7 @@ for e;{
 			G=1;;
 		-c=?*|-chd=*|-cpd=*|-cpdir=*|-cnr|-cnorec|-cto=?*) #|-m=?*|-mto=?*)
 			((!F))&&{	echo -c or -cp option must be after main path name, it must be the last argument>&2;return;}
-			((RF+if+de))||((EX+EP))&& { echo Cannot be both copy and removal, dependency, info, or exec option;return;}
+			((RF+if+de))||((EX))&& { echo Cannot be both copy and removal, dependency, info, or exec option;return;}
 			if [[ $e =~ ^-c[ph]di?r?=(.*) ]];then ch=${BASH_REMATCH[1]}
 				[ -e $ch ]||{ echo Parent directories do not exist>&2;return;};CH=1
 			elif [[ $e =~ ^-cno?re?c? ]];then CN=1
@@ -218,7 +219,8 @@ for e;{
 		fi;G=0
 	else	M=$M\ $a;F=1;fi
 }
-((RF=RM+OL+EM))&&{	((EX+EP))&&{ echo -exec cannot be with -rm, -no, -0 option;return;};po=;}
+E1="echo Path \'\$a\' is invalid, it\'d be up beyond root. Ignoring>&2";E2="{ $E1;continue 2;}"
+((RF=RM+OL+EM))&&{	((EX))&&{ echo -exec cannot be with -rm, -no, -0 option;return;};po=;}
 [ "${M//\*}" ]||M=
 M=${M//\\/\\\\};eval set -- ${M:-\"\"}
 for e;{
