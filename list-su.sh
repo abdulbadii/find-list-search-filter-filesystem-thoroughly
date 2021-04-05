@@ -1,5 +1,5 @@
 fxr(){ ##### BEGINNING OF l, find wrap script #####
-local IFS B a b e i p re r z Z Re R m=regex IFS=$'\n'
+local IFS B a b e i p re r z Z R r m=regex IFS=$'\n'
 [[ $1 =~ ^\./ ]]||re=1;e=${1#./}
 [[ $e =~ ^\.?\.?/ ]]&&{ echo Exclusion cannot be absolute, or upward \(..\) path. It\d be relative to \'$S\'>&2;return 1;}
 e=${e//$se/$'\n'};set -- $e
@@ -42,9 +42,9 @@ fi
 case $z in /) z=-type\ d;;//) z=-type\ f;;///) z="\! -type d -executable";;////) z=-type\ l;esac
 while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 unset IFS
-Re=(${Re+"${Re[@]}" -o} $z -${J}$m "$R")
+r="$r $z -${J}$m \"$R\" -o"
 }
-Rt=(\( "${Re[@]}" \))
+Rt=(\( "${r%-o}" \))
 }
 ftm(){	local d f a e z x
 	d=${1:2};f=-${1:1:1}
@@ -113,10 +113,10 @@ case $e in
 	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be as an excluded path>&2
 		((F))||{ F=1
 			fxr "$e"	;(($?))&&return 1
-			r=("${r[@]}" "${Rt[@]}");}
+			r=(\! \( "${r[@]}" "${Rt[@]}" \));}
 esac
 }
-X=(${X[@]} "${r[@]}" -o) #if this: ${F+-type d -prune} before -o then will exclude whole dir
+X=(${X[@]} "${r[@]}")
 }
 }
 fid(){
@@ -125,7 +125,7 @@ fid(){
 		[[ "$i" =~ ^[[:space:]]*([^>]+>\ *)?(.+)\ +\(0.+ ]] && echo -e "\t${BASH_REMATCH[2]}"
 	}
 }
-l(){	unset IFS D E F L G FC FM x_a M V X IS S J EM OL RM RX EP pt po opt se sz tm Dn DF Du DR DM dtx de if lx LD CH CN CO
+l(){	unset IFS D E EX EP F L G FC FM x_a M V X IS S J RM OL EM RX pt po opt se sz tm Dn DF Du DR DM dtx de if lx LD CH CN CO
 	RL=1;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
@@ -140,8 +140,9 @@ for c;{
 	set --
 }
 for e;{
-((D)) &&{	if [ $p ];then pt=$pt$e\ ;else	opt=(${opt[@]} $e);fi;D=;continue;}
-((EP))&&{ $E=$E$e\ ;EP=;continue;}
+((D)) &&{	if [ $pt ];then pt=$pt$e\ ;else	opt=(${opt[@]} $e);fi;D=;continue;}
+((EX))&&{	E=$@;E=(-exec ${E#*-exec});echo -exec use is discouraged, use the far better xargs piping, try to run it;break;}
+((EP))&&{	E=$@;E=(-execdir ${E#*-execdir});echo -execdir use is discouraged, use the far better xargs piping, try to run it;break;}
 ((!L)) &&{
 	case $e in
 		-[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=(${opt[@]} ${Rt[@]});;
@@ -153,17 +154,16 @@ for e;{
 		-s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
 		-s=?|-s=??) se=${e:5};;
 		-aa)RL=;;
-		-rm|-delete)RM=1;((EP)) && { echo cannot both rm and exec option;return;};;
-		-exec|-execdir)
-			((RM+OL+EM)) && { echo cannot both -exec and -rm, -no or -0 option;return;}
-			E=$E$e\ ;EP=1;;
-		-ls) E=-ls\ $E;;
+		-rm|-delete)RM=1;((EX+EP)) && { echo cannot both rm and exec option;return;};;
+		-exec)EX=1;;
+		-execdir)EP=1;;
+		-ls)E=(-ls "${E[@]}");;
 		-s) sz=\ %s;;
 		-l|-l[0-9]|-l[1-9][0-9])	LD=1;n=${e:2}
 			((n)) ||: ${n:=1};
 			((n)) && lx=-maxdepth\ $n;;
 		-E|-re) RX=1;;
-		-no|-0)((EP))&&{ echo cannot both $e and exec option;return;}
+		-no|-0)
 			if [ $e = -no ];then OL=1; else EM=1;fi;;
 		-s=*) echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
 		-de)de=1;;-i)if=1;;
@@ -174,7 +174,7 @@ for e;{
 		-ah) tm=' %Ar %Ax';;
 		-c) tm=\ %Cx;;
 		-ch) tm=' %Cr %Cx';;
-		-h|--help)man find&return;;
+		-h|--help)man find;return;;
 		-[HDLPO])po=$e;;
 		-printf)pt=("${pt[@]}" "$e");D=1;;
 		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-ok|-inum|-mindepth|-maxdepth)	opt=(${opt[@]} $e);D=1;;
@@ -185,36 +185,40 @@ for e;{
 			x_a=$x_a\ \"$x\"
 			G=1;;
 		-c=?*|-chd=*|-cpd=*|-cpdir=*|-cnr|-cnorec|-cto=?*) #|-m=?*|-mto=?*)
-			((!F))&&{	echo -c or -cp option must be after main path name and the last argument>&2;return;}
-			((EP+RM+if+de+OL+EM))&& { echo Cannot be both copy and removal, dependency, info, or $E option;return;}
+			((!F))&&{	echo -c or -cp option must be after main path name, it must be the last argument>&2;return;}
+			((RF+if+de))||((EX+EP))&& { echo Cannot be both copy and removal, dependency, info, or exec option;return;}
 			if [[ $e =~ ^-c[ph]di?r?=(.*) ]];then ch=${BASH_REMATCH[1]}
 				[ -e $ch ]||{ echo Parent directories do not exist>&2;return;};CH=1
 			elif [[ $e =~ ^-cno?re?c? ]];then CN=1
 			elif [[ $e =~ ^-cto=(.*) ]];then co=${BASH_REMATCH[1]};CO=1
-			else	[[ $e =~ ^-c=(.*) ]];c=${BASH_REMATCH[1]};FC=1
-			fi
+			else	[[ $e =~ ^-c=(.*) ]];c=${BASH_REMATCH[1]}
+			fi;FC=1:
 			break;;
-		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)(($Fc))&&{	echo Cannot be both copy and $e option;return;};;
+		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)(($FC))&&{	echo Cannot be both copy and $e option;return;};;
 		-|--)	L=1;;
 		-*)	echo -e "\e[1;33m$e\e[m unknown option, if it\'d be a path name, put it after - or -- then space. ";read -n1 -p 'Ignore and continue (y for yes, else for no)? ' k;[ "$k" = y ]||return;;
 	*)	if((G));then
 				x_a=$x_a\ \"$e\";FC=
 			elif((!F));then	M=\"$e\";F=1
 			elif((FC));then	c=$c\ \"$e\";G=
-			else			M=$M\ \"$e\";fi
+			else			M=$M\ \"$e\";F=1;fi
 	esac
 	continue
 	}
 	a=\"$e\"
-	if((G));then	if((F));then	x_a=$x_a$a\ ;else	M=$M$a\ ;fi
-	elif((FC)) ;then	((!F))&&{	echo -c or -cp option must be after searched path name>&2;return;}
-		C=$CP$a' '
+	if((G));then
+		((FC))&&{	echo -c or -cp option must be the last argument>&2;return;}
+		if((F));then	x_a=$x_a$a\ ;else	M=$M$a\ ;fi
+	elif((FC)) ;then
+		((!F))&&{	echo -c or -cp option must be after searched path name>&2;return;}
+		c=$c\ $a
 	elif ((L));then
 		if((F));then		M=$M\ $a
 		else		M=$a;	x_a=$x_a\ $M
 		fi;G=0
-	else	M=$M$a\ ;F=1;fi
+	else	M=$M\ $a;F=1;fi
 }
+((RF=RM+OL+EM))&&{	((EX+EP))&&{ echo -exec cannot be with -rm, -no, -0 option;return;};po=;}
 [ "${M//\*}" ]||M=
 M=${M//\\/\\\\};eval set -- ${M:-\"\"}
 for e;{
@@ -253,7 +257,7 @@ else
 	done
 	s=${s%/}
 fi	
-p=${p%/};B=${p%/*}					# if common base dir. of names is literal, it'd be in B, they're as array
+p=${p%/};a=${p%/*}					# if common base dir. of names is literal, it'd be a, they're as array r
 r=("${p##*/}$z" ${@:2})
 (($#>1))&&p=$p$'\n'${e#*$'\n'}			# else the regex-converted array are put in p, delimited by \n...
 p=${p//\/..\//$'\t/'}
@@ -269,10 +273,10 @@ p=${b##*$'\v'}$z${p#"$b"}
 b=${b%$'\v'*}
 break;}
 fi
-i=;set -- ${p:-\"\"};for a;{
-unset IFS F LK IS G Q R S x C L Z
-if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then LK=$LD
-	[[ $b$'\v'$a =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]]
+i=;set -- ${p:-\"\"};for e;{
+unset IFS F G LK IS PL Q R S x B L Z
+if((!RX))&& [[ $b$e =~ ([^$'\f']|^)[*?[] ]];then LK=$LD
+	[[ $b$'\v'$e =~ ^($'\t'*)$'\v'(.*[^/])?(/*)$ ]]
 	z=${BASH_REMATCH[3]}
 	p=${BASH_REMATCH[2]};p=${p:+$'\v'$p}
 	[ ${BASH_REMATCH[1]} ]&&{
@@ -288,7 +292,7 @@ if((!RX))&& [[ $b$a =~ ([^$'\f']|^)[*?[] ]];then LK=$LD
 	fi
 	p=${p//$'\v'/\/};R=$p
 else
-	[[ $B/${r[i++]} =~ ^((/\.\.)*)/(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[4]}
+	[[ $a/${r[i++]} =~ ^((/\.\.)*)/(.*[^/])?(/*)$ ]];z=${BASH_REMATCH[4]}
 	p=${BASH_REMATCH[3]};p=${p:+/$p}
 	[ ${BASH_REMATCH[1]} ]&&{
 		S=$s${BASH_REMATCH[1]};[[ $S =~ ^/\.\.(/|$) ]]&&{ eval $E1;continue;}
@@ -296,7 +300,7 @@ else
 	while [[ $p =~ /[^/]+/\.\.(/|$) ]];do	p=${p/"${BASH_REMATCH[0]}"/${BASH_REMATCH[1]}};[[ $p =~ ^/\.\.(/|$) ]]&&eval $E2;done
 	: ${S=${s-~+}}
 	if((RX));then	LF=$LD;R=${re+.*}$p
-	elif((re));then	F=1;Q=$S$p;	R=$Q/*
+	elif((re));then	F=1;Q=$S$p
 	else	S=$s$p;	[ -e "$S" ]||return
 		R=/$W*;W=;p=$R;	IS=$I
 		[ -f "$S" ]&&{ R=.*;x_a=;Q=;}
@@ -311,16 +315,15 @@ PE=(\( "${PD[@]}" -o "${PT[@]}" \))
 case $z in
 /)	P=("${PD[@]}");;//)	P=(-type f "${PT[@]}");;
 ///)	P=(! -type d -executable "${PD[@]}");;
-////) P=(-type l "${PT[@]}");;*) P=("${PE[@]}")
+////) P=(-type l "${PT[@]}");PL=1;;*) P=("${PE[@]}")
 esac
 P=("${P[@]}" "${pt[@]}")
 ((LD)) &&{
-	P=(-type d -prune -exec find {} $lx "${P[@]}" \; -o "${PL[@]}" -o "${PT[@]}");PE=(${P[@]})
+	P=(-type d -prune -exec find {} $lx "${P[@]}" \; -o "${PT[@]}");PE=(${P[@]})
 	[ $z ]&&{ z=/;echo type selective suffix if used with -l option will always be / \(find directory only\);};}
 [ "$S" = / ] ||{
-	((F)) ||R=".{${#S}}($R)"
-	[ $IS ] &&{ shopt -s nocaseglob;set +f;	printf -vS %s "${S:0: -1}"[${S: -1}];set -f;}
-}
+	((F))||	R=".{${#S}}($R)"
+	[ $IS ] &&{ shopt -s nocaseglob;set +f;	printf -vS %s "${S:0: -1}"[${S: -1}];set -f;};}
 Q=${Q-$S}
 ((DR))&&{	[[ `find $Q -printf '%d\n'|sort -nur` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((T))&&((RL))&&{
@@ -333,54 +336,54 @@ Q=${Q-$S}
 	fdt $Dn "$Q";opt=(${opt[@]} "${Rt[@]}")
 }
 [ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $DF${Du:+ to $Du}${DR+ reversed from max $DM} of $Q}${Dn+${dtx+ and }}${dtx+$dtx of $Q}">&2
-B=(\( "${X[@]}" "${P[@]}" \))
 if((F));then
-	A=($po "$S" ${opt[@]} \( -${I}path);C=(${p:+-o \! -type d -${I}path "$Q" "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"})
+	A=($po "$S" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
+	B=(${p:+-o \! -type d -${I}path "$Q" "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"})
 else
-	((RM))||x=(\! -ipath "$S");	A=($po "$S" "${x[@]}" ${opt[@]} -regextype posix-extended \( -${I}regex)
+	((RF))||x=(\! -ipath "$S");
+	A=($po "$S" ${opt[@]} "${x[@]}" -regextype posix-extended \( -${I}regex "$R" "${X[@]}")
 fi
-if((de));then	export -f fid;find "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) ! -type d -executable -exec bash -c 'fid "$0" "$@"' '{}' \;
-elif((if));then	find "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) ! -type d -exec bash -c '[[ `file "{}"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo "   ${BASH_REMATCH[1]}"' \;
+if((de));then	export -f fid;find "${A[@]}" "${P[@]}" "${B[@]}" \) ! -type d -executable -exec bash -c 'fid "$0" "$@"' '{}' \;
+elif((if));then	find "${A[@]}" "${P[@]}" "${B[@]}" \) ! -type d -exec bash -c '[[ `file "{}"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo "   ${BASH_REMATCH[1]}"' \;
 elif((co));then	> >(x=;F=;IFS=/;while read -r l;do
 		l=${l#?};l=${l%\'};((F=x=!F));m=${l: -1};: ${m:=/}
 		for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
-		echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find $L "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) $E
+		echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find $L "${A[@]}" "${P[@]}" "${B[@]}" \) "${E[@]}"
 else
-	((RM+OL+EM))&&{
-		((RM))&&2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) $E
-		((EM))&& E=(-empty ${PE[@]})
-		((OL))&&{ L=-L;E=(${E:+"${E[@]}" -o }-type l "${PL[@]}");}
-		unset B
-		if((F)) ;then	C=(-o -${I}path "$Q" -o -${I}path "$S/*$p" -o -${I}path "$S/*$p/*")
-		else			R="$R${W:+$R(/.*)}?";fi
+	((RF))&&{
+		((RM))&&2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find "${A[@]}" "${P[@]}" "${B[@]}" \) "${E[@]}"
+		((EM))&&	E=(-empty "${PE[@]}")
+		((OL))&&{	E=(${E:+"${EM[@]}" -o }-type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \));L=-L;}
+		if((F)) ;then	B=(-o -${I}path "$Q" -o -${I}path "$S/*$p" -o -${I}path "$S/*$p/*")
+		else	A=("$S" -regextype posix-extended \( -${I}regex "$R${W:+$R(/.*)}?" "${X[@]}");fi
+		unset P
 	}
-	((RM))||2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) $E
-	sudo find "${A[@]}" "$R" \( "${X[@]}" -true \) ${C:+-o \! -type d -${I}path "$Q" -o -${I}path "$S/*$p"} \) -type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \)>&2
-	if((RM+OL+EM));then
-		sudo find $L "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) $E| read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
+	((RM))||2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done) sudo find $L "${A[@]}" "${P[@]}" "${B[@]}" \) "${E[@]}"
+	((PL))&&{ echo;echo "Link resolution (shown on non-standard form to stderr, to keep it from piping):";sudo find $L "${A[@]}" "${B[@]}" \) -type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \)>&2;}
+	if((RF));then
+		sudo find $L "${A[@]}" "${B[@]}" \) "${E[@]}"| read -rn1 ||{ echo Nothing was found and deleted>&2;return;}
 		read -sN1 -p 'Remove the objects listed and all other objects under directories listed above (Enter: yes)? ' o>&2
-		[ "$o" = $'\x0a' ]&&{	((RM))||{	((EM))&&Z=-empty;	((OL))&&	Z="${Z+$Z -o }-type l";	Z=(\( $Z \));}
-			sudo find $L "${A[@]}" "$R" "${B[@]}" "${C[@]}" \) $Z -delete &&echo All deleted>&2
+		[ "$o" = $'\x0a' ]&&{
+			((RM))||{	((EM))&&Z=-empty;	((OL))&&	Z="${Z+$Z -o }-type l";	Z=(\( $Z \));}
+			sudo find $L "${A[@]}"  "${B[@]}" \) $Z -delete &&echo All deleted>&2
 		}
-	#elif((Fc));then
-		#sudo find "${A[@]}" "$R" "${B[@]}" "${C[@]}" \)|read -rn1 ||{ echo Nothing was found and copied>&2;return;}
+	#elif((FC));then
+		#sudo find "${A[@]}" "${P[@]}" "${B[@]}" \) "${E[@]}"|read -rn1 ||{ echo Nothing was found and copied>&2;return;}
 		#D='and all other objects';((CN))&&D='but not any object'
 		#read -sN1 -p 'Copy the objects listed $D under directories listed above (Enter: yes)? ' o>&2
 		#[ "$o" = $'\x0a' ]&&{	mkdir -p $ct 2>/dev/null
-		#if((T));then
-			
-			#((CH))&&{
-				#if [ "$ch" ];then
-				#pushd ${	A[1]=$ch}; A[1]=.
-				#else  pushd $S; A[1]=.;fi
+		#if((CH));then
+			#[ "$ch" ]&&{	pushd $ch
+				#p=${S#$ch}
+				#((${#p}==${#S}))&&{ echo "'$ch' is not part of directory path to copy";return;}
+				#echo sudo find "${A[@]}" "${P[@]}" "${B[@]}" \) "${E[@]}" |xargs -i cp --parents -ur '{}' $ct
+				#return
+				#popd
 			#}
-			#echo sudo find $A "$R" "${B[@]}" ${C[@]} \) |xargs -i cp --parents -ur '{}' $ct
-
 		#else
-			#:
-		#fi
-		#((CH))&&[ "$ch" ]||popd
-		#}
+			#echo sudo find "${A[@]}" "${P[@]}" "${B[@]}" \) ${E[@]} |xargs -i cp --parents -ur '{}' $ct
+			
+		#fi;}
 	fi;echo
 fi
 };};set +f;} ##### ENDING OF l, find wrap script #####
