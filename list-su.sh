@@ -43,7 +43,7 @@ while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATC
 unset IFS
 s=($s $z -${J}$m "$R" -o)
 }
-Rt=(\( "${s[@]:0:((${#s[@]}-1))}" \))
+unset s[-1];Rt=(\( "${s[@]}" \))
 }
 ftm(){	local d f a e z x
 	d=${1:2};f=-${1:1:1}
@@ -97,8 +97,7 @@ fdt(){	local a e A E
 fx(){	local D F L G H x r Rt RE S=$1;shift
 for a;{
 eval set -- \"$a\"
-unset F L G H r;for e;{
-case $e in
+unset F L G H r;for e;{ case $e in
 	-[cam][0-9]*|-[cam]-[0-9]*)	((L))&&continue;L=1
 		ftm $e;r=$Rt\ $r;;
 	-s[0-9]|-s[0-9][-cwbkMG]*|-s[-0-9][0-9]*)	((G))&&continue;G=1
@@ -114,9 +113,7 @@ case $e in
 			fxr "$e"	;(($?))&&return 1
 			r=(\! \( "${r[@]}" "${Rt[@]}" \));}
 esac
-}
-X=(${X[@]} "${r[@]}")
-}
+};X=(${X[@]} "${r[@]}");}
 }
 fid(){
 	[[ `file "$1"` =~ ^[^:]+:\ *[^,]*(symbolic|text|script$|pack( index)?$|^TDB) ]]&&return
@@ -185,24 +182,18 @@ for e;{
 			x=${e#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\ \"$x\"
 			G=1;;
-		-c=?*|-chd=*|-cpd=*|-cpdir=*|-cnr|-cnorec|-cto=?*) #|-m=?*|-mto=?*)
-			((!F))&&{	echo -c or -cp option must be after main path name, it must be the last argument>&2;return;}
+		-c=?*)
+			((!F))&&{	echo -c or -cp option must be after main search path, it must be the last argument>&2;return;}
 			((RF+if+de))||((EX))&& { echo Cannot be both copy and removal, dependency, info, or exec option;return;}
-			if [[ $e =~ ^-c[ph]di?r?=(.*) ]];then ch=${BASH_REMATCH[1]}
-				[ -e $ch ]||{ echo Parent directories do not exist>&2;return;};CH=1
-			elif [[ $e =~ ^-cno?re?c? ]];then CN=1
-			elif [[ $e =~ ^-cto=(.*) ]];then co=${BASH_REMATCH[1]};CO=1
-			else	[[ $e =~ ^-c=(.*) ]];c=${BASH_REMATCH[1]}
-			fi;FC=1:
-			break;;
+			[[ $e =~ ^-c=(.*) ]];c=${BASH_REMATCH[1]}
+			FC=1;L=1;;
 		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)(($FC))&&{	echo Cannot be both copy and $e option;return;};;
 		-|--)	L=1;;
 		-*)	echo -e "\e[1;33m$e\e[m unknown option, if it\'d be a path name, put it after - or -- then space. ";read -n1 -p 'Ignore and continue (y for yes, else for no)? ' k;[ "$k" = y ]||return;;
-	*)	if((G));then
-				x_a=$x_a\ \"$e\";FC=
-			elif((!F));then	M=\"$e\";F=1
-			elif((FC));then	c=$c\ \"$e\";G=
-			else			M=$M\ \"$e\";F=1;fi
+	*)if((G));then			x_a=$x_a\ \"$e\";FC=
+		elif((!F));then	M=\"$e\";F=1
+		elif((FC));then	c=$c\ \"$e\";G=
+		else			M=$M\ \"$e\";F=1;fi
 	esac
 	continue
 	}
@@ -210,9 +201,18 @@ for e;{
 	if((G));then
 		((FC))&&{	echo -c or -cp option must be the last argument>&2;return;}
 		if((F));then	x_a=$x_a$a\ ;else	M=$M$a\ ;fi
-	elif((FC)) ;then
-		((!F))&&{	echo -c or -cp option must be after searched path name>&2;return;}
-		c=$c\ $a
+	elif((FC)) ;then	((!F))&&{	echo copy options must be after searched path name>&2;return;}
+		case $e in
+		-chd=*|-cpd=*|-cpdir=*)
+			[[ $e =~ .+=(.*) ]]&& ch=${BASH_REMATCH[1]}
+			[ -e $ch ]||{ echo Parent directories do not exist>&2;return;}
+			CH=1;;
+		-cnr|-cnorec)CN=1;;
+		-cto=?*) #|-m=?*|-mto=?*)
+			[[ $e =~ ^-cto=(.*) ]]; co=${BASH_REMATCH[1]};CO=1;;
+		*)[ -e "$e" ] || echo $e not exist;return
+			c=$c\ $a
+		esac
 	elif ((L));then
 		if((F));then		M=$M\ $a
 		else		M=$a;	x_a=$x_a\ $M
@@ -342,8 +342,7 @@ if((F));then
 	A=($po "$S" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
 	B=(${p:+-o \! -type d -${I}path "$Q" "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"})
 else
-	((RF))||x=(\! -ipath "$S");
-	A=($po "$S" ${opt[@]} "${x[@]}" -regextype posix-extended \( -${I}regex "$R" "${X[@]}")
+	A=($po "$S" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}")
 fi
 if((de));then	export -f fid;find "${A[@]}" "${P[@]}" "${B[@]}" \) ! -type d -executable -exec bash -c 'fid "$0" "$@"' '{}' \;
 elif((if));then	find "${A[@]}" "${P[@]}" "${B[@]}" \) ! -type d -exec bash -c '[[ `file "{}"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo "   ${BASH_REMATCH[1]}"' \;
@@ -369,23 +368,25 @@ else
 			((RM))||{	((EM))&&Z=-empty;	((OL))&&	Z="${Z+$Z -o }-type l";	Z=(\( $Z \));}
 			sudo find $L "${A[@]}"  "${B[@]}" \) $Z -delete &&echo All deleted>&2
 		}
-	#elif((FC));then
-		#sudo find "${A[@]}" "${P[@]}" "${B[@]}" \) "${E[@]}"|read -rn1 ||{ echo Nothing was found and copied>&2;return;}
-		#D='and all other objects';((CN))&&D='but not any object'
-		#read -sN1 -p 'Copy the objects listed $D under directories listed above (Enter: yes)? ' o>&2
-		#[ "$o" = $'\x0a' ]&&{	mkdir -p $ct 2>/dev/null
-		#if((CH));then
-			#[ "$ch" ]&&{	pushd $ch
-				#p=${S#$ch}
-				#((${#p}==${#S}))&&{ echo "'$ch' is not part of directory path to copy";return;}
-				#echo sudo find "${A[@]}" "${P[@]}" "${B[@]}" \) "${E[@]}" |xargs -i cp --parents -ur '{}' $ct
-				#return
-				#popd
-			#}
-		#else
-			#echo sudo find "${A[@]}" "${P[@]}" "${B[@]}" \) ${E[@]} |xargs -i cp --parents -ur '{}' $ct
+	elif((FC));then
+		sudo find "${A[@]}" "${B[@]}" \)|read -rn1 ||{ echo Nothing was found and copied>&2;return;}
+		D='and all other objects';((CN))&&D='but not any object'
+		read -sN1 -p "Copy the objects listed $D under directories listed above into $c (Enter: yes)? " o>&2
+		[ "$o" = $'\x0a' ]&&{	mkdir -p $c 2>/dev/null
+		if((CH));then
+			[ "$ch" ]&&{
+				p=${S#$ch}
+				((${#p}==${#S}))&&{ echo "'$ch' is not part of target directory path to copy";return;}
+
+				[ $po ];A[1-$?]=$ch
+				echo sudo find "${A[@]}" \( -path '* *' -printf "'%P'$sz$tm\n" -o -printf "%P$sz$tm\n" \) "${B[@]}" \) "${E[@]}" |xargs -i cp --parents -ur '{}' $c
+
+				return
+			}
+		else
+			echo sudo find "${A[@]}" "${P[@]}" "${B[@]}" \)|xargs -i cp --parents -ur '{}' $c
 			
-		#fi;}
+		fi;}
 	fi;echo
 fi
 };};set +f;} ##### ENDING OF l, find wrap script #####
