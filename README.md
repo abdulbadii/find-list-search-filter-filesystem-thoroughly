@@ -189,3 +189,5 @@ One of the most useful features is the copying from the main result found.
 $ l /usr/bin -x=pyt* -c=/mnt/doc
 
 Copy all  objects in that directory except one having name python* with dthe usr/bin/... directory structure kept intact
+
+...wrting is being edited, for now just go on using `-c=`
