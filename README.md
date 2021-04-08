@@ -160,18 +160,34 @@ $ l /qt/src/../dev/core/../lib/*.c\\\\*.cpp\\\\*.o
 
 And the result is recognized reusable output in relative or absolute path (use -aa option to force always absolute path), surronded by single quote (e.g. '/home/go on') if it contains space which is ready to be piped correctly by **\| xargs** ...  
 
-## AUTOMATED REMOVAL
+## REMOVAL AUTOMATION
 
 Removal is readily guarded nicely. One needn't to test it first by a usual search without removal options below, instead go straight using it as it'll prompt user to confirm to execute the deletion as final decision, if there is a find result   
 `-0`    :  to remove every zero size file and empty directory sits under any directory found in the main search result
 `-no`  :  to remove all orphan links (no orphan) sits under any directory found in the main search result
-`-rm`  or `-delete` : to remove all objects of the main find result</pre>
+`-rm`  or `-delete` : to remove all objects on the main find result</pre>
 
 ## EXCLUSION
 
-Another most useful and powerful feature is the exclusion from the main result found. It's done by specifiying path and/or pattern in `-x=` option 
+Another useful and powerful feature is the exclusion from the main result found.  
+This is done by specifiying path and/or pattern in `-x=` option e.g.
+$ l /usr/bin -x=perl*
+
+get all objects in that directory except one having name perl*, e.g. perl, perl5, perl6.1
+
+$ l /usr/bin -x=pyt* perl*
+
+get all objects in that directory except one having name python*, e.g. pythagoras, python, and except perl*, e.g. perl, perl5, perl6.1
 
 ...wrting is being edited, for now just go on using `-x=`{search pattern}
 
+## DIRECTORY TREE CONTROLLED COPY OPERATION
 
+One of the most useful features is the copying from the main result found.  
 
+-c=
+$ l /usr/bin -x=pyt* -c=/mnt/doc
+
+Copy all  objects in that directory except one having name python* with dthe usr/bin/... directory structure kept intact
+
+...wrting is being edited, for now just go on using `-c=`
