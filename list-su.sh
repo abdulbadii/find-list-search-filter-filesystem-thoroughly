@@ -111,8 +111,9 @@ unset F L G H r;for e;{ case $e in
 	*)	[[ $e = -* ]]&&echo \'$e\': unrecognized exclusion option, it\'d be as an excluded path>&2
 		((F))||{ F=1
 			fxr "$e"	;(($?))&&return 1
-			r=(\! \( "${r[@]}" "${Rt[@]}" \));}
+			r=("${r[@]}" "${Rt[@]}");}
 esac
+r=(\! \( "${r[@]}" \))
 };X=(${X[@]} "${r[@]}");}
 }
 fid(){
@@ -122,7 +123,7 @@ fid(){
 	}
 }
 l(){
-	unset IFS D E EX EP F L G FC FM x_a M V X IS S J RM OL EM RX pt po opt se sz tm Dn DF Du DR DM dtx de if lx LD CH CO C1
+	unset IFS D E EX EP F L G FC FM x_a M V X IS S J RM OL EM RX pt po opt se sz tm Dn Dl Du DR DM dtx de if lx LD CH CO C1
 	CR=r;CP=--parents;RL=1;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
@@ -145,11 +146,9 @@ for e;{
 ((!L)) &&{
 	case $e in
 		-[mca][0-9]*|-[mca]-[0-9]*)	ftm $e;opt=(${opt[@]} ${Rt[@]});;
-		-[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])	Dn=${e:1}
+		-[1-9]|-[1-9][-0-9.]*|-[1-9][r/]|-[1-9][-0-9.]*[r/])Dn=${e:1}
 			[[ ${e: -1} = [r/] ]]&&{	Dn=${Dn%?};DR=1;}
-			DF=${Dn%-*};Du=${Dn#*-}
-			if((!Du)) ;then Du='the max depth'
-			elif((Du==DF)) ;then Du=;fi;;
+			;;
 		-s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
 		-s=?|-s=??) se=${e:5};;
 		-aa)RL=;;
@@ -178,32 +177,30 @@ for e;{
 		-printf)pt=("${pt[@]}" "$e");D=1;;
 		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-ok|-inum|-mindepth|-maxdepth)	opt=(${opt[@]} $e);D=1;;
 		\!|-d|-depth|-daystart|-follow|-fprint|-fls|-group|-gid|-o|-xstype) opt=(${opt[@]} $e);;
-		-x=?*|-xi=?*)	((FC))&&{	echo copy option must be the last>&2;return;}
+		-x=?*|-xi=?*)	((FC))&&{	echo copy option must be the last argument>&2;return;}
 			[ ${e:2:1} = i ]&&J=i
 			x=${e#-x*=};[[ $x =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1
 			x_a=$x_a\ \"$x\"
-			G=1;;
-		-co=?*|-copt=?*)CO=${e#*=};;
-		-caio)C1=1;;-cnr|-cnorec)CR=;;-chd=*|-cpd=*|-cpdir=*)CH=1;[[ $e =~ ^.+=(.*) ]];ch=${BASH_REMATCH[1]};;
+			G=1;L=1;;
+		-co=?*)CO=${e#*=};;
+		-caio|cino)C1=1;;-cnr|-cnorec)CR=;;-chd=*|-cpd=*|-cpdir=*)CH=1;[[ $e =~ ^.+=(.*) ]];ch=${BASH_REMATCH[1]};;
 		-c=?*)
-			((!F))&&{	echo copy option must be after main search path, it must be the last argument>&2;return;}
+			((!F))&&{	echo copy option must be after main search path, it must be the last>&2;return;}
 			((RF+if+de))||((EX))&& { echo Cannot be both copy and removal, dependency, info, or exec option;return;}
 			[[ $e =~ ^-c=(.*) ]];c=${BASH_REMATCH[1]}
 			FC=1;L=1;;
 		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)(($FC))&&{	echo Cannot be both copy and $e option;return;};;
 		-|--)	L=1;;
-		-*)	echo -e "Unknown \e[1;33m$e\e[m option, as copy option it must be short, in one string if multiple. If it\'s a path name, put it after - or -- then space\n";read -n1 -p 'Ignore and continue (y for yes, else for no)? ' k;[ "$k" = y ]||return;;
-	*)if((G));then			x_a=$x_a\ \"$e\";FC=
-		elif((!F));then	M=\"$e\";F=1
-		elif((FC));then	c=$c\ \"$e\";G=
-		else			M=$M\ \"$e\";F=1;fi
+		-*)	echo -e "Unknown \e[1;33m$e\e[m option, as copy option it must be in short, in one string if multiple. If it\'s a path name, put it after - or -- then space\n";read -n1 -p 'Ignore and continue (Enter: yes, else is no)? ' k;[ "$k" = $'\x0a' ]||return;;
+	*)if((G));then		x_a=$x_a\ \"$e\";FC=
+		elif((F));then	M=$M\ \"$e\";
+		else			M=\"$e\";F=1;fi
 	esac
 	continue
 	}
 	a=\"$e\"
 	if((G));then
-		((FC))&&{	echo copy option must be the last argument>&2;return;}
-		if((F));then	x_a=$x_a\ $a;else	M=$M$a\ ;fi
+		if((F));then	x_a=$x_a\ $a;else	M=$M\ $a;fi
 	elif((FC)) ;then	((!F))&&{	echo copy options must be after searched path name>&2;return;}
 		case $e in
 		-co=?*|-copt=?*)CO=${e#*=};;
@@ -326,16 +323,19 @@ LC_ALL=C
 	[ $IS ] &&{ shopt -s nocaseglob;set +f;printf -vS %s "${S:0: -1}"[${S: -1}];set -f;}
 	((T))&&((RL))&&{	S=.
 		Q=.$p;R=.$p
-		while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
-	}
+		while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done;}
 }
 Q=${Q-$S}
 ((DR))&&{	[[ `find $Q -printf '%d\n'|sort -nur` =~ [1-9]+ ]];DM=${BASH_REMATCH[0]};}
 ((V))||{	eval ${x_a:+fx $Q $x_a};(($?))&&return;V=1;}
-((DF))&& [ "$Q" ]&&{
-	fdt $Dn "$Q";opt=(${opt[@]} "${Rt[@]}")
+[ "$Dn" ]&&{
+	e=;((F))&&{	e=${p//[!\/]};e=${#e};}
+	if [[ $Dn = *-* ]];then
+		Dl=${Dn%-*};opt=(-mindepth $((e+Dl)) "${opt[@]}" )
+		Du=${Dn#*-};(($Du))&&opt=(-maxdepth $((e+Du)) "${opt[@]}")
+	else	Du=$Dn;opt=(-maxdepth $((e+Du)) "${opt[@]}");fi
 }
-[ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is depth $DF${Du:+ to $Du}${DR+ reversed from max $DM} of $Q}${Dn+${dtx+ and }}${dtx+$dtx of $Q}">&2
+[ "$Dn$dtx" ]&&echo "${Dn+Option \"-$Dn\" is the depth${Dl+ $Dl}${Du:+ up to $Du}${DR+ reversed from max $DM} of $Q}${Dn+${dtx+. And }}${dtx+$dtx of $Q}">&2
 if((F));then
 	A=($po "$S" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
 	B=(${p:+-o \! -type d -${I}path "$Q" "${PT[@]}" -o -${I}path "$S/*$p" "${PE[@]}"})
