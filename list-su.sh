@@ -123,7 +123,7 @@ fid(){
 		[[ "$i" =~ ^[[:space:]]*([^>]+>\ *)?(.+)\ +\(0.+ ]] && echo -e "\t${BASH_REMATCH[2]}";}
 }
 l(){
-unset IFS F L G E EX EP P M x_a V X IS J S RX pt po opt se sz s D Dl Du DF DR DM dtx de if lx LD Z RM OL EM C CH CN C1 CT CM MV c ch mh
+unset IFS F L G E EX EP P M x_a V X IS J S RX D Dl Du DF DR DM co pt po opt se sz s dtx de if lx LD Z RM OL EM C CH CN C1 CT CM MV c ch mh
 CR=-r;CO=--preserve=all;CP=--parents;RL=1;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
@@ -169,7 +169,7 @@ for e;{
 		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)
 			((CM))&&{	echo Cannot be both copy or move and $e option;return;}
 			[[ $e =~ ^-rm|^-del ]]&&RM=1;;
-		-x=?*|-xi=?*)((G))&&{ echo Let it be just one -x=;return;}
+		-x=?*|-xi=?*)((G))&&{ echo Must be just one -x=;return;}
 			((CM))&&{	echo copy option must be the last argument>&2;return;}
 			[ ${e:2:1} = i ]&&J=i
 			x_a=\"${e#-x*=}\";[[ $x_a =~ ^-[1-9].*\.?[r/]$ ]]&&Rd=1;G=1;;
@@ -373,11 +373,11 @@ else
 		if [ -e $c ];then
 			echo -e "\nWARNING: '$c' exists !\n"
 			eval echo \"Replace it with$PO
-			read -N1 -p "Or no, but instead copy them into it, or quit? (n: no, else: quit) " o>&2
+			read -N1 -p "Or no, instead copy them into it, or quit? (n: no, else: quit) " o>&2
 			if [ "$o" = $'\x0a' ];then	sudo rm -rf "$c"||return
 			elif [ "$o" = n ];then	c=$c/${CN##*/}
 			else return;fi
-		else			eval read -N1 -p \"Copy as a new \\"$c\\" $PO o>&2;[ "$o" = $'\x0a' ]||return
+		else			eval read -N1 -p \"Copy as $c $PO o>&2;[ "$o" = $'\x0a' ]||return
 		fi
 		echo;mkdir -p "$c"||return;
 		if((C1));then CP=;CR=;ND='! -type d'
