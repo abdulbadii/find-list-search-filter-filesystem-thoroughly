@@ -147,20 +147,21 @@ for e;{
 		-[1-9]|-[1-9][-0-9.]*|-[1-9][r/])D=${e:1}
 			[[ ${e: -1} = [r/] ]]&&{	D=${D%?};DR=1;};;
 		-s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
-		-s=?*|-sep=?*) se=${e#*=};;-aa)RL=;;
+		-aa)RL=;;
+		-s=*|-sep=*) se=${e#*=}
+			[ $se ]||echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
 		-exec)Ex=1;((EX=Ex+Ed));;-execdir)Ed=1;((EX=Ex+Ed));;
 		-ls)E=(-ls "${E[@]}");;
 		-l|-l[0-9]|-l[1-9][0-9])	LD=1;n=${e:2}
 			((n)) ||: ${n:=1};
 			((n)) && lx=-maxdepth\ $n;;
-		-E|-re) RX=1;;
-		-no)OL=1;;-0)EM=1;;
-		-s=*) echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
+		-E|-re) RX=1;;-no)OL=1;;-0)EM=1;;
 		-de)de=1;;-i)if=1;;-cs)I=;;-co)co=1;;-ci)I=i;;
 		-s) Z=$Z\ %s;;
 		-m) Z=\ %Tx$Z;;-mh) Z=\ %Tr\ %Tx$Z;;
 		-a) Z=\ %Ax$Z;;-ah) Z=\ %Ar\ %Ax$Z;;
 		-c) Z=\ %Cx$Z;;-ch) Z=\ %Cr\ %Cx$Z;;
+		-[HDLPO])po=$e;;-printf)pt=("${pt[@]}" "$e");D=1;;
 		-h|--help)man find;return;;
 		-[HDLPO])po=$e;;
 		-printf)pt=("${pt[@]}" "$e");D=1;;
