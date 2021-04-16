@@ -123,7 +123,7 @@ fid(){
 		[[ "$i" =~ ^[[:space:]]*([^>]+>\ *)?(.+)\ +\(0.+ ]] && echo -e "\t${BASH_REMATCH[2]}";}
 }
 l(){
-unset IFS F L G E EX EP P M x_a V X IS J S RX pt po opt se sz s D Dl Du DF DR DM dtx de if lx LD Z RM OL EM C CN C1 CT CM MV c ch mh
+unset IFS F L G E EX EP P M x_a V X IS J S RX pt po opt se sz s D Dl Du DF DR DM dtx de if lx LD Z RM OL EM C CH CN C1 CT CM MV c ch mh
 CR=-r;CO=--preserve=all;CP=--parents;RL=1;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
@@ -147,25 +147,24 @@ for e;{
 		-[1-9]|-[1-9][-0-9.]*|-[1-9][r/])D=${e:1}
 			[[ ${e: -1} = [r/] ]]&&{	D=${D%?};DR=1;};;
 		-s[0-9]|-s[0-9][-cwbkmMgG]*|-s[-0-9][0-9]*)	fsz $e;opt=(${opt[@]} ${Rt[@]});;
-		-aa)RL=;;
 		-s=*|-sep=*) se=${e#*=}
 			[ $se ]||echo "Separator must be 1 or 2 characters. Ignoring, it defaults to \\">&2;;
-		-exec)Ex=1;((EX=Ex+Ed));;-execdir)Ed=1;((EX=Ex+Ed));;
-		-ls)E=(-ls "${E[@]}");;
+		-aa)RL=;;-ls)E=(-ls "${E[@]}");;
 		-l|-l[0-9]|-l[1-9][0-9])	LD=1;n=${e:2}
 			((n)) ||: ${n:=1};
 			((n)) && lx=-maxdepth\ $n;;
-		-E|-re) RX=1;;-no)OL=1;;-0)EM=1;;
 		-de)de=1;;-i)if=1;;-cs)I=;;-co)co=1;;-ci)I=i;;
 		-s) Z=$Z\ %s;;
 		-m) Z=\ %Tx$Z;;-mh) Z=\ %Tr\ %Tx$Z;;
 		-a) Z=\ %Ax$Z;;-ah) Z=\ %Ar\ %Ax$Z;;
 		-c) Z=\ %Cx$Z;;-ch) Z=\ %Cr\ %Cx$Z;;
+		-E|-re) RX=1;;-no)OL=1;;-0)EM=1;;
 		-[HDLPO])po=$e;;-printf)pt=("${pt[@]}" "$e");D=1;;
 		-h|--help)man find;return;;
 		-[HDLPO])po=$e;;
 		-printf)pt=("${pt[@]}" "$e");D=1;;
 		-[cam]min|-[cam]time|-size|-samefile|-use[dr]|-newer|-newer[aBcmt]?|-anewer|-xtype|-type|-group|-uid|-perm|-links|-fstype|-ipath|-name|-[il]name|-ilname|-iregex|-path|-context|-ok|-inum|-mindepth|-maxdepth)	opt=(${opt[@]} $e);P=1;;
+		-exec)Ex=1;((EX=Ex+Ed));;-execdir)Ed=1;((EX=Ex+Ed));;
 		\!|-d|-depth|-daystart|-follow|-fprint|-fls|-group|-gid|-o|-xstype) opt=(${opt[@]} $e);;
 		-rm|-delete|-exec|-execdir|-i|-de|-no|-0)
 			((CM))&&{	echo Cannot be both copy or move and $e option;return;}
@@ -185,7 +184,7 @@ for e;{
 				-cio=?*)C1=1;;-ctree=?*)CT=1;;
 				-cnr=?*)CR=
 			esac;	c=\"${e#*=}\";((L=CM=C=1));;
-		-chd=?*|-cpd=?*|-cpdir=?*)[[ $e =~ ^.+=(.*)/*$ ]];ch=${BASH_REMATCH[1]};;
+		-chd=*|-cpd=*|-cpdir=*)[[ $e =~ ^.+=(.*)/*$ ]];ch=${BASH_REMATCH[1]};CH=1;;
 		-copt=?*)CO=${e#*=}\ $CO;;
 		-*)echo -e "Unknown \e[1;33m$e\e[m option. Copy option is one letter, gathered in a string if multiple. If it\'d be a path name, put it after - or -- then space\n";read -n1 -p 'Ignore and continue (Enter: yes, else is no)? ' k;[ "$k" = $'\x0a' ]||return;;
 		*)if((G))&&((F));then	x_a=$x_a\ \"$e\"
@@ -214,7 +213,7 @@ for e;{
 unset F T a b p r re s z;W=.
 if [ "${e:0:2}" = \\/ ];then	z=${e:2};[ "$z" = *[!/]* ]&&return;s=/			# start with \\, means root dir search
 else
-re=1;T=1 # doT relative path on output and recursive initialized TRUE
+re=1;T=1 # doT relative path on output and recursive initialized True
 e=${e//${se='\\'}/$'\n'}
 IFS=$'\n';set -- $e			# break down to paths of same base, separated by \\ or $se
 for a;{									# a fake loop to diffrentiate the with and without path argument, once then breaks
@@ -317,7 +316,8 @@ else
 	}
 	P="${re:+.*}($P)"
 	if((T))&&((RL));then
-		S=.;Q=.$p;R=.$P
+		S=.;Q=.$p
+		R=${W:-$Q}$P
 		while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 	else	((F))||R=".{${#S}}$P";fi
 fi
@@ -352,8 +352,7 @@ else
 	PP=(\( -path '* *' -printf "'%p'\n" -o -printf "%p\n" \))
 	case $z in	/)PS=(-type d "${PP[@]}");;//)PS=(-type f "${PP[@]}");;///)PS=(! -type d -executable "${PP[@]}");;////)PS=(-type l "${PP[@]}");;*)PS=("${PP[@]}");esac
 	D='and all objects'
-	PO=' the objects listed above $D under any directory above? (Enter: yes) " o>&2'
-	((RF))&&a=delet;((C))&&a=copi;((MV))&&a=mov
+	PO=' the objects listed above $D under any directory above? (Enter: yes) "'
 	((RF))&&{
 		((EM)) &&	E=(-empty "${PE[@]}")
 		((OL)) &&{	E=(${E:+"${EM[@]}" -o }-type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \));L=-L;}
@@ -364,7 +363,7 @@ else
 	find $L "${A[@]}" "${AF[@]}" \)| read -rn1||{ echo Nothing has been found and ${a}ed>&2;return;}
 	if((RF));then
 		((OL+EM)) &&find $L "${A[@]}" "${PS[@]}" "${AF[@]}" \) "${E[@]}"
-		eval read -N1 -p \"Delete$PO
+		eval read -N1 -p \"Delete$PO o>&2
 		[ "$o" = $'\x0a' ]||return
 		find $L "${A[@]}" "${PP[@]}" "${AF[@]}" \) $Z -delete &&echo All deleted>&2
 	elif((C));then
@@ -372,16 +371,17 @@ else
 		: ${ch=$CN}
 		eval set -- $c;for c;{
 		if [ -e $c ];then
-			echo -e "\nWARNING: '$c' exists !"
-			read -N1 -p "Do you want to replace it, or no i.e. just copy into it, or quit? (Enter: yes, n: no, else: quit) " o>&2
+			echo -e "\nWARNING: '$c' exists !\n"
+			eval echo \"Replace it with$PO
+			read -N1 -p "Or no, but instead copy them into it, or quit? (n: no, else: quit) " o>&2
 			if [ "$o" = $'\x0a' ];then	rm -rf "$c"||return
 			elif [ "$o" = n ];then	c=$c/${CN##*/}
 			else return;fi
-		else			eval read -N1 -p \"Copy$PO;	[ "$o" = $'\x0a' ]||return
+		else			eval read -N1 -p \"Copy as a new \\"$c\\" $PO o>&2;[ "$o" = $'\x0a' ]||return
 		fi
-		mkdir -p "$c"||return;
+		echo;mkdir -p "$c"||return;
 		if((C1));then CP=;CR=;ND='! -type d'
-		elif [ "$ch" ];then
+		elif((CH));then
 			if [ "$ch" = . ];then	pushd $S>/dev/null;		if((T));then R=.$p ;else R=.$P;fi
 			else	G=
 				if((T));then	[ ${ch:0:1} != / ];G=$?;	p=${p#/};ch=${ch#./};h=${p#$ch};	Q=.$h;R=$Q
@@ -401,7 +401,7 @@ else
 		else
 			(find $po "${S[@]}" ${opt[@]} $ND "${A[@]}" "${PS[@]}" "${AF[@]}" \) |sudo xargs -i cp $CO $CP $CR '{}' "$c" &&echo Successfuly copied)2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
 		fi
-		[ "$ch" ]&&popd>/dev/null
+		((CH))&&popd>/dev/null
 		}
 	elif((MV));then
 		:
