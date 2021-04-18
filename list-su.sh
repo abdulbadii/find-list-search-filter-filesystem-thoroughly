@@ -123,7 +123,7 @@ fid(){
 		[[ "$i" =~ ^[[:space:]]*([^>]+>\ *)?(.+)\ +\(0.+ ]] && echo -e "\t${BASH_REMATCH[2]}";}
 }
 l(){
-unset IFS F L G E EX EP P M x_a V X IS J S Q RX D Dl Du DF DR DM co pt po opt se sz s dtx de if lx LD Z RM OL EM C CN C1 CT CM MV c ch mh
+unset IFS F L G E EX EP P M x_a V X IS J S Q RX D Dl Du DF DR DM co pt po opt se sz s dtx de if lx LD Z RM OL EM C C1 CT CM MV c ch mh
 CR=-r;CO=--preserve=all;CP=--parents;RL=1;I=i
 set -f;trap 'set +f;unset IFS' 1 2
 [[ `history 1` =~ ^\ *[0-9]+\ +(.+)$ ]];h=${BASH_REMATCH[1]}
@@ -177,14 +177,13 @@ for e;{
 			((RM+C))&&{ echo Cannot be both copy or remove, and $e option;return;}
 			((F))||{	echo move option must be after main search path, it must be the last>&2;return;}
 			[[ $e = -mio* ]]&&M1=1;	c=\"${e#*=}\";((L=CM=MV=1));;
-		-mhd=*|-mpd=*|-mpdir=*)MH=1;[[ $e =~ ^.+=(.*) ]];mh=${BASH_REMATCH[1]};;
+		-mhd=*|-mpd=*|-mpdir=*)MH=1;[[ $e =~ ^.+=(.*[^/]?)/* ]];mh=${BASH_REMATCH[1]};;
 		-c=?*|-cio=?*|-ctree=?*|-ciod=?*|-cnr=?*)((RM+MV))&&{ echo Cannot be both remove or move, and $e option;return;}
 			((F))||{	echo copy option must be after main search path, it must be the last>&2;return;}
-			case $e in
-				-cio=?*)C1=1;;-ctree=?*)CT=1;;
-				-cnr=?*)CR=
-			esac;	c=\"${e#*=}\";((L=CM=C=1));;
-		-chd=*|-cpd=*|-cpdir=*)[[ $e =~ ^.+=(.*[^/])/*$ ]];ch=${BASH_REMATCH[1]};;
+			case $e in			-cio=?*)C1=1;;	-ctree=?*)CT=1;;-cnr=?*)CR=
+			esac
+			c=\"${e#*=}\";((L=CM=C=1));;
+		-chd=?*|-cpd=?*|-cpdir=?*)[[ $e =~ =(.*[^/]?)/*$ ]];ch=${BASH_REMATCH[1]};;
 		-copt=?*)CO=${e#*=}\ $CO;;
 		-*)echo -e "Unknown \e[1;33m$e\e[m option. Copy option is one letter, gathered in a string if multiple. If it\'d be a path name, put it after - or -- then space\n";read -n1 -p 'Ignore and continue (Enter: yes, else is no)? ' k;[ "$k" = $'\x0a' ]||return;;
 		*)if((G))&&((F));then	x_a=$x_a\ \"$e\"
@@ -197,11 +196,10 @@ for e;{
 	if((G));then	if((F));then	x_a=$x_a\ $a;else	M=$a;fi
 	elif((C)) ;then
 		((!F))&&{	echo copy option must be after search path name>&2;return;}
-		if [[ $e  =~ ^-c[hp]di?r?=(.*[^/])/*$ ]];then	ch=${BASH_REMATCH[1]}
-		else
-			c=$c\ $a;fi
+		if [[ $e  =~ ^-c[hp]di?r?=(.*[^/]/*|/)$ ]];then	ch=${BASH_REMATCH[1]}
+		else			c=$c\ $a;fi
 	elif((MV)) ;then	((!F))&&{	echo move option must be after search path name>&2;return;}
-		[[ $e =~ ^m[hd]i?r?=(.*[^/])/*$ ]]&&mh=${BASH_REMATCH[1]}
+		[[ $e =~ ^m[hd]i?r?=(.*[^/]?)/*$ ]]&&mh=${BASH_REMATCH[1]}
 	elif((F));then		M=$M\ $a
 	else		M=$a;F=1;fi
 }
@@ -293,7 +291,7 @@ else
 	elif((re));then			F=1;Q=$S$p
 	else
 		IS=$I;	S=$s$p;P=/$W*;W=
-		if((T));then CN=.$p;else CN=$S;fi
+		[ "$ch" ]	||	if((T));then ch=.$p;else ch=$S;fi
 		[ -e "$S" ]&&[ -d "$S" ]||{ P=.*;x_a=
 			[ $D$dtx ]&&echo Search path turns out not a directory. Ignoring depth option>&2;D=;dtx=;}
 	fi
@@ -315,9 +313,7 @@ else
 	[ $IS ]&&{
 		shopt -s nocaseglob;set +f;S=("${S:0: -1}"[${S: -1}]);set -f;[ -e "$S" ]||{ ((RF+CM))||return;	S=-false;};}
 	P="${re:+.*}($P)"
-	if((T))&&((RL));then
-		Z=$S;S=.;Q=.$p
-		R=${W:-$Q}$P
+	if((T))&&((RL));then	Z=$S;S=.;Q=.$p;	R=${W:-$Q}$P
 		while [[ $R =~ $'\f'([]*?[]) ]];do R=${R/"${BASH_REMATCH[0]}"/\\\\"${BASH_REMATCH[1]}"};done
 	else	((F))||R=".{${#S}}$P";fi
 fi
@@ -351,7 +347,7 @@ else
 ((RF+CM))&&{	unset o E ND
 	PP=(\( -path '* *' -printf "'%p'\n" -o -printf "%p\n" \))
 	case $z in	/)PS=(-type d "${PP[@]}");;//)PS=(-type f "${PP[@]}");;///)PS=(! -type d -executable "${PP[@]}");;////)PS=(-type l "${PP[@]}");;*)PS=("${PP[@]}");esac
-	if [ "$CN" ];then PO=' the whole $CN directory above? (Enter: yes) "'
+	if [ ! $W ];then PO=' the whole $S directory above? (Enter: yes) "'
 	else D='and whole content of any';PO=' the objects above $D directory above? (Enter: yes) "';fi
 	((RF))&&{
 		((EM)) &&	E=(-empty "${PE[@]}")
@@ -368,31 +364,26 @@ else
 		sudo find $L "${A[@]}" "${PP[@]}" "${AF[@]}" \) "${E[@]}" -delete &&echo All deleted>&2
 	elif((C));then
 		[ $CR ]||D='but only path of'
-		: ${ch=$CN}
 		eval set -- $c;for c;{	echo
 		if [ -e $c ];then
 			echo "WARNING: '$c' exists !"
 			eval echo \"Replace it with$PO
-			read -N1 -p "Or no, instead copy them into it, or quit? (n: no, else: quit) " o>&2
+			read -N1 -p "If no, instead it'll copy them into it, or quit? (n: no, else: quit) " o>&2
 			if [ "$o" = $'\x0a' ];then	sudo rm -rf "$c"||return
-			elif [ "$o" = n ];then	c=$c/${CN##*/}
+			elif [ "$o" = n ];then	c=$c/${S##*/}
 			else return;fi
 		else			eval read -N1 -p \"Copy as $c$PO o>&2;[ "$o" = $'\x0a' ]||return;fi
 		echo;mkdir -p "$c"||return;
 		if((C1));then CP=;CR=;ND='! -type d'
-		elif((${ch+1}));then
-			if [ "$ch" ];then	G=
-				if((T));then	[ ${ch:0:1} != / ];G=$?;	p=${p#/};ch=${ch#./}
-					Q=.${p#$ch};R=$Q
-				else			[ ${ch:0:1} = / ];G=$?
-					[ "$ch" = / ]&&R=.$S$P
-					R=.${S#$ch}$P
-				fi
-				((${#h}==${#S}))||((G))&&{ echo "'$ch' not part of the resolved search path string, or has implicit .. name, or does not exist">&2;return;}
-				pushd $ch>/dev/null
-			else	pushd $S>/dev/null
-				if((T));then R=.$p ;else R=.$P;fi
+		elif [ ! "$ch" ];then
+			pushd $S>/dev/null;			if((T));then R=.$p ;else R=.$P;fi
+		elif [ "$ch" != / ];then	G=
+			if((T));then	[ ${ch:0:1} != / ];G=$?;	p=${p#/};ch=${ch#./}
+				Q=.${p#$ch};R=$Q
+			else			[ ${ch:0:1} = / ];G=$?;			ch=${ch%/};	R=.${S#$ch}$P
 			fi
+			((${#h}==${#S}))||((G))&&{ echo "'$ch' not part of the resolved search path string, or has implicit .. name, or does not exist">&2;return;}
+			pushd $ch>/dev/null
 			S=.
 		fi
 		if((F));then	A=(\( -${I}path "$Q/*" "${X[@]}");AF=(${p:+-o \( -${I}path "$Q" -o -${I}path "$S/*$p" \) "${PP[@]}"})
@@ -405,7 +396,7 @@ else
 		else
 			(sudo find $po "${S[@]}" ${opt[@]} $ND "${A[@]}" "${PS[@]}" "${AF[@]}" \) |sudo xargs -i cp $CO $CP $CR '{}' "$c" &&echo -n Successfully copied)2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
 		fi
-		((${ch+1}))&&popd>/dev/null
+		[ $ch != / ]&&popd>/dev/null
 		}
 	elif((MV));then
 		:
