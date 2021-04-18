@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-unset S n s nn sn
+unset S n s nn sn F
 TMOUT=$'\x0a'
 N=${BASH_SOURCE[0]};dir=$(cd `dirname "$N"`&&pwd)
 [[ `sed -En '/\s#{5,}\s*BEGINNING OF l, find/{=;p;q}' ~/.bashrc` =~ ^([0-9]+)[[:space:]]+(.+) ]];
@@ -11,26 +11,24 @@ sn="${BASH_REMATCH[2]}"
 T=list-su.sh
 if((n));then
 	((nn)) ||{ echo But broken as its end mark was not found;return;exit;}
-	echo -e "\nAttention, the pattern:\n\n\t\'$s\'\n\nwas found in ~.bashrc at line number $n till line $nn:\n\n\t$sn"
+	echo -e "\nAttention: the pattern:\n\n\t\'$s\'\n\nwas found in ~/.bashrc at line number $n till line $nn:\n\n\t$sn"
 	if [ "$1" = -r ] ;then
 		read -sN1 -p 'Confirm  to uninstall/remove it from ~/.bashrc. (Enter: yes) ? ' o;[ "$o" = $'\x0a' ]&&{
 			echo Removing the tool script from ~/.bashrc start from line $n up to line $nn...
 			sed -i -e "$n,${nn}d" ~/.bashrc
 		}
 	else
-		echo Updating from github...
+		echo;echo Updating from github...
 		git pull ||{	d=find-list-search-filter-filesystem-thoroughly
-			git clone --depth 1 https://github.com/abdulbadii/$d; cd $dir/$d;}
-		echo -ne "\nUpdating, copying $T to replace its previous one starts at line $n of ~/.bashrc...\n\nHit u key in 5 s to have installation for user without sudo, otherwise now or after timeout is to install with sudo... "
+			git clone --depth 1 https://github.com/abdulbadii/$d; pushd $dir/$d;F=1;}
+		echo -ne "\nUpdating, copying $T to replace its previous one starts at line $n in ~/.bashrc...\n\nHit u key in 5 s to have installation for user without sudo. Otherwise now or after timeout would install with sudo... "
 		read -N1 -t5 o;	[ "$o" = u ]&&T=list.sh
-		if [ "$1" = -n?* ]	;then	m=${1:2}
-			echo -ne "\nUpdating and setting the tool name to \'$m\' ... "
-			sed -e "$n e sed 's/^l\\(\\)\\{/$m(){/' $T" -e "$n,${nn}d" ~/.bashrc &&echo done, now should be invoked by: $m
-		else
-			echo -ne "\nUpdating as default name 'l'... "
-			sed -i -e "${n}r$T" -e "$n,${nn}d" ~/.bashrc&&echo done, now should be invoked by: l;fi
-		cd-
+		if [ "$1" = -n?* ]	;then
+			m=${1:2};	sed -i -e "$n e sed 's/^l\\(\\)\\{/$m(){/' $T" -e "$n,${nn}d" ~/.bashrc
+		else	m=l;	sed -i -e "${n}r$T" -e "$n,${nn}d" ~/.bashrc;fi
+		((F))&&popd
 	fi
+	(($?))||echo -ne "\nUpdating, confirming the tool name as \"$m\" ...done, now should be invoked by: $m"
 else
 	echo -e "\nNot found a line with pattern\n\t\"$s\"\nas the header mark"
 	for e;{
