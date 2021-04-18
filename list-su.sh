@@ -330,8 +330,7 @@ Q=${Q-$S}
 		Du=${D%.};opt=(${DF:+-mindepth $((e+Du)) }-maxdepth $((e+Du)) ${opt[@]});fi
 }
 [ "$D$dtx" ]&&echo "${D+Option \"-$D\" is the depth${Dl+ $Dl}${Du:+ ${DF:-up to $Du}}${DR+ reversed from max $DM} of $Q}${D+${dtx+. And }}${dtx+$dtx of $Q}">&2
-if((F));then
-		A=($po "${S[@]}" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
+if((F));then	A=($po "${S[@]}" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
 		AF=(${p:+-o \( -${I}path "$Q" -o -${I}path "$S/*$p" \) "${PE[@]}"})
 else
 		A=($po "${S[@]}" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}")
@@ -343,11 +342,13 @@ elif((co));then	> >(x=;F=;IFS=/;while read -r l;do
 		for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
 		echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find "${A[@]}" "${PS[@]}" "${AF[@]}" \) "${E[@]}"
 else
-((OL+EM)) || sudo find "${A[@]}" "${PS[@]}" "${AF[@]}" \) "${E[@]}"&&((LN))&&{ echo Link resolution:;sudo find "${A[@]}" "${AF[@]}" \) -type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \);}>&2
+((OL+EM)) ||
+	 sudo find "${A[@]}" ${CT+-type d} "${PS[@]}" "${AF[@]}" \) "${E[@]}"&&((LN))&&{ echo Link resolution:;sudo find "${A[@]}" "${AF[@]}" \) -type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \);}>&2
+
 ((RF+CM))&&{	unset o E ND
 	PP=(\( -path '* *' -printf "'%p'\n" -o -printf "%p\n" \))
 	case $z in	/)PS=(-type d "${PP[@]}");;//)PS=(-type f "${PP[@]}");;///)PS=(! -type d -executable "${PP[@]}");;////)PS=(-type l "${PP[@]}");;*)PS=("${PP[@]}");esac
-	if [ ! $W ];then PO=' the whole $S directory above? (Enter: yes) "'
+	if [ ! $W ];then PO=' the whole $S directory${CT+ structure} above? (Enter: yes) "'
 	else D='and whole content of any';PO=' the objects above $D directory above? (Enter: yes) "';fi
 	((RF))&&{
 		((EM)) &&	E=(-empty "${PE[@]}")
@@ -366,7 +367,7 @@ else
 		[ $CR ]||D='but only path of'
 		eval set -- $c;for c;{	echo
 		if [ -e $c ];then
-			echo "WARNING: '$c' exists !"
+			echo "WARNING: copy target '$c' exists!"
 			eval echo \"Replace it with$PO
 			read -N1 -p "If no, instead it'll copy them into it, or quit? (n: no, else: quit) " o>&2
 			if [ "$o" = $'\x0a' ];then	sudo rm -rf "$c"||return
