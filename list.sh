@@ -289,9 +289,8 @@ else
 	: ${S=${s-~+}}
 	if((RX));then	P=$p
 	elif((re));then			F=1;Q=$S$p
-	else
-		IS=$I;	S=$s$p;P=/$W*;W=
-		[ "$ch" ]	||	if((T));then ch=.$p;else ch=$S;fi
+	else			IS=$I;	S=$s$p;P=/$W*;W=
+		[ "$ch" ]	||{			ch=$S;((T))&&ch=.$p	;}
 		[ -e "$S" ]&&[ -d "$S" ]||{ P=.*;x_a=
 			[ $D$dtx ]&&echo Search path turns out not a directory. Ignoring depth option>&2;D=;dtx=;}
 	fi
@@ -330,8 +329,14 @@ Q=${Q-$S}
 		Du=${D%.};opt=(${DF:+-mindepth $((e+Du)) }-maxdepth $((e+Du)) ${opt[@]});fi
 }
 [ "$D$dtx" ]&&echo "${D+Option \"-$D\" is the depth${Dl+ $Dl}${Du:+ ${DF:-up to $Du}}${DR+ reversed from max $DM} of $Q}${D+${dtx+. And }}${dtx+$dtx of $Q}">&2
-if((F));then	A=($po "${S[@]}" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
-		AF=(${p:+-o \( -${I}path "$Q" -o -${I}path "$S/*$p" \) "${PE[@]}"})
+if((F));then
+	A=($po "${S[@]}" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
+	[ "$p" ]&&{
+		PC=(\( -path '* *' -printf "\033[1;36m'%p'$Z\033[m\n" -o -printf "\033[1;36m'%p$Z\033[m\n" \))
+		PK=(-type d \( -path '* *' -printf "\033[1;36m'%p/'$Z\033[m\n" -o -printf "\033[1;36m'%p/$Z\033[m\n" \))
+		#PI=(\( "${PC[@]}" -o "${PK[@]}" \))
+		AF=(-o \( -${I}path "$Q" ! -type d -o -${I}path "$S/*$p" \) \( "${PC[@]}" -o "${PK[@]}" \))
+	}
 else
 		A=($po "${S[@]}" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}")
 fi
@@ -342,8 +347,7 @@ elif((co));then	> >(x=;F=;IFS=/;while read -r l;do
 		for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
 		echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	find "${A[@]}" "${PS[@]}" "${AF[@]}" \) "${E[@]}"
 else
-((OL+EM)) ||
-	 find "${A[@]}" ${CT+-type d} "${PS[@]}" "${AF[@]}" \) "${E[@]}"&&((LN))&&{ echo Link resolution:;sudo find "${A[@]}" "${AF[@]}" \) -type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \);}>&2
+((OL+EM)) ||find "${A[@]}" ${CT+-type d} "${PS[@]}" "${AF[@]}" \) "${E[@]}"&&((LN))&&{ echo Link resolution:;sudo find "${A[@]}" "${AF[@]}" \) -type l \( -path '* *' -printf "'%p' -> '%l'\n" -o -printf "%p -> %l\n" \);}>&2
 
 ((RF+CM))&&{	unset o E ND
 	PP=(\( -path '* *' -printf "'%p'\n" -o -printf "%p\n" \))
@@ -369,7 +373,7 @@ else
 		if [ -e $c ];then
 			echo "WARNING: copy target '$c' exists!"
 			eval echo \"Replace it with$PO
-			read -N1 -p "If no, instead it'll copy them into it, or quit? (n: no, else: quit) " o>&2
+			read -N1 -p "Or if no instead, copy the above merge into it or abort? (n: no, else: abort) " o>&2
 			if [ "$o" = $'\x0a' ];then	rm -rf "$c"||return
 			elif [ "$o" = n ];then	c=$c/${S##*/}
 			else return;fi
@@ -377,27 +381,31 @@ else
 		echo;mkdir -p "$c"||return;
 		if((C1));then CP=;CR=;ND='! -type d'
 		elif [ ! "$ch" ];then
-			pushd $S>/dev/null;			if((T));then R=.$p ;else R=.$P;fi
+			if((T));then R=.$p ;else R=.$P;fi
 		elif [ "$ch" != / ];then	G=
-			if((T));then	[ ${ch:0:1} != / ];G=$?;	p=${p#/};ch=${ch#./}
-				Q=.${p#$ch};R=$Q
-			else			[ ${ch:0:1} = / ];G=$?;			ch=${ch%/};	R=.${S#$ch}$P
+			if((T));then	[ ${ch:0:1} != / ];G=$?;
+				#p=${p#/};ch=${ch#./}
+				#Q=.${p#$ch};R=$Q
+			else			[ ${ch:0:1} = / ];G=$?
+				#R=.${S#$ch}$P
 			fi
 			((${#h}==${#S}))||((G))&&{ echo "'$ch' not part of the resolved search path string, or has implicit .. name, or does not exist">&2;return;}
-			pushd $ch>/dev/null
-			S=.
+			S=$ch
+			PS+=([-9]=-printf "'%P'\n");for i in {-7..-1} ;{ unset PS[i];}
 		fi
-		if((F));then	A=(\( -${I}path "$Q/*" "${X[@]}");AF=(${p:+-o \( -${I}path "$Q" -o -${I}path "$S/*$p" \) "${PP[@]}"})
-		else			A=(-regextype posix-extended \( -${I}regex "$R" "${X[@]}")
-		fi
-		if((CT));then
-			find "${S[@]}" ${opt[@]} -type d "${A[@]}" "${AF[@]}" \) -exec bash -c "for d ;{ mkdir -p $c/\$d;chmod --reference=\$d $c/\$d; chown --reference=\$d $c/\$d; touch --reference=\$d $c/\$d;} " '{}' + &&echo -n Successfully copied
+
+		if((F));then
+			A=(\( -${I}path "$Q/*" "${X[@]}");AF=(${p:+-o \( -${I}path "$Q" -o -${I}path "$S/*$p" \) "${PP[@]}"})
+		else			A=(-regextype posix-extended \( -${I}regex "$R" "${X[@]}");fi
+
+		(if((CT));then	find "${S[@]}" ${opt[@]} -type d "${A[@]}" "${AF[@]}" \) -exec bash -c "for d ;{ mkdir -p $c/\$d;chmod --reference=\$d $c/\$d; chown --reference=\$d $c/\$d; touch --reference=\$d $c/\$d;} " '{}' +
 		elif [ ! $CR ];then
-			(find $po "${S[@]}" ${opt[@]} "${A[@]}" "${PS[@]}" "${AF[@]}" \) |sudo xargs bash -c "for d ;{ if [ -d \"\$d\" ];then mkdir -p $c/\$d; chmod --reference=\$d $c/\$d; chown --reference=\$d $c/\$d; touch --reference=\$d $c/\$d; else cp $CO $CP \"\$d\" $c;fi;}" &&echo -n Successfully copied)2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
+			find $po "${S[@]}" ${opt[@]} $ND "${A[@]}" "${PS[@]}" "${AF[@]}" \) |sudo xargs bash -c "for d ;{ if [ -d \"\$d\" ];then mkdir -p $c/\$d; chmod --reference=\$d $c/\$d; chown --reference=\$d $c/\$d; touch --reference=\$d $c/\$d; else cp $CO $CP \"\$d\" $c;fi;}"
 		else
-			(find $po "${S[@]}" ${opt[@]} $ND "${A[@]}" "${PS[@]}" "${AF[@]}" \) |sudo xargs -i cp $CO $CP $CR '{}' "$c" &&echo -n Successfully copied)2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
+			find $po "${S[@]}" ${opt[@]} "${A[@]}" "${PS[@]}" "${AF[@]}" \) |sudo xargs -i cp $CO $CP $CR $S/'{}' "$c"
 		fi
-		[ $ch != / ]&&popd>/dev/null
+		(($?))||echo -n Successfully copied)
+		#2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
 		}
 	elif((MV));then
 		:
