@@ -291,7 +291,7 @@ else
 	elif((re));then			F=1;Q=$S$p
 	else
 		IS=$I;	S=$s$p;P=/$W*;W=
-		[ "$ch" ]	||	if((T));then ch=.$p;else ch=$S;fi
+		[ "$ch" ]	||{			ch=$S;((T))&&ch=.$p	;}
 		[ -e "$S" ]&&[ -d "$S" ]||{ P=.*;x_a=
 			[ $D$dtx ]&&echo Search path turns out not a directory. Ignoring depth option>&2;D=;dtx=;}
 	fi
@@ -323,15 +323,21 @@ Q=${Q-$S}
 [ "$D" ]&&{	unset DF e 
 	((F))&&{	e=${p//[!\/]};e=${#e};}
 	if [[ $D = *-* ]];then
-		Dl=${D%-*};opt=(-mindepth $((e+Dl)) ${opt[@]} )
-		Du=${D#*-};(($Du))&&opt=(-maxdepth $((e+Du)) ${opt[@]})
+		Du=${D#*-};	opt=(-mindepth $((e+Dl)) ${DU:+-maxdepth $((e+Du))} ${opt[@]} )
+		Dl=${D%-*}${DU:- up to max depth}
 	else
-		DF=${D//[0-9]};DF=${DF//./${D%.} only}
-		Du=${D%.};opt=(${DF:+-mindepth $((e+Du)) }-maxdepth $((e+Du)) ${opt[@]});fi
+		DF=${D//[0-9]};DF=${DF//./${D%.} only};	Du=${D%.}
+		opt=(${DF:+-mindepth $((e+Du)) }-maxdepth $((e+Du)) ${opt[@]});fi
 }
 [ "$D$dtx" ]&&echo "${D+Option \"-$D\" is the depth${Dl+ $Dl}${Du:+ ${DF:-up to $Du}}${DR+ reversed from max $DM} of $Q}${D+${dtx+. And }}${dtx+$dtx of $Q}">&2
-if((F));then	A=($po "${S[@]}" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
-		AF=(${p:+-o \( -${I}path "$Q" -o -${I}path "$S/*$p" \) "${PE[@]}"})
+if((F));then
+	A=($po "${S[@]}" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
+	[ "$p" ]&&{
+		PC=(\( -path '* *' -printf "\033[1;36m'%p'$Z\033[m\n" -o -printf "\033[1;36m'%p$Z\033[m\n" \))
+		PK=(-type d \( -path '* *' -printf "\033[1;36m'%p/'$Z\033[m\n" -o -printf "\033[1;36m'%p/$Z\033[m\n" \))
+		#PI=(\( "${PC[@]}" -o "${PK[@]}" \))
+		AF=(-o \( -${I}path "$Q" ! -type d -o -${I}path "$S/*$p" \) \( "${PC[@]}" -o "${PK[@]}" \))
+	}
 else
 		A=($po "${S[@]}" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}")
 fi
@@ -369,25 +375,24 @@ else
 		if [ -e $c ];then
 			echo "WARNING: copy target '$c' exists!"
 			eval echo \"Replace it with$PO
-			read -N1 -p "If no, instead it'll copy them into it, or quit? (n: no, else: quit) " o>&2
+			read -N1 -p "Or If no, copy them being merged into it, or abort? (n: no, else: abort) " o>&2
 			if [ "$o" = $'\x0a' ];then	rm -rf "$c"||return
 			elif [ "$o" = n ];then	c=$c/${S##*/}
 			else return;fi
 		else			eval read -N1 -p \"Copy as $c$PO o>&2;[ "$o" = $'\x0a' ]||return;fi
 		echo;mkdir -p "$c"||return;
 		if((C1));then CP=;CR=;ND='! -type d'
-		elif [ ! "$ch" ];then
-			pushd $S>/dev/null;			if((T));then R=.$p ;else R=.$P;fi
-		elif [ "$ch" != / ];then	G=
-			if((T));then	[ ${ch:0:1} != / ];G=$?;	p=${p#/};ch=${ch#./}
-				Q=.${p#$ch};R=$Q
-			else			[ ${ch:0:1} = / ];G=$?;			ch=${ch%/};	R=.${S#$ch}$P
-			fi
-			((${#h}==${#S}))||((G))&&{ echo "'$ch' not part of the resolved search path string, or has implicit .. name, or does not exist">&2;return;}
+		elif [ ! "$ch" ];then			pushd $S>/dev/null
+			if((T));then R=.$p ;else R=.$P;fi
+		elif [ "$ch" != / ];then
+			[ ${ch:0:1} = / ];G=$?
+			if((T));then			p=${p#/};ch=${ch#./};	Q=.${p#$ch};R=$Q;	((G=1-G))
+			else									ch=${ch%/};	R=.${S#$ch}$P	;fi
+			((${#h}==${#S}))||((G))&&{ echo "'$ch' is not part of the resolved search path, or has implicit .. name, or does not exist">&2;return;}
 			pushd $ch>/dev/null
 			S=.
 		fi
-		if((F));then	A=(\( -${I}path "$Q/*" "${X[@]}");AF=(${p:+-o \( -${I}path "$Q" -o -${I}path "$S/*$p" \) "${PP[@]}"})
+		if((F));then	A=(\( -${I}path "$Q/*" "${X[@]}");AF=(${p:+-o \( -${I}path "$Q" ! -type d -o -${I}path "$S/*$p" \) "${PP[@]}"})
 		else			A=(-regextype posix-extended \( -${I}regex "$R" "${X[@]}")
 		fi
 		if((CT));then
