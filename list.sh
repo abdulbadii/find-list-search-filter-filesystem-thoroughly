@@ -363,9 +363,9 @@ else
 		else	A=("${S[@]}" -regextype posix-extended \( -${I}regex "$R${W:+$R(/.*)}?" "${X[@]}");fi
 		a=remov;}
 	((C))&&a=copi;((MV))&&a=mov
-	find "${A[@]}" -print "${B[@]}" \)| read -n1||{ echo Nothing has been found and ${a}ed>&2;return;}
+	find $L "${A[@]}" "${B[@]}" \) "${E[@]}"| read -n1||{ echo Nothing has been found and ${a}ed>&2;return;}
 	if((RF));then
-		((OL+EM))&&find $L "${A[@]}" "${PS[@]}" "${B[@]}" \) "${E[@]}"
+		((OL+EM))&&find $L "${A[@]}" "${B[@]}" \) "${E[@]}"&&((OL)){ echo Orphan link resolution:;sudo find "${A[@]}" "${B[@]}" \) "${PL[@]}";}>&2
 		eval read -N1 -p \"Delete$PO o>&2;[ "$o" = $'\x0a' ]||return
 		find $L "${A[@]}" "${PP[@]}" "${B[@]}" \) "${E[@]}" -delete &&echo All deleted>&2
 	elif((C));then
