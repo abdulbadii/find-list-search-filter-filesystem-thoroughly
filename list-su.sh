@@ -365,7 +365,7 @@ else
 	((C))&&a=copi;((MV))&&a=mov
 	sudo find $L "${A[@]}" "${B[@]}" \) "${E[@]}"| read -n1||{ echo Nothing has been found and ${a}ed>&2;return;}
 	if((RF));then
-		((OL+EM))&&sudo find $L "${A[@]}" "${B[@]}" \) "${E[@]}"&&((OL)){ echo Orphan link resolution:;sudo find "${A[@]}" "${B[@]}" \) "${PL[@]}";}>&2
+		((OL+EM))&&sudo find $L "${A[@]}" "${B[@]}" \) "${E[@]}"&&((OL))&&{ echo Orphan link resolution:;sudo find "${A[@]}" "${B[@]}" \) "${PL[@]}";}>&2
 		eval read -N1 -p \"Delete$PO o>&2;[ "$o" = $'\x0a' ]||return
 		sudo find $L "${A[@]}" "${PP[@]}" "${B[@]}" \) "${E[@]}" -delete &&echo All deleted>&2
 	elif((C));then
