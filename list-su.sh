@@ -158,7 +158,7 @@ for e;{
 		-m) Z=\ %Tx$Z;;-mh) Z=\ %Tr\ %Tx$Z;;
 		-a) Z=\ %Ax$Z;;-ah) Z=\ %Ar\ %Ax$Z;;
 		-c) Z=\ %Cx$Z;;-ch) Z=\ %Cr\ %Cx$Z;;
-		-E|-re) RX=1;;-no)OL=1;;-0)EM=1;;
+		-E|-re)RX=1;;-no)OL=1;;-0)EM=1;;
 		-[HDLPO])po=$e;;-printf)pt=("${pt[@]}" "$e");D=1;;
 		-h|--help)man find;return;;
 		-[HDLPO])po=$e;;
@@ -204,8 +204,8 @@ for e;{
 	else		M=$a;F=1;fi
 }
 E1="echo Path \'\$a\' is invalid, it goes up beyond root. Ignoring>&2";E2="{ $E1;continue 2;}"
-((CM))||((RF=RM+OL+EM))&&{	((EX))&&{ echo -exec otion cannot be with -rm, -no, -0, -c= or -m= option;return;};po=;}
-
+((CM))||((RF=RM+OL+EM))&&{	((EX))&&{
+	echo -exec option cannot be with -rm, -no, -0, -c= or -m= option;return;};po=;}
 PT=(\( -path '* *' -printf "'%p'$Z\n" -o -printf "%p$Z\n" \))
 PD=(-type d \( -path '* *' -printf "'%p/'$Z\n" -o -printf "%p/$Z\n" \))
 PE=(\( "${PD[@]}" -o "${PT[@]}" \))
@@ -343,6 +343,24 @@ if((F));then	A=($po "${S[@]}" ${opt[@]} \( -${I}path "$Q/*" "${X[@]}")
 else
 		A=($po "${S[@]}" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}")
 fi
+sudo find "${A[@]}" ${CT+-type d} "${PS[@]}" "${AA[@]}" \) "${E[@]}"&&((LN))&&{ echo Link resolution:;sudo find "${A[@]}" "${AA[@]}" \) "${PL[@]}";}>&2
+
+[ "$po" = -L ] ||{
+	sudo find . -type l -xtype d -printf "'%p'\n" |tee /tmp/.0 |read -n1 &&{
+	cat <<<'Search in directory to which the below link(s) point(s) ?' - /tmp/.0
+	read -N1 -p '(Enter: Yes)' i
+	[ "$i" = $'\x0a' ] &&{
+		eval set -- `cat /tmp/.0`; sudo find -L "$@" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}" \( "${PD[@]}" -o "${PT[@]}" \)/
+	};}
+}
+
+((de+if+RF+CM))&&{
+	#((OL+EM))&&
+	:
+}	
+
+}
+}
 
 if((de));then	export -f fid;find "${A[@]}" "${PS[@]}" "${AA[@]}" \) ! -type d -executable -exec bash -c 'fid "$0" "$@"' '{}' \;
 elif((if));then	find "${A[@]}" "${PS[@]}" "${AA[@]}" \) ! -type d -exec bash -c '[[ `file "{}"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo "   ${BASH_REMATCH[1]}"' \;
@@ -351,7 +369,6 @@ elif((co));then	> >(x=;F=;IFS=/;while read -r l;do
 		for i in $l;{	((x=!x))&&c=||c=1\;36;echo -ne "\e[${c}m${i:+/$i}">&2;}
 		echo -e "\e[41;1;33m${m%[!/]}\e[m">&2;done)	sudo find "${A[@]}" "${PS[@]}" "${AA[@]}" \) "${E[@]}"
 else
-((OL+EM)) || sudo find "${A[@]}" ${CT+-type d} "${PS[@]}" "${AA[@]}" \) "${E[@]}"&&((LN))&&{ echo Link resolution:;sudo find "${A[@]}" "${AA[@]}" \) "${PL[@]}";}>&2
 
 ((RF+CM))&&{
 	PP=(-printf "'%p'\n")
@@ -413,8 +430,7 @@ else
 		 (($?))||echo Successfully copied)2> >(while read s;do echo -e "\e[1;31m$s\e[m">&2;done)
 		 [ "$ch" != / ]&&popd>/dev/null
 		}
-	elif((MV));then
-	:
-	fi
+	elif((MV));then	:;fi
 	}
-fi;};};set +f;} ##### ENDING OF l, find wrap script #####
+fi
+set +f;} ##### ENDING OF l, find wrap script #####
