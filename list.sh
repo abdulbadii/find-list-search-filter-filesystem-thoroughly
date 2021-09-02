@@ -204,8 +204,8 @@ for e;{
 	else		M=$a;F=1;fi
 }
 E1="echo Path \'\$a\' is invalid, it goes up beyond root. Ignoring>&2";E2="{ $E1;continue 2;}"
-((CM))||((RF=RM+OL+EM))&&{	((EX))&&{
-	echo -exec option cannot be with -rm, -no, -0, -c= or -m= option;return;};po=;}
+((CM))||((RF=RM+OL+EM))&&{	((EX))&&{	echo -exec option cannot be with -rm, -no, -0, -c= or -m= option;return;};po=;}
+
 PT=(\( -path '* *' -printf "'%p'$Z\n" -o -printf "%p$Z\n" \))
 PD=(-type d \( -path '* *' -printf "'%p/'$Z\n" -o -printf "%p/$Z\n" \))
 PE=(\( "${PD[@]}" -o "${PT[@]}" \))
@@ -347,20 +347,18 @@ find "${A[@]}" ${CT+-type d} "${PS[@]}" "${AA[@]}" \) "${E[@]}"&&((LN))&&{ echo 
 
 [ "$po" = -L ] ||{
 	find . -type l -xtype d |tee /tmp/.0 |read -n1 &&{
-	cat <<<'Search in directory to which the below link(s) point(s) ?' - /tmp/.0
-	read -N1 -p '(Enter: Yes)' i
-	[ "$i" = $'\x0a' ] &&{
-		mapfile -t a</tmp/.0; find -L "${a[@]}" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}" \( "${PD[@]}" -o "${PT[@]}" \) \)
+		mapfile -t a</tmp/.0
+		echo 'Search into which the below link(s) point(s) ?'>&2;find "${a[@]}" "${PL[@]}"
+		read -N1 -p '(Enter: Yes)' i>&2
+		[ "$i" = $'\x0a' ] &&{
+			find -L "${a[@]}" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}" \( "${PD[@]}" -o "${PT[@]}" \) \)
 	};}
 }
 
 ((de+if+RF+CM))&&{
-	#((OL+EM))&&
-	:
+	: #((OL+EM))&&
 }	
-
-}
-}
+};}
 
 if((de));then	export -f fid;find "${A[@]}" "${PS[@]}" "${AA[@]}" \) ! -type d -executable -exec bash -c 'fid "$0" "$@"' '{}' \;
 elif((if));then	find "${A[@]}" "${PS[@]}" "${AA[@]}" \) ! -type d -exec bash -c '[[ `file "{}"` =~ ^[^:]+:\ *([^,]+$|[^,]+\ ([^,]+)) ]];echo "   ${BASH_REMATCH[1]}"' \;
