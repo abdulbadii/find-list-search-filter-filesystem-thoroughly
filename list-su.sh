@@ -346,11 +346,11 @@ fi
 sudo find "${A[@]}" ${CT+-type d} "${PS[@]}" "${AA[@]}" \) "${E[@]}"&&((LN))&&{ echo Link resolution:;sudo find "${A[@]}" "${AA[@]}" \) "${PL[@]}";}>&2
 
 [ "$po" = -L ] ||{
-	sudo find . -type l -xtype d -printf "'%p'\n" |tee /tmp/.0 |read -n1 &&{
+	sudo find . -type l -xtype d |tee /tmp/.0 |read -n1 &&{
 	cat <<<'Search in directory to which the below link(s) point(s) ?' - /tmp/.0
 	read -N1 -p '(Enter: Yes)' i
 	[ "$i" = $'\x0a' ] &&{
-		eval set -- `cat /tmp/.0`; sudo find -L "$@" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}" \( "${PD[@]}" -o "${PT[@]}" \)/
+		mapfile -t a</tmp/.0; sudo find -L "${a[@]}" ${opt[@]} -regextype posix-extended \( -${I}regex "$R" "${X[@]}" \( "${PD[@]}" -o "${PT[@]}" \) \)
 	};}
 }
 
